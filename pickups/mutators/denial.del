@@ -1,0 +1,46 @@
+import "../../main.del";
+import ".mmain.del";
+playervar Any[] denialMutatorEffect;
+
+rule: "[Mutator] :: Denial : Set Status"
+Event.OngoingPlayer
+if (mutatorEnabled[6])
+{
+    LogToInspector(<"Denial given to <0>", mutatorUser>);
+    SetStatus(player, null, Status.Unkillable, 999999999);
+    CreateEffect(All(), Effect.EchoCloningEffect, Color.White, player);
+    denialMutatorEffect[0] = LastCreatedEntity();
+    CreateEffect(player, Effect.BaptisteImmortalityFieldProtectedSound, Color.White, player, 100);
+    denialMutatorEffect[1] = LastCreatedEntity();
+}
+
+rule : "[Mutator] :: Denial : Player has 1 HP Remove Status"
+Event.OnDamageTaken
+if (mutatorEnabled[6])
+if (Ceil(Health()) == 1)
+{
+    LogToInspector(<"Denial removed from <0>", mutatorUser>);
+
+    // force the player to have 0 time left to call the mutator position/timer functions 
+    StopChasingVariable(mutatorNormalTimeLeft);
+    mutatorNormalTimeLeft = 0; 
+
+    RemoveMutator();
+    mutatorIndex -= chosenMutator; // remove the chosen mutator from the array
+
+    ApplyImpulse(player, DirectionTowards(Attacker(), player) + Vector(0, 0.3, 0), 25, Relative.ToWorld, ContraryMotion.Cancel);
+
+    PlayEffect(All(), PlayEffect.BadPickupEffect, Color.Purple, PositionOf() + Up() + Facing(), 1);
+    PlayEffect(All(), PlayEffect.TracerRecallDisappearEffect, Color.Team1, PositionOf() + Up() + Facing());
+
+    MinWait();
+
+    SetMutatorPosition();
+    StartMutatorTimer();
+
+    ClearStatus(player, Status.Unkillable);
+
+    PlayEffect(All(), PlayEffect.BadPickupEffect, Color.Purple, PositionOf() + Up() + Facing(), 1);
+    PlayEffect(All(), PlayEffect.TracerRecallReappearEffect, Color.Team1, PositionOf() + Up() + Facing());
+    Heal(player, null, 999999999);
+}

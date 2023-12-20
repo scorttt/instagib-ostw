@@ -1,0 +1,117 @@
+import "../../main.del";
+import ".bmain.del";
+
+globalvar Number S_SPRK_PSPEED;
+globalvar Number S_SPRK_PESIZE;
+globalvar Number S_SPRK_PRIESIZE;
+globalvar Number S_SPRK_HITBOX_SIZE;
+playervar Vector sparkHitPos;
+playervar Vector sparkPos;
+playervar Vector sparkRayHitStart;
+playervar Vector sparkRayHitEnd;
+playervar Any sparkEffect;
+playervar Boolean isSparkInAir;
+
+disabled rule: "---------------- Spark ----------------"{}
+
+rule: "[Buff] :: Spark : Init"
+Event.OnPlayerJoin
+{
+    sparkPos = Vector(-10000, -10000, -10000);
+}
+
+// Boolean sprk_check: Update(DistanceBetween(sparkEyePos, 
+// Update(RayHit(EyePos(), EyePos() + Facing() * DistanceBetween(EyePos(), sparkEyePos), AllLiving(), player))) <= S_SPRK_HITBOX_SIZE);
+Boolean sparkCheck: Update(AngleBetweenVectors(DirectionTowards(EyePos(), sparkPos), Facing()) <= S_SPRK_HITBOX_SIZE && IsInLineOfSight(EyePos(), sparkPos));
+rule: "[Buff] :: Spark : Fire"
+Event.OngoingPlayer
+if (buffEnabled[6])
+if (IllariFiring())
+if (Update(firstHp != null))
+{
+    if (!infAmmo)
+        heldBuffAmmo[6]--;
+
+    if (!sparkCheck)
+    {
+        sparkHitPos = firstHp;
+
+        Kill(FilteredArray(RemoveFromArray(AllLiving(), player), DistanceBetween(Curr(), sparkHitPos) <= S_SPRK_PRIESIZE && IsInLineOfSight(Curr(), sparkHitPos)), player);
+
+        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[6], sparkHitPos, S_SPRK_PRIESIZE);
+    }
+    else
+    {
+        firstHp = RayHit(EyePos(), EyePos() + Facing() * DistanceBetween(EyePos(), sparkPos), AllLiving(), player);
+    }
+}
+
+rule: "[Buff] :: Spark : Action - Launch Projectile"
+Event.OngoingPlayer
+if (buffEnabled[6])
+if (IsButtonHeld(player, Button.Reload))
+if (IsAlive())
+{
+    if (!infAmmo)
+        heldBuffAmmo[6]--;
+
+    primaryFireDisabled = true;
+    DisallowButton(player, Button.PrimaryFire);
+
+    sparkRayHitStart = EyePos();
+    sparkRayHitEnd = EyePos() + Facing() * 50;
+
+    PlayEffect(All(), PlayEffect.RingExplosionSound, null, player, 50);
+
+    DestroyEffect(sparkEffect);
+
+    sparkPos = EyePosition();
+
+    CreateProjectileEffect(All(), ProjectileType.ZaryaGraviton, player, sparkPos, Once(Facing()), S_SPRK_HITBOX_SIZE / 5);
+    sparkEffect[0] = LastCreatedEntity();
+    CreateEffect(All(), Effect.GoodAura, buffColors[6], sparkPos, S_SPRK_HITBOX_SIZE + 0.1);
+    sparkEffect[1] = LastCreatedEntity();
+
+    Wait(0.1);
+    ChaseVariableAtRate(sparkPos, Update(RayHit(sparkRayHitStart, sparkRayHitEnd, AllLiving(), player)), S_SPRK_PSPEED, RateChaseReevaluation.DestinationAndRate);
+    isSparkInAir = true;
+
+    Wait(0.4); // prevent the player from immediately firing once the projectile is launched
+    primaryFireDisabled = false;
+    AllowButton(player, Button.PrimaryFire);
+    WaitUntil(!isSparkInAir, 999999); // wait until the projectile has detonated
+    Wait(1); // prevent immediate projectile firing
+    LoopIfConditionIsTrue();
+}
+
+void SparkProjectile(in Number size)
+{
+    StopChasingVariable(sparkPos);
+
+    Kill(FilteredArray(RemoveFromArray(AllLivingPlayers(), player), DistanceBetween(Curr(), sparkPos) <= size && IsInLineOfSight(Curr(), sparkPos)), player);
+
+    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[6], sparkPos, size);
+    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[6], sparkPos, size * 2.5);
+    PlayEffect(All(), PlayEffect.ZaryaParticleCannonExplosionEffect, Color.Team1, sparkPos, size * 2.5);
+
+    DestroyEffect(sparkEffect);
+    isSparkInAir = false;
+    sparkPos = Vector(-10000, -10000, -10000);
+}
+
+rule: "[Buff] :: Spark : Action - Projectile Landed"
+Event.OngoingPlayer
+if (DistanceBetween(sparkPos, RayCastHitPosition(sparkRayHitStart, sparkRayHitEnd, AllLivingPlayers(), player)) < S_SPRK_HITBOX_SIZE)
+{
+    SparkProjectile(S_SPRK_PESIZE / 2);
+}
+
+rule: "[Buff] :: Spark : Action - Shot Projectile"
+Event.OngoingPlayer
+if (buffEnabled[6])
+if (sparkCheck) // projectile hitbox
+if (isSparkInAir)
+if (IllariFiring())
+{
+    SparkProjectile(S_SPRK_PESIZE);
+}

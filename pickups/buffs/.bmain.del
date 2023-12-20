@@ -1,0 +1,519 @@
+import "../../main.del";
+
+import "wallbang.del";
+import "ricochet.del";
+import "buckshot.del";
+import "prism.del";
+import "ballista.del";
+import "electro.del";
+import "spark.del";
+import "arc.del";
+import "daybreak.del";
+import "volt.del";
+
+// array indices should be set the same as the buff id
+globalvar Number[] S_BUFF_CD; // setting array of durations a buff spawns
+globalvar Number[] S_BUFF_AMMO; // setting array of maximum buff ammo the player gets by default
+globalvar Boolean[] S_SPAWN_BUFF; // setting array of buffs allowed to spawn
+globalvar Boolean S_ALL_BUFFS_ENABLED; // setting whether buffs are allowed
+globalvar Boolean S_RANDOMIZE_BUFF_POS; // setting whether buffs randomly spawn in different locations each round
+globalvar Boolean[] canPickupBuff; // array of buff indices that can be collected
+playervar Boolean[] buffEnabled; // array of the enabled buff index
+globalvar Boolean[] buffTimer; // array of whether a buff cooldown is running
+globalvar Number[] buffCooldown; // array of current buff cooldowns
+globalvar Vector[] buffPos; // array of set buff positions
+playervar Number[] heldBuffAmmo; // array of buff indices ammo
+playervar Boolean playerHasBuff; // whether the player owns a buff
+playervar Number currentBuffIn; // currently held buff index
+globalvar Number buffIn; // index of the buff for the player to pick up (this probably shouldnt be a globalvar but it seems to be working fine, what could possibly go wrong)
+playervar String currentBuffStr; // string of the held buff
+globalvar Any buffTrail; // beam effect for firing weapon with a buff
+playervar Color buffColor; // the given buff color to the player
+playervar Boolean infAmmo; // boolean if player has infinite ammo
+playervar Boolean laser; // boolean if the buff is a laser
+
+// progress bar/effect size control vars. fuck you blizzard let me chase indicies
+globalvar Number wallbangProgressBar;
+globalvar Number ricochetProgressBar;
+globalvar Number buckshotProgressBar;
+globalvar Number prismProgressBar;
+globalvar Number ballistaProgressBar;
+globalvar Number electroProgressBar;
+globalvar Number sparkProgressBar;
+globalvar Number arcProgressBar;
+globalvar Number nebulaProgressBar;
+globalvar Number voltProgressBar;
+
+
+enum Buff
+{
+    Wallbang,
+    Ricochet, 
+    Buckshot, 
+    Prism, 
+    Ballista, 
+    Electro,
+    Spark, 
+    Arc,
+    Idkyet, 
+    Volt
+}
+
+disabled rule: "---------------- Buff ----------------"{}
+
+void CollectBuff() playervar "[Buff] :: Buff Collection"
+{
+    if (buffIn == Buff.Arc)
+    {
+        DisallowButton(player, Button.PrimaryFire);
+        primaryFireDisabled = true;
+        laser = true;
+    }
+    else if (buffIn == Buff.Volt)
+    {
+        DisallowButton(player, Button.PrimaryFire);
+        primaryFireDisabled = true;
+        overheated = false;
+        laser = true;
+        voltTemp = 0;
+        voltDist = S_MAX_VLT_DIST;
+    }
+    else 
+    {
+        laser = false;
+    }
+
+    currentBuffStr[0] = buffNames[buffIn];
+    currentBuffStr[1] = buffIcons[buffIn];
+
+    currentBuffIn = buffIn;
+    canPickupBuff[buffIn] = false;
+    buffColor = buffColors[buffIn];
+
+    if (!playerHasBuff)
+    {
+        buffEnabled[buffIn] = true;
+        playerHasBuff = true;
+        LogToInspector(<"<0> given to <1>", currentBuffStr[0], player>);
+        SmallMessage(player, $"  {currentBuffStr[1]}   {currentBuffStr[0]}");
+    }
+    else 
+    {
+        SmallMessage(player, $"  {currentBuffStr[1]}   {currentBuffStr[0]}   ammo replenished");
+    }
+
+    if (heldBuffAmmo[buffIn] < 0)
+        heldBuffAmmo[buffIn] = 0;
+
+    heldBuffAmmo[buffIn] += S_BUFF_AMMO[buffIn];
+
+    // pickup effects
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColor, buffPos[buffIn], 1);
+    PlayEffect(All(), PlayEffect.BuffExplosionSound, null, buffPos[buffIn], 200);
+
+    buffCooldown[buffIn] = S_BUFF_CD[buffIn];
+    BuffCooldown();
+
+    buffIn = -1;
+}
+
+void BuffCooldown() "[Buff] :: Start Buff Timer"
+{
+    if (S_SPAWN_BUFF[buffIn] && buffCooldown[buffIn] == S_BUFF_CD[buffIn])
+    {
+        LogToInspector(<"<0> cooldown started", buffNames[buffIn]>);
+        buffTimer[buffIn] = true; // start timer
+
+        switch (buffIn) // progress bar/effect size control
+        {
+            case (Buff.Wallbang):
+                wallbangProgressBar = 0;
+                ChaseVariableOverTime(wallbangProgressBar, 100, S_BUFF_CD[Buff.Wallbang], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Ricochet):
+                ricochetProgressBar = 0;
+                ChaseVariableOverTime(ricochetProgressBar, 100, S_BUFF_CD[Buff.Ricochet], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Buckshot):
+                buckshotProgressBar = 0;
+                ChaseVariableOverTime(buckshotProgressBar, 100, S_BUFF_CD[Buff.Buckshot], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Prism):
+                prismProgressBar = 0;
+                ChaseVariableOverTime(prismProgressBar, 100, S_BUFF_CD[Buff.Prism], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Ballista):
+                ballistaProgressBar = 0;
+                ChaseVariableOverTime(ballistaProgressBar, 100, S_BUFF_CD[Buff.Ballista], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Electro):
+                electroProgressBar = 0;
+                ChaseVariableOverTime(electroProgressBar, 100, S_BUFF_CD[Buff.Electro], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Spark):
+                sparkProgressBar = 0;
+                ChaseVariableOverTime(sparkProgressBar, 100, S_BUFF_CD[Buff.Spark], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Arc):
+                arcProgressBar = 0;
+                ChaseVariableOverTime(arcProgressBar, 100, S_BUFF_CD[Buff.Arc], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Idkyet):
+                nebulaProgressBar = 0;
+                ChaseVariableOverTime(nebulaProgressBar, 100, S_BUFF_CD[Buff.Idkyet], TimeChaseReevaluation.None);
+                break;
+            case (Buff.Volt):
+                voltProgressBar = 0;
+                ChaseVariableOverTime(voltProgressBar, 100, S_BUFF_CD[Buff.Volt], TimeChaseReevaluation.None);
+                break;
+        }
+    }
+}
+
+void CreateOrb() "[Buff] :: Create Orb"
+{
+    canPickupBuff[buffIn] = true;
+    buffTimer[buffIn] = false;
+
+    LogToInspector(<"<0> created", buffNames[buffIn]>);
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColors[buffIn], buffPos[buffIn], 1);
+    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[buffIn], buffPos[buffIn], 3);
+    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[buffIn], buffPos[buffIn] + Vector(0, -0.5, 0), 2);
+}
+
+rule: "[Buff] :: Remove Buff"
+Event.OngoingPlayer
+if (playerHasBuff)
+if (IsTrueForAll(heldBuffAmmo, Curr() <= 0))
+{
+    for (Number i = 0; i < buffEnabled.Length; i++)
+        buffEnabled[i] = false;
+
+    SmallMessage(player, <"  <0> ammo depleted", currentBuffStr>);
+
+    playerHasBuff = false;
+
+    primaryFireDisabled = false;
+    AllowButton(player, Button.PrimaryFire);
+}
+
+rule: "[Buff] :: Pierce : Timer"
+if (buffTimer[Buff.Wallbang])
+{
+    buffCooldown[Buff.Wallbang]--;
+
+    Wait(1);
+
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Pierce : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Wallbang])
+if (buffCooldown[Buff.Wallbang] == 0)
+{
+    buffIn = Buff.Wallbang;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Pierce : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Wallbang] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Wallbang])
+if (DistanceBetween(buffPos[Buff.Wallbang], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Wallbang;
+    CollectBuff();
+}
+
+rule: "[Buff] :: Ricochet : Timer"
+if (buffTimer[Buff.Ricochet])
+{
+    buffCooldown[Buff.Ricochet]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Ricochet : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Ricochet])
+if (buffCooldown[Buff.Ricochet] == 0)
+{
+    buffIn = Buff.Ricochet;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Ricochet : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Ricochet] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Ricochet])
+if (DistanceBetween(buffPos[Buff.Ricochet], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Ricochet;
+    CollectBuff();
+}
+
+rule: "[Buff] :: Buckshot : Timer"
+if (buffTimer[Buff.Buckshot])
+{
+    buffCooldown[Buff.Buckshot]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Buckshot : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Buckshot])
+if (buffCooldown[Buff.Buckshot] == 0)
+{
+    buffIn = Buff.Buckshot;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Buckshot : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Buckshot] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Buckshot])
+if (DistanceBetween(buffPos[Buff.Buckshot], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Buckshot;
+    CollectBuff();
+}
+
+rule: "[Buff] :: Prism : Timer"
+if (buffTimer[Buff.Prism])
+{
+    buffCooldown[Buff.Prism]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Prism : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Prism])
+if (buffCooldown[Buff.Prism] == 0)
+{
+    buffIn = Buff.Prism;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Prism : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Prism] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Prism])
+if (DistanceBetween(buffPos[Buff.Prism], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Prism;
+    CollectBuff();
+}
+
+rule: "[Buff] :: Ballista : Timer"
+if (buffTimer[Buff.Ballista])
+{
+    buffCooldown[Buff.Ballista]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Ballista : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Ballista])
+if (buffCooldown[Buff.Ballista] == 0)
+{
+    buffIn = Buff.Ballista;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Ballista : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Ballista] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Ballista])
+if (DistanceBetween(buffPos[Buff.Ballista], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Ballista;
+    CollectBuff();
+}
+
+rule: "[Buff] :: Electro : Timer"
+if (buffTimer[Buff.Electro])
+{
+    buffCooldown[Buff.Electro]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Electro : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Electro])
+if (buffCooldown[Buff.Electro] == 0)
+{
+    buffIn = Buff.Electro;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Electro : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Electro] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Electro])
+if (DistanceBetween(buffPos[Buff.Electro], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Electro;
+    CollectBuff();
+}
+
+rule: "[Buff] :: Spark : Timer"
+if (buffTimer[Buff.Spark])
+{
+    buffCooldown[Buff.Spark]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Spark : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Spark])
+if (buffCooldown[Buff.Spark] == 0)
+{
+    buffIn = Buff.Spark;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Spark : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Spark] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Spark])
+if (DistanceBetween(buffPos[Buff.Spark], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Spark;
+    CollectBuff();
+}
+
+rule: "[Buff] :: Arc : Timer"
+if (buffTimer[Buff.Arc])
+{
+    buffCooldown[Buff.Arc]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Arc : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Arc])
+if (buffCooldown[Buff.Arc] == 0)
+{
+    buffIn = Buff.Arc;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Arc : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Arc] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Arc])
+if (DistanceBetween(buffPos[Buff.Arc], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Arc;
+    CollectBuff();
+}
+
+rule: "[Buff] :: TBD : Timer"
+if (buffTimer[Buff.Idkyet])
+{
+    buffCooldown[Buff.Idkyet]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: TBD : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Idkyet])
+if (buffCooldown[Buff.Idkyet] == 0)
+{
+    buffIn = Buff.Idkyet;
+    CreateOrb();
+}
+
+rule: "[Buff] :: TBD : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Idkyet] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Idkyet])
+if (DistanceBetween(buffPos[Buff.Idkyet], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Idkyet;
+    CollectBuff();
+}
+
+rule: "[Buff] :: Volt : Timer"
+if (buffTimer[Buff.Volt])
+{
+    buffCooldown[Buff.Volt]--;
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Volt : Create Orb"
+if (matchStarted)
+if (validMap)
+if (S_SPAWN_BUFF[Buff.Volt])
+if (buffCooldown[Buff.Volt] == 0)
+{
+    buffIn = Buff.Volt;
+    CreateOrb();
+}
+
+rule: "[Buff] :: Volt : Collect"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff || (buffEnabled[Buff.Volt] && !infAmmo) || (!playerHasBuff && infAmmo))
+if (canPickupBuff[Buff.Volt])
+if (DistanceBetween(buffPos[Buff.Volt], PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+if (!IllariFiring())
+{
+    buffIn = Buff.Volt;
+    CollectBuff();
+}

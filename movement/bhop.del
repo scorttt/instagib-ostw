@@ -1,0 +1,87 @@
+import "../main.del";
+
+globalvar Number S_BHOP_MAX_SPEED;
+globalvar Number S_BHOP_SPEED_RATE;
+globalvar Boolean S_BHOP_ENABLED;
+
+playervar Boolean bhopping; // is the player bhopping
+playervar Boolean autoBhop; // is the player auto bhopping
+playervar Number moveSpeedPercent; // movement speed multiplier
+playervar Number bhopSpeedRate; // bhop speed rate
+playervar Number defaultBhopSpeedPercent; // default movement speed multiplier (modified by mutators like berkserk and mobility)
+
+Number minSpeed: 6.93; // minimum bhop speed, adjust this along side the movement speed multiplier in custom game settings
+
+disabled rule: "---------------- Bhop ----------------"{}
+
+void ResetSpeed() playervar "[Bhop] :: Reset Speed"
+{
+    StopChasingVariable(moveSpeedPercent);
+    bhopping = false;
+    moveSpeedPercent = defaultBhopSpeedPercent;
+    SetMoveSpeed(player, moveSpeedPercent);
+}
+
+rule: "[Bhop] :: Init"
+Event.OnPlayerJoin
+{
+    defaultBhopSpeedPercent = 100;
+    moveSpeedPercent = defaultBhopSpeedPercent;
+    bhopSpeedRate = S_BHOP_SPEED_RATE;
+}
+
+rule: "[Bhop] :: Auto Hop"
+Event.OngoingPlayer
+if (S_BHOP_ENABLED)
+if (!isSliding)
+if (IsOnGround())
+if (!IsButtonHeld(player, Button.Crouch))
+if (IsJumpHeld())
+{
+    autoBhop = true;
+    DisallowButton(player, Button.Jump);
+    MinWait();
+    AllowButton(player, Button.Jump);
+
+    if (!IsJumping())
+        autoBhop = false;
+}
+
+rule: "[Bhop] :: Gain Speed"
+Event.OngoingPlayer
+if (S_BHOP_ENABLED)
+if (IsInAir())
+if (HorizontalSpeedOf() > minSpeed || isSliding)
+{
+    ChaseVariableAtRate(moveSpeedPercent, S_BHOP_MAX_SPEED, bhopSpeedRate, RateChaseReevaluation.DestinationAndRate);
+    bhopping = true;
+    SetMoveSpeed(player, moveSpeedPercent);
+}
+
+rule: "[Bhop] :: Update Speed"
+Event.OngoingPlayer
+if (bhopping || isSliding)
+{
+    SetMoveSpeed(player, moveSpeedPercent);
+    Wait(0.064);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Bhop] :: Too Slow"
+Event.OngoingPlayer
+if (!isSliding)
+if (bhopping) 
+if (HorizontalSpeedOf() < minSpeed)
+{
+    ResetSpeed();
+}
+
+rule: "[Bhop] :: Player too slow but on ground"
+Event.OngoingPlayer
+if (IsOnGround())
+if (!autoBhop)
+if (moveSpeedPercent > defaultBhopSpeedPercent)
+{
+    WaitIfTrue(0.25);
+    ResetSpeed();
+}

@@ -1,0 +1,12 @@
+import "../../main.del";
+import ".bmain.del";
+
+disabled rule: "---------------- TBD ----------------"{}
+
+rule: "[Buff] :: TBD Fire Action"
+Event.OngoingPlayer
+if (buffEnabled[8])
+if (IllariFiring())
+{
+
+}

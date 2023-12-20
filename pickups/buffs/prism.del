@@ -1,0 +1,13 @@
+import "../../main.del";
+import ".bmain.del";
+
+
+disabled rule: "---------------- Prism ----------------"{}
+
+rule: "[Buff] :: Prism : Fire Action"
+Event.OngoingPlayer
+if (buffEnabled[3])
+if (IllariFiring())
+{
+    
+}

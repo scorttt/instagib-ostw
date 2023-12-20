@@ -1,0 +1,62 @@
+{
+  "Lobby": {
+    "Allow Players Who Are In Queue": true,
+    "Map Rotation": "After A Game",
+    "Max FFA Players": 8,
+    "Max Spectators": 2,
+    "Return To Lobby": "Never"
+  },
+  "Modes": {
+    "All": {
+      "Game Mode Start": "Immediately",
+      "Hero Limit": "Off",
+      "Spawn Health Packs": "Disabled"
+    },
+    "Deathmatch": {
+      "Enabled Maps": [
+        "Blizzard World (Winter)",
+        "Château Guillard",
+        "Ecopoint: Antarctica",
+        "Eichenwalde",
+        "Hollywood",
+        "King's Row",
+        "Kanezaka",
+        "Route 66",
+        "Malevento",
+        "Dorado",
+        "Petra",
+        "Paris"
+      ]
+    }
+  },
+  "Heroes": {
+    "General": {
+      "Enabled Heroes": [
+        "Cassidy"
+      ],
+      "Cassidy": {
+        "Damage Dealt": 500,
+        "Damage Received": 500,
+        "Movement Speed": 135,
+        "No Ammunition Requirement": true,
+        "Quick Melee": false,
+        "Secondary Fire": false,
+        "Combat Roll": false,
+        "Magnetic Grenade": false,
+        "Ultimate Ability (Deadeye)": false
+      }
+    }
+  },
+  "Extensions": {
+    "Play More Effects": true,
+    "Beam Effects": true,
+    "Beam Sounds": true,
+    "Buff Status Effects": true,
+    "Debuff Status Effects": true,
+    "Energy Explosion Effects": true,
+    "Explosion Sounds": true, 
+    "Buff and Debuff Sounds": true
+  },
+  "Mode Name": "Instagib",
+  "Description": "Code: APPPX\nCreated by scort#11221\nHold Melee in game for help\nv2.0 | ??/??/??"
+}

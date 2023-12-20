@@ -1,0 +1,53 @@
+{
+    "Lobby": {
+      "Allow Players Who Are In Queue": true,
+      "Map Rotation": "After A Game",
+      "Max FFA Players": 8,
+      "Max Spectators": 2,
+      "Return To Lobby": "Never"
+    },
+    "Modes": {
+      "All": {
+        "Game Mode Start": "Immediately",
+        "Hero Limit": "Off",
+        "Spawn Health Packs": "Disabled"
+      },
+      "Deathmatch": {
+        "Enabled Maps": [
+          "Château Guillard"
+        ]
+      }
+    },
+    "Heroes": {
+      "General": {
+        "Enabled Heroes": [
+          "Illari"
+        ],
+        "Illari": {
+          "Health": 50,
+          "Damage Dealt": 500,
+          "Damage Received": 500,
+          "Healing Received": 500,
+          "Movement Speed": 135,
+          "No Ammunition Requirement": true,
+          "Quick Melee": false,
+          "Solar Energy Maximum": 65,
+          "Solar Energy Recharge Rate": 500,
+          "Outburst": false,
+          "Healing Pylon": false,
+          "Ultimate Ability (Captive Sun)": false
+        }
+      }
+    },
+    "Extensions": {
+      "Play More Effects": true,
+      "Beam Sounds": true,
+      "Energy Explosion Effects": true,
+      "Buff Status Effects": true,
+      "Explosion Sounds": true, 
+      "Buff and Debuff Sounds": true,
+      "Projectiles": true
+    },
+    "Mode Name": "Instagib",
+    "Description": "Instagib Debug Script\nDo not save"
+  }

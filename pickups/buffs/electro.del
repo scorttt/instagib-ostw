@@ -1,0 +1,131 @@
+import "../../main.del";
+import ".bmain.del";
+
+
+// logic
+globalvar Number S_ELECTRO_PDELAY;
+globalvar Number S_ELECTRO_PGRAV;
+globalvar Number S_ELECTRO_PSPEED;
+globalvar Number S_ELECTRO_PDELTA;
+globalvar Number S_ELECTRO_PRAD;
+globalvar Number T_PDELAY;
+globalvar Number PROJ_SIZE;
+globalvar Vector proj_grav_vec;
+playervar Vector vel;
+playervar Vector proj_pos;
+playervar Boolean hit_surface; 
+playervar Number airtime; // airtime after the projectile hits a surface
+playervar Number t_airtime; // total airtime, destroy the projectile after a set time regardless if it hit a surface or not
+
+disabled rule: "---------------- Electro ----------------"{}
+
+rule: "[Buff] :: Electro : Init"
+{
+    WaitUntil(S_ELECTRO_PSPEED != 0, 1); // check to prevent projectile fuckery if i copy workshop code with this file focused
+    proj_grav_vec = Vector(0, S_ELECTRO_PGRAV, 0);
+    PROJ_SIZE = (0.25 + (S_ELECTRO_PSPEED / 100));
+    T_PDELAY = Clamp(S_ELECTRO_PDELAY * 4, 2, 3);
+}
+
+rule: "[Buff] :: Electro : Action - Primary Fire"
+Event.OngoingPlayer
+if (buffEnabled[5])
+{
+    // i dont know what im going to do here yet
+}
+
+Number proj_check: DistanceBetween(proj_pos, Update(RayCastHitPosition(proj_pos, proj_pos + (vel * 0.016) * 100, AllLivingPlayers(), player)));
+rule: "[Buff] :: Electro : Action - Launch Grenade"
+Event.OngoingPlayer
+if (buffEnabled[5])
+if (IsButtonHeld(player, Button.Reload))
+if (IsAlive())
+{
+    if (!infAmmo)
+        heldBuffAmmo[5] -= 2;
+
+    Any effect;
+    hit_surface = false;
+    t_airtime = 0;
+    airtime = 0;
+    proj_pos = EyePosition();
+    vel = Normalize(Facing() + Vector(0, S_ELECTRO_PDELTA, 0)) * S_ELECTRO_PSPEED;
+
+    DestroyEffect(effect);
+
+    CreateEffect(All(), Effect.Orb, buffColors[5], proj_pos, 1);
+    effect[0] = LastCreatedEntity();
+    CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, Color.White, proj_pos, 45);
+    effect[1] = LastCreatedEntity();
+    CreateEffect(All(), Effect.OrisaHaltTendrilSound, Color.White, proj_pos, 45);
+    effect[2] = LastCreatedEntity();
+
+    Vector[] normals = [];
+    Vector[] hp = [];
+    Vector[] hp_reflection = [];
+    Vector[] hp_player = [];
+    Vector[] reflection = [];
+
+    // projectile loop
+    while (proj_check >= PROJ_SIZE && t_airtime <= T_PDELAY && airtime <= S_ELECTRO_PDELAY)
+    {
+        // 62.5 ticks = 1 second, 3750 ticks = 1 minute
+        vel += proj_grav_vec * 0.016; // update vel with grav vector each loop
+        proj_pos += vel * 0.016; // update proj_pos with vel vector each loop
+        t_airtime += 0.016;
+
+        if (hit_surface)
+            airtime += 0.016;
+
+        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[5], proj_pos, PROJ_SIZE);
+
+        // reflection loop (without this the for below would fire twice for whatever reason)
+        if (proj_check <= PROJ_SIZE && S_ELECTRO_PDELAY > 0) // surface hit
+        {
+            // i < arbitrary amount of vectors to store, in an ideal world this wouldnt matter if the math was for constant contact with one surface
+            for (Number i = 0; i < 12 && proj_check <= PROJ_SIZE; i++) // another check
+            {
+                # https://math.stackexchange.com/questions/13261/how-to-get-a-reflectionion-vector/3340378#3340378
+                if (i > 0)
+                {
+                    proj_pos = hp[i - 1];
+                    vel = reflection[i - 1];
+                }
+
+                // get hit pos and normal
+                hp[i] = RayCastHitPosition(proj_pos, proj_pos + vel * 100, AllLivingPlayers(), player, true);
+                normals[i] = RayCastHitNormal(proj_pos, proj_pos + vel * 100, AllLivingPlayers(), player, true);
+
+                // v - (2 * (v . n) * n)
+                reflection[i] = vel - (2 * (Dot(vel, normals[i])) * normals[i]);
+                hp_reflection[i] = RayCastHitPosition(hp[i], hp[i] + reflection[i] * 100, AllLivingPlayers(), player, true); // raycast from hit pos to reflection vector
+            }
+
+            PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, Color.White, proj_pos, 45);
+            PlayEffect(All(), PlayEffect.EchoStickyBombExplosionSound, Color.White, proj_pos, 45);
+            hit_surface = true;
+            proj_grav_vec = proj_grav_vec * -1; // flip gravity vector after each hit
+        }
+
+        MinWait();
+    }
+
+    hit_surface = false;
+    proj_grav_vec = Vector(0, S_ELECTRO_PGRAV, 0);
+    t_airtime = 0;
+    airtime = 0;
+    Kill(FilteredArray(RemoveFromArray(AllLivingPlayers(), player), DistanceBetween(Curr(), proj_pos) <= S_ELECTRO_PRAD && IsInLineOfSight(Curr(), proj_pos)), player);
+
+    // effects
+    PlayEffect(All(), PlayEffect.EchoStickyBombExplosionEffect, Color.Team1, proj_pos, 0);
+    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[5], proj_pos, S_ELECTRO_PRAD);
+
+    PlayEffect(All(), PlayEffect.WinstonJumpPackLandingSound, Color.White, proj_pos, 45);
+    PlayEffect(All(), PlayEffect.SigmaHypersphereImplosionSound, Color.White, proj_pos, 45);
+    PlayEffect(All(), PlayEffect.CassidyFlashbangExplosionSound, Color.White, proj_pos, 45);
+    PlayEffect(All(), PlayEffect.EchoStickyBombExplosionSound, Color.White, proj_pos, 100);
+    DestroyEffect(effect);
+
+    Wait(0.5);
+    LoopIfConditionIsTrue();
+}

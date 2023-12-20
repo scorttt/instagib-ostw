@@ -1,0 +1,111 @@
+import "../../main.del";
+import ".bmain.del";
+
+globalvar Number S_ARC_BOUNCES;
+playervar Any arcEffects;
+playervar Number effTick;
+
+
+disabled rule: "---------------- Arc ----------------"{}
+
+rule: "[Buff] :: Arc : Action - Fire"
+Event.OngoingPlayer
+if (buffEnabled[7])
+if (IsPrimaryHeld())
+if (!IsFiringSecondary())
+if (IsAlive())
+if (!HasStatus(player, Status.PhasedOut))
+{
+    // todo: effects
+    DisallowButton(player, Button.SecondaryFire); // disable illari impulse
+
+    effTick = 0;
+    DestroyEffect(arcEffects);
+
+    Vector eye_pos;
+    Vector facing;
+    Vector[] normals;
+    Vector[] hp;
+    Vector[] hp_ricochets;
+    Any[] hp_player;
+    Any[] ricochets;
+
+    Vector arc_hit = RayCastHitPosition(EyePosition(), EyePosition() + Facing() * 300, AllLivingPlayers(), player);
+
+    WaitIfTrue(0.05); // brief hold
+    Boolean[] hit;
+
+    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), arc_hit, buffColors[7], EffectRev.VisibleToPositionRadiusAndColor);
+    arcEffects[0] = LastCreatedEntity();
+    // CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, null, player, 100);
+    // arc_effects[1] = LastCreatedEntity();
+    // CreateEffect(All(), Effect.OmnicSlicerBeamSound, null, player, 100);
+    // arc_effects[2] = LastCreatedEntity();
+    // CreateEffect(hit ? All() : null, Effect.WinstonTeslaCannonSound, null, arc_hit, 100);
+    // arc_effects[3] = LastCreatedEntity();
+    // CreateEffect(hit ? All() : null, Effect.OmnicSlicerBeamSound, null, player, 100);
+    // arc_effects[4] = LastCreatedEntity();
+
+    for (Number i = 1; i < S_ARC_BOUNCES; i++)
+    {
+        CreateBeamEffect(hit[Once(i - 1)] ? All() : null, BeamType.BadBeam, hp[Once(i - 1)], hp[Once(i)], buffColors[7], EffectRev.VisibleToPositionRadiusAndColor);
+        arcEffects[i + S_ARC_BOUNCES + 1] = LastCreatedEntity();
+    }
+
+    while (IsPrimaryHeld() && IsAlive() && buffEnabled[7])
+    {
+        if (!infAmmo)
+            heldBuffAmmo[7]--;
+
+        effTick++;
+        eye_pos = EyePosition();
+        facing = Facing();
+
+        arc_hit = RayHit(eye_pos, eye_pos + facing * 300, AllLivingPlayers(), player);
+
+        if (DistanceBetween(eye_pos, arc_hit) < 300)
+        {
+            for (Number i = 0; i < S_ARC_BOUNCES; i++)
+            {
+                if (i > 0)
+                {
+                    eye_pos = hp[i - 1];
+                    facing = ricochets[i - 1];
+                }
+
+                hp[i] =        RayHit   (eye_pos, eye_pos + facing * 300, AllLivingPlayers(), player);
+                hp_player[i] = RayPlayer(eye_pos, eye_pos + facing * 300, AllLivingPlayers(), player);
+                normals[i] =   RayNormal(eye_pos, eye_pos + facing * 300, AllLivingPlayers(), player);
+
+                ricochets[i] =    facing - (2 * (normals[i] * Dot(facing, normals[i])));
+                hp_ricochets[i] = RayHit(hp[i], hp[i] + hp_ricochets[i] * 300, AllLivingPlayers(), player);
+
+                Kill(hp_player[i], player);
+
+                if (DistanceBetween(eye_pos, hp[i]) < 299)
+                {
+                    hit[i] = true;
+
+                    if (effTick % 4 == 0)
+                        PlayEffect(All(), PlayEffect.BadExplosion, buffColors[7], hp[i], 0.25);
+                }
+                else
+                {
+                    // fix edge cases where lower indexed hits are false when higher are true (e.g. 2 is false but 1, 3, 4, and 5 is true)
+                    for (Number j = i; j < S_ARC_BOUNCES; j++)
+                        hit[j] = false;
+
+                    break;
+                }
+            }
+        }
+
+        MinWait();
+    }
+
+    AllowButton(player, Button.SecondaryFire); // reenable illari impulse
+
+    MinWait();
+
+    DestroyEffect(arcEffects);
+}

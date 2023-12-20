@@ -1,0 +1,70 @@
+import "../../main.del";
+import ".bmain.del";
+
+globalvar Number S_NUM_WALLBANGS;
+globalvar Number S_MAX_THICKNESS;
+
+disabled rule: "---------------- Pierce ----------------"{}
+
+// playervar Any dbg_eff;
+rule: "[Buff] :: Pierce : Action"
+Event.OngoingPlayer
+if (buffEnabled[0])
+if (heldBuffAmmo[0] > 0)
+if (Update(firstHp != null) )
+{
+    if (!infAmmo)
+        heldBuffAmmo[0]--;
+
+    Any[] wbEff;
+    Vector prevHp = EyePos();
+    Vector[] hp = [];
+    Vector[] exitHp = [];
+
+    Any[] hpPlayer = [];
+
+    Any offset = (WorldVectorOf(Vector(-1, -0.80, 0), player) * 0.14);
+
+    if (DistanceBetween(prevHp, firstHp) < 300)
+    {
+        for (Number i = 0; i < S_NUM_WALLBANGS + 1; i++)
+        {
+            if (i > 0)
+                prevHp = hp[i - 1];
+
+            // enter + exit raycast
+            hp[i] =       RayHit   (prevHp + Facing(), prevHp + Facing()                        * 300, All(), player);
+            hpPlayer[i] = RayPlayer(hp[i],             hp[i]  + Facing()                        * 300, AllLiving(), player);
+
+            if (i > 0)
+            {
+                exitHp[i] = RayHit(hp[i], hp[i] + DirectionTowards(hp[i], prevHp) * DistanceBetween(hp[i], prevHp), null, null);
+                PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[0], exitHp[i] + offset, 0.3);
+                // CreateEffect(All(), Effect.Sphere, Color.Yellow, exitHp[Once(i)] + offset, 0.3);
+
+                CreateBeamEffect(All(), BeamType.BadBeam, exitHp[i] + offset, hp[i] + offset, buffColors[0], EffectRev.None);
+                wbEff[i] = LastCreatedEntity();
+
+                PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[0], hp[i] + offset, 0.3);
+                // CreateEffect(All(), Effect.Sphere, Color.Yellow, hp[Once(i)] + offset, 0.3);
+            }
+        
+            // check the thickness of a surface
+            if (S_MAX_THICKNESS != 0 && DistanceBetween(prevHp, exitHp[i]) > S_MAX_THICKNESS)
+            {
+                PlayEffect(All(), PlayEffect.GoodExplosion, Color.Red, prevHp, 0.3);
+                // CreateEffect(All(), Effect.Sphere, Color.Red, Once(prevHp), 0.3);
+                break;
+            }
+
+
+            if (DistanceBetween(hp[i], prevHp) > 299) // i do not like this
+                break;
+
+            Kill(hpPlayer[i], player);
+        }
+    }
+
+    Wait(0.25);
+    DestroyEffect(wbEff);
+}

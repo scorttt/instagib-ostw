@@ -1,0 +1,144 @@
+import "../../main.del";
+import ".bmain.del";
+
+globalvar Number S_VLT_TIME;
+globalvar Number S_MAX_VLT_SPREAD;
+globalvar Number S_MAX_VLT_DIST;
+globalvar Number S_MIN_VLT_DIST;
+globalvar Number S_VLT_DMG;
+
+playervar Any[] voltEffects; // effects
+playervar Number voltTemp; // increments from 0-1 while the player is firing 
+playervar Vector voltDir; // facing direction (controls spread)
+playervar Number voltDist; // maximum distance of the laser
+playervar Boolean overheated; // if vlt_temp hit 1
+
+
+disabled rule: "---------------- Volt ----------------"{}
+
+rule: "[Buff] :: Volt : Init"
+Event.OnPlayerJoin
+{
+    overheated = false;
+    voltDist = S_MAX_VLT_DIST;
+}
+
+rule: "[Buff] :: Volt : Action - Fire"
+Event.OngoingPlayer
+if (buffEnabled[9])
+if (!overheated)
+if (IsPrimaryHeld())
+if (!IsFiringSecondary())
+if (IsAlive())
+if (!HasStatus(player, Status.PhasedOut))
+{
+    DisallowButton(player, Button.SecondaryFire); // disable illari impulse
+
+    if (EntityExists(voltEffects))
+        DestroyEffect(voltEffects);
+
+    Boolean hit = false;
+
+    WaitIfTrue(0.05); // brief hold
+    if (!infAmmo)
+        heldBuffAmmo[9] -= 5;
+
+    Vector voltHitPos = RayCastHitPosition(EyePosition(), EyePosition() + Facing() * voltDist, AllLivingPlayers(), player);
+    MinWait();
+
+    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), voltHitPos, buffColors[9], EffectRev.VisibleToPositionRadiusAndColor);
+    voltEffects[0] = LastCreatedEntity();
+    CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, null, player, 100);
+    voltEffects[1] = LastCreatedEntity();
+    CreateEffect(All(), Effect.OrisaHaltTendrilSound, null, player, 50 + (voltTemp * 100), Reevaluation: EffectRev.VisibleToPositionRadiusAndColor);
+    voltEffects[2] = LastCreatedEntity();
+    CreateEffect(hit ? All() : null, Effect.WinstonTeslaCannonSound, null, voltHitPos, 100);
+    voltEffects[3] = LastCreatedEntity();
+
+    while (buffEnabled[9] && !overheated && IsPrimaryHeld() && IsAlive() && !HasStatus(player, Status.PhasedOut))
+    {
+        AddOverTime(voltTemp, S_VLT_TIME, 0, 1, 0.016);
+        SubtractOverTime(voltDist, S_VLT_TIME, S_MIN_VLT_DIST, S_MAX_VLT_DIST, 0.016);
+
+        // slow the rate of ammo depletion the longer fire is held
+        if (!infAmmo)
+            heldBuffAmmo[9] -= (1 - voltTemp) * 0.645;
+
+        voltDir = SpreadAngleDirection(player, RandomReal(-voltTemp * S_MAX_VLT_SPREAD, voltTemp * S_MAX_VLT_SPREAD), RandomReal(0, 360));
+
+        voltHitPos = RayHit(EyePos(), EyePos() + voltDir * voltDist, AllLiving(), player);
+        Player voltHitPlayer = RayPlayer(EyePos(), EyePos() + voltDir * voltDist, AllLiving(), player);
+
+        if (DistanceBetween(EyePos(), voltHitPos) < voltDist - 1)
+        {
+            hit = true;
+            PlayEffect(All(), PlayEffect.BadExplosion, buffColors[9], voltHitPos, 0.5);
+        }
+        else 
+        {
+            hit = false;
+        }
+
+        Damage(voltHitPlayer, player, S_VLT_DMG); // S_VLT_DMG * 500% damage taken * 500% damage dealt per tick, so damage is divided by 25 in Workshop settings first
+        MinWait();
+
+        if (voltTemp >= 1)
+        {
+            voltTemp = 1;
+            overheated = true;
+            PlayEffect(player, PlayEffect.BaptisteBioticLauncherExplosionSound, Color.White, player, 100);
+            CreateEffect(player, Effect.TorbjornOverloadingSound, Color.White, player, 30);
+            voltEffects[4] = LastCreatedEntity();
+            break;
+        }
+    }
+
+    AllowButton(player, Button.SecondaryFire); // re enable illari impulse
+
+    MinWait();
+    DestroyEffect(voltEffects[0]);
+    DestroyEffect(voltEffects[1]);
+    DestroyEffect(voltEffects[2]);
+    DestroyEffect(voltEffects[3]);
+
+    if (overheated) // check if the player ended the loop because of overheating to prevent the player from automatically firing
+    {
+        heldBuffAmmo[9] = Ceil(heldBuffAmmo[9]);
+
+        primaryFireDisabled = false;
+        AllowButton(player, Button.PrimaryFire);
+
+        WaitUntil(voltTemp == 0, 99999);
+
+        overheated = false;
+        primaryFireDisabled = true;
+        DisallowButton(player, Button.PrimaryFire);
+        DestroyEffect(voltEffects[4]);
+        PlayEffect(player, PlayEffect.BrigitteRepairPackArmorSound, Color.Team1, player, 100);
+    }
+}
+
+rule: "[Buff] :: Volt : Action - Decrease Temp"
+Event.OngoingPlayer
+if (voltTemp > 0)
+if (!IsPrimaryHeld() || overheated)
+{
+    if (overheated)
+        WaitIfTrue(0.5);
+
+    while (voltTemp > 0 && !IsPrimaryHeld() || overheated)
+    {
+        SubtractOverTime(voltTemp, S_VLT_TIME, 0, 1, 0.032);
+        AddOverTime(voltDist, S_VLT_TIME, S_MIN_VLT_DIST, S_MAX_VLT_DIST, 0.032);
+        Wait(0.032);
+
+        if (voltTemp == 0 && buffEnabled[9])
+        {
+            overheated = false;
+            primaryFireDisabled = true;
+            DisallowButton(player, Button.PrimaryFire);
+            heldBuffAmmo[9] = Ceil(heldBuffAmmo[9]);
+            break;
+        }
+    }
+}

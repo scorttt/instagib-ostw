@@ -1,0 +1,65 @@
+import "../main.del";
+
+globalvar Boolean S_ENABLE_BEAM;
+globalvar Number S_BEAM_DMG;
+globalvar Number S_BEAM_PLAYER_KNOCKBACK_STRENGTH;
+globalvar Number S_BEAM_USER_KNOCKBACK_STRENGTH;
+disabled rule: "---------------- Blaster ----------------"{}
+
+Number BEAM_DIST: 15;
+// Player hitPlayer: Update(RayPlayer(EyePos(), EyePos() + Facing() * 100, AllLiving(), player));
+
+// rule: "[Illari Secondary] :: Impulse and Damage Hit Player"
+// Event.OngoingPlayer
+// if (IsFiringSecondary())
+// if (hitPlayer)
+// {
+//     Damage(hitPlayer, player, S_BEAM_DMG);
+
+//     ApplyImpulse(
+//             hitPlayer,
+//             Facing() + Vector(0, 0.1, 0), S_BEAM_PLAYER_KNOCKBACK_STRENGTH, Relative.ToWorld, ContraryMotion.Cancel); 
+// }
+
+// rule: "[Illari Secondary] :: Impulse User"
+// Event.OngoingPlayer
+// if (IsFiringSecondary())
+// if (DistanceBetween(EyePos(), RayHit(EyePos(), EyePos() + Facing() * BEAM_DIST, AllLiving(), player)) < BEAM_DIST)
+// {
+//     ApplyImpulse(
+//         player,
+//         (Facing() * -1), S_BEAM_USER_KNOCKBACK_STRENGTH, Relative.ToWorld, ContraryMotion.Incorporate);
+
+//     MinWait();
+//     LoopIfConditionIsTrue();
+// }
+
+rule: "[Illari Secondary] :: Impulse and Damage"
+Event.OngoingPlayer
+if (IsFiringSecondary())
+{
+    Vector rayHit = RayHit(EyePos(), EyePos() + Facing() * BEAM_DIST, null, player);
+    Boolean dist = DistanceBetween(EyePos(), rayHit) < BEAM_DIST;
+
+    Player[] hitPlayers = FilteredArray(PlayersInViewAngle(player, Team.All, 7), 
+                          IsInLineOfSight(EyePos(), Curr()) &&
+                          DistanceBetween(EyePos(), Curr()) < BEAM_DIST);
+
+    if (dist)
+    {
+        // impulse beam user
+        ApplyImpulse(
+            player,
+            (Facing() * -1), S_BEAM_USER_KNOCKBACK_STRENGTH, Relative.ToWorld, ContraryMotion.Incorporate);
+    }
+
+    Damage(hitPlayers, player, S_BEAM_DMG);
+
+    ApplyImpulse(
+            hitPlayers,
+            Facing() + Vector(0, 0.1, 0), S_BEAM_PLAYER_KNOCKBACK_STRENGTH, Relative.ToWorld, ContraryMotion.Cancel); 
+
+    MinWait();
+    LoopIfConditionIsTrue();
+    rayHit = null;
+}

@@ -1,0 +1,112 @@
+import "../../main.del";
+import ".bmain.del";
+
+globalvar Number S_BUCKSHOT_CHARGE_SPD;
+globalvar Number S_BUCKSHOT_CHARGE_AMT;
+globalvar Number S_BUCKSHOT_SPREAD;
+globalvar Number S_BUCKSHOT_GROUP_AMT;
+globalvar Number groupDeg;
+globalvar String[] chargeStrArr;
+playervar Number chargeLvl;
+playervar String chargeStr;
+playervar String hasChargeStr;
+playervar String noChargeStr;
+playervar Number spread;
+playervar Boolean canChargeBuckshot;
+
+disabled rule: "---------------- Buckshot ----------------"{}
+
+rule: "[Buff] :: Buckshot : Global Init"
+{
+    WaitUntil(matchStarted, 1);
+    chargeStrArr = ["● ● ● ● ● ● ● ● ● ● ", "○ ○ ○ ○ ○ ○ ○ ○ ○ ○ "];
+    groupDeg = 360 / S_BUCKSHOT_GROUP_AMT;
+}
+
+rule: "[Buff] :: Buckshot : Init"
+Event.OnPlayerJoin
+{
+    chargeStr = StringSlice(chargeStrArr[1], 0, S_BUCKSHOT_CHARGE_AMT * 2);
+    spread = S_BUCKSHOT_SPREAD;
+    canChargeBuckshot = true;
+}
+
+rule: "[Buff] :: Buckshot : Charge"
+Event.OngoingPlayer
+if (buffEnabled[2])
+if (heldBuffAmmo[2] > 1)
+if (canChargeBuckshot)
+if (chargeLvl < S_BUCKSHOT_CHARGE_AMT)
+if (IsAlive())
+if (IsReloadHeld())
+{
+    WaitIfTrue(S_BUCKSHOT_CHARGE_SPD);
+
+    chargeLvl++;
+    spread += 1;
+
+    if (!infAmmo)
+        heldBuffAmmo[2]--;
+
+    hasChargeStr = StringSlice(chargeStrArr[0], 0, chargeLvl * 2);
+    noChargeStr = StringSlice(chargeStrArr[1], 0, (S_BUCKSHOT_CHARGE_AMT * 2) - chargeLvl * 2);
+
+    chargeStr = hasChargeStr + noChargeStr;
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColors[2], PosOf(), 1);
+    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[2], player, spread + 1);
+    PlayEffect(player, PlayEffect.BuffImpactSound, null, player, 50);
+
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Buff] :: Buckshot : Fire Action"
+Event.OngoingPlayer
+if (buffEnabled[2])
+if (heldBuffAmmo[2] > 0)
+if (IllariFiring())
+{
+    if (!infAmmo)
+        heldBuffAmmo[2]--;
+
+    canChargeBuckshot = false;
+
+    Vector[] buckshotHitPos! = [];
+    Player[] buckshotHitPlayer! = [];
+    Any[] buckshotEffects! = [];
+
+    Vector eyePos! = EyePosition();
+
+    Number offset! = 0;
+    Number projectileAmt! = S_BUCKSHOT_GROUP_AMT * (chargeLvl + 1);
+    Number numGroups! = projectileAmt / S_BUCKSHOT_GROUP_AMT;
+    
+    Number initSpread! = spread;
+
+    for (Number i! = 1; i <= projectileAmt; i++)
+    {
+        buckshotHitPos[i] = RayHit(eyePos, eyePos + SpreadAngleDirection(player, spread, (i * groupDeg) + offset) * 300, AllLiving(), player);
+        buckshotHitPlayer[i] = RayPlayer(eyePos, eyePos + SpreadAngleDirection(player, spread, (i * groupDeg) + offset) * 300, AllLiving(), player);
+
+        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[2], buckshotHitPos[i], 0.25);
+        CreateBeamEffect(All(), BeamType.BadBeam, gunPos, buckshotHitPos[i], buffColors[2], EffectRev.None);
+        buckshotEffects[i] = LastCreatedEntity();
+
+        if (i != 1 && i % S_BUCKSHOT_GROUP_AMT == 0)
+        {
+            spread = initSpread - Near(i / S_BUCKSHOT_GROUP_AMT) * (initSpread / numGroups);
+            offset += groupDeg / 2; // spread rotation offset (degrees)
+        }
+    }
+
+
+    Kill(buckshotHitPlayer, player);
+
+    chargeLvl = 0;
+    chargeStr = StringSlice(chargeStrArr[1], 0, S_BUCKSHOT_CHARGE_AMT * 2);
+    spread = S_BUCKSHOT_SPREAD;
+
+    Wait(0.25);
+    DestroyEffect(buckshotEffects);
+
+    canChargeBuckshot = true;
+}

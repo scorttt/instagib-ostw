@@ -1,0 +1,80 @@
+import "../main.del";
+
+globalvar Boolean S_ENABLE_SLIDE;
+globalvar Number S_SLIDE_DUR;
+globalvar Number S_SLIDE_JUMP_STRENGTH;
+globalvar Number S_SLIDE_SPEED;
+playervar Boolean isSliding;
+playervar Vector slideThrottle;
+
+// rule: "Record Throttle"
+// Event.OngoingPlayer
+// if (IsInAir())
+// if (ThrottleOf() != Vector())
+// if (slideThrottle != ThrottleOf())
+// {
+//     slideThrottle = ThrottleOf();
+
+//     Wait(0.08);
+//     LoopIfConditionIsTrue();
+// }
+
+
+rule: "Slide"
+Event.OngoingPlayer
+if (S_ENABLE_SLIDE)
+if (!isSliding)
+if (IsButtonHeld(player, Button.Crouch))
+if (IsOnGround() || AltitudeOf() < 0.2)
+{
+    AbortIf(!IsMoving(player) || !IsButtonHeld(player, Button.Crouch));
+
+    slideThrottle = Vector(Near(ThrottleOf().X), 0, Near(ThrottleOf().Z));
+
+    if (slideThrottle == Vector())
+        slideThrottle = Vector(0, 0, 1);
+
+    isSliding = true;
+
+    DisallowButton(player, Button.Jump);
+
+    PlayEffect(All(), PlayEffect.Soldier76SprintStartSound, null, PosOf(), 65);
+
+    SetGravity(player, 0);
+
+    StartAccelerating(player, Down(), 30, 100, Relative.ToWorld, AccelerateRev.None);
+    StartAccelerating(player, Update(ThrottleOf()), S_SLIDE_SPEED / 2, 100, Relative.ToPlayer, AccelerateRev.DirectionRateAndMaxSpeed);
+    ApplyImpulse(player, Update(slideThrottle), S_SLIDE_SPEED, Relative.ToPlayer, ContraryMotion.Incorporate);
+
+    WaitUntil(!IsButtonHeld(player, Button.Crouch), S_SLIDE_DUR);
+    AllowButton(player, Button.Jump);
+
+    isSliding = false;
+
+    SetGravity(player, 100);
+    StopAccelerating();
+
+    // WaitUntil(IsJumping(), 0.25);
+
+    // if (IsJumping())
+    // {
+    //     ApplyImpulse(player, Up(), S_SLIDE_JUMP_STRENGTH, Relative.ToPlayer, ContraryMotion.Incorporate);
+
+    //     PlayEffect(All(), PlayEffect.RingExplosionSound, null, player, 20);
+    //     PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, null, player, 50);
+    //     PlayEffect(All(), PlayEffect.RingExplosion, Color.Gray, PosOf() + Vector(0, 0.5, 0), 2);
+    // }
+
+    // jumpTimer = 0;
+    Wait(0.25);
+}
+
+rule: "Slide Effect"
+Event.OngoingPlayer
+if (isSliding)
+{
+    PlayEffect(All(), PlayEffect.BadExplosion, Color.Gray, PosOf(), 0.2);
+    PlayEffect(All(), PlayEffect.Soldier76SprintStartSound, Color.Gray, PosOf(), 15);
+    Wait(0.032);
+    LoopIfConditionIsTrue();
+}

@@ -1,0 +1,57 @@
+import "../main.del";
+
+globalvar Number S_DODGE_FORCE;
+globalvar Number S_DODGE_AMT;
+globalvar Boolean S_DODGE_ENABLED;
+playervar Boolean infDodges;
+playervar Vector throttle;
+playervar Number dodges;
+playervar Number maxDodges;
+
+disabled rule: "---------------- Dodge ----------------"{}
+
+rule: "[Dodge] :: Init"
+Event.OnPlayerJoin
+{
+    maxDodges = S_DODGE_AMT;
+}
+
+rule: "[Dodge] :: Action"
+Event.OngoingPlayer
+if (S_DODGE_ENABLED)
+if (dodges > 0)
+if (!isSliding)
+if (IsAlive())
+if (IsInAir())
+if (IsButtonHeld(player, Button.Ability1))
+{
+    Number y: 0.6;
+
+    // hacky fix for controller users
+    throttle = Vector(Near(ThrottleOf().X), y, Near(ThrottleOf().Z));
+
+    if (throttle == Vector(0, y, 0))
+        throttle = Vector(0, y, 1);
+
+    ApplyImpulse(player, throttle, S_DODGE_FORCE, Relative.ToPlayer, ContraryMotion.Cancel);
+
+    PlayEffect(All(), PlayEffect.BadExplosion, Color.Gray, PositionOf(), 1);
+    PlayEffect(All(), PlayEffect.RingExplosion, Color.Gray, PositionOf(), 2);
+
+    if (!infDodges)
+        dodges--;
+}
+
+rule: "[Dodge] :: On Ground"
+Event.OngoingPlayer
+if (IsOnGround())
+if (dodges < maxDodges)
+{
+    if (bhopping)
+    {
+        WaitUntil(!IsButtonHeld(player, Button.Ability1), 99999);
+        Wait(0.25);
+    }
+
+    dodges = maxDodges;
+}

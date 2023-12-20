@@ -1,0 +1,59 @@
+import "../../main.del";
+import ".bmain.del";
+
+globalvar Number S_NUM_RICOCHETS;
+
+disabled rule: "---------------- Ricochet ----------------"{}
+
+rule: "[Buff] :: Ricochet : Action"
+Event.OngoingPlayer
+if (buffEnabled[1])
+if (heldBuffAmmo[1] > 0)
+if (IllariFiring())
+{
+    if (!infAmmo)
+        heldBuffAmmo[1]--;
+
+    Vector eyePos = EyePosition();
+    Vector facing = Facing();
+    Vector[] normals = [];
+    Vector[] hp = [];
+    Vector[] ricochetHitPos = [];
+    Any[] hitPlayer = [];
+    Any[] ricochets = [];
+    Any[] ricochetEffects = [];
+
+    if (DistanceBetween(eyePos, firstHp) < 300)
+    {
+        for (Number i = 0; i < S_NUM_RICOCHETS; i++)
+        {
+            if (i > 0)
+            {
+                eyePos = hp[i - 1];
+                facing = ricochets[i - 1];
+            }
+
+            # https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector/4019883#4019883
+            hp[i] =        RayCastHitPosition(eyePos, eyePos + facing * 300, AllLivingPlayers(), player);
+            hitPlayer[i] = RayCastHitPlayer  (eyePos, eyePos + facing * 300, AllLivingPlayers(), player);
+            normals[i] =   RayCastHitNormal  (eyePos, eyePos + facing * 300, AllLivingPlayers(), player);
+
+            ricochets[i] =           facing - (2 * (normals[i] * Dot(facing, normals[i])));
+            ricochetHitPos[i] =        RayCastHitPosition(hp[i], hp[i] + ricochets[i] * 300, AllLivingPlayers(), player);
+
+            CreateBeamEffect(All(), BeamType.BadBeam, hp[i], ricochetHitPos[i], buffColors[1], EffectRev.None);
+            ricochetEffects[i] = LastCreatedEntity();
+
+            // PlayEffect(All(), PlayEffect.GoodExplosion, color_arr[1], hp[i], 0.1);
+            PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[1], ricochetHitPos[i], 0.5);
+
+            Kill(hitPlayer[i], player);
+
+            if (DistanceBetween(hp[i], ricochetHitPos[i]) > 299 || hitPlayer[i] != null)
+                break;
+        }
+    }
+
+    Wait(0.25);
+    DestroyEffect(ricochetEffects);
+}

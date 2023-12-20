@@ -1,0 +1,16 @@
+import "../../main.del";
+import ".mmain.del";
+
+rule: "[Mutator] :: Berserk : Set Status"
+Event.OngoingPlayer
+if (mutatorEnabled[4])
+{
+    infDodges = true;
+    infAmmo = true;
+    delay = 0.6;
+
+    defaultBhopSpeedPercent = 175;
+    bhopSpeedRate = S_BHOP_SPEED_RATE * 1.75;
+    moveSpeedPercent += 75;
+    SetMoveSpeed(player, moveSpeedPercent);
+}

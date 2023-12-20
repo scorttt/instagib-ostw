@@ -1,0 +1,205 @@
+import "main.del";
+
+globalvar Boolean[] S_FAST_PICKUP_SPAWN; // collectable fast spawning. [0] = buff, [1] = mutator
+globalvar Boolean[] spawnWithBuff; // array of buffs to give
+globalvar Boolean infiniteAmmoDbg; // infinite ammo bool
+
+rule: "Global Debug"
+{
+    EnableInspectorRecording();
+
+    S_FAST_PICKUP_SPAWN[0] = WorkshopSettingToggle(". Debug",                 "Fast Buff Spawn", true, -12);
+    S_FAST_PICKUP_SPAWN[1] = WorkshopSettingToggle(". Debug",                 "Fast Mutator Spawn", false, -11);
+    spawnWithBuff[0] = WorkshopSettingToggle(". Debug",                      "Spawn With Pierce", false, -10);
+    spawnWithBuff[1] = WorkshopSettingToggle(". Debug",                      "Spawn With Ricochet", false, -9);
+    spawnWithBuff[2] = WorkshopSettingToggle(". Debug",                      "Spawn With Buckshot", false, -8);
+    spawnWithBuff[3] = WorkshopSettingToggle(". Debug",                      "Spawn With Prism", false, -7);
+    spawnWithBuff[4] = WorkshopSettingToggle(". Debug",                      "Spawn With Ballista", false, -6);
+    spawnWithBuff[5] = WorkshopSettingToggle(". Debug",                      "Spawn With Electro", false, -5);
+    spawnWithBuff[6] = WorkshopSettingToggle(". Debug",                      "Spawn With Spark", false, -4);
+    spawnWithBuff[7] = WorkshopSettingToggle(". Debug",                      "Spawn With Arc", false, -3);
+    spawnWithBuff[8] = WorkshopSettingToggle(". Debug",                      "Spawn With Nebula", false, -2);
+    spawnWithBuff[9] = WorkshopSettingToggle(". Debug",                      "Spawn With Volt", false, -1);
+    infiniteAmmoDbg = WorkshopSettingToggle(". Debug",                           "Infinite Ammo", false, -0.9);
+
+    if (S_FAST_PICKUP_SPAWN[0])
+        for (Number i = 0; i < S_BUFF_CD.Length; i++)
+            S_BUFF_CD[i] = 2;
+
+    if (S_FAST_PICKUP_SPAWN[1])
+    {
+        S_RANDOM_MUTATOR_COOLDOWN = false;
+        S_M_CD = 2;
+        S_M_CREATION = 2;
+    }
+
+    // server load, entity, and text information
+    CreateHudText(host, null, <"C: <0>%, A: <1>%, P: <2>%, E: <3>, T: <4>\n", 
+                  Near(ServerLoad()), 
+                  Near(ServerLoadAverage()), 
+                  Near(ServerLoadPeak()), 
+                  EntityCount(), 
+                  TextCount()>,
+                  null, Location.Right, 0.2);
+
+    // // world information
+    // CreateHudText(host, null, 
+    // <"valid_map: <0>\nm_cd: <1>, mutator: <2> (<3>)\nfinal time: <4> + <5>, mut remaining: <6>", 
+    // valid_map,
+    // m_cd, chosen_mut, m_str,
+    // S_M_CD, rand, m_in.Length
+
+    // >, null, Location.Right, 0.3);
+
+    // WaitUntil(valid_map, 10);
+
+    // // buff world information
+    // for (Number i = 0; i < buff_pos.Length; i++)
+    // {
+    //     CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
+    //     Once(i), bNames[Once(i)],
+    //     buff_cd[Once(i)],
+    //     Once(buff_pos[i]),
+    //     DistanceBetween(PositionOf(host) + Up(), Once(buff_pos[i]))>, 
+    //     Once(buff_pos[i]), 
+
+    //     1, Clipping.DoNotClip);
+    // }
+
+    // // mutator world information
+    // CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
+    // chosen_mut, m_str, m_cd != 0 ? m_cd : m_pb,
+    // m_pos, 
+    // DistanceBetween(PositionOf(host) + Up(), m_pos)>, m_pos, 1, Clipping.DoNotClip);
+}
+
+rule: "Player Debug"
+Event.OnPlayerJoin
+{
+    // against wall?
+    CreateHudText(player, null, Update(IsTrueForAny([
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 0,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 1,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 2,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 3,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 4,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 5,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 6,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 7,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 8,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 9,  0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 10, 0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 11, 0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 12, 0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 13, 0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 14, 0), null, All()),
+            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 15, 0), null, All())],
+            DistanceBetween(EyePos(), Curr()) <= 0.9999)),
+            null, Location.Right, 0.3);
+
+    for (Number i = 0; i < spawnWithBuff.Length; i++)
+    {
+        if (spawnWithBuff[i])
+        {
+            playerHasBuff = true;
+            buffEnabled[i] = true;
+            heldBuffAmmo[i] = S_BUFF_AMMO[i];
+            currentBuffStr[0] = buffNames[i];
+            currentBuffStr[1] = buffIcons[i];
+            currentBuffIn = i;
+            buffColor = buffColors[i];
+
+            if (i == 9 || i == 7)
+            {
+                primaryFireDisabled = true;
+                laser = true;
+                DisallowButton(player, Button.PrimaryFire);
+            }
+        }
+    }
+
+    if (infiniteAmmoDbg)
+        infAmmo = true;
+
+    // player information
+    // CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\nbhopping: <4>, bhop_speed: <5>, speed: <6>\ndodges: <7>\n<8>\nhas mutator: <9>", 
+    // player, PositionOf(), Facing(), ThrottleOf(),
+    // bhopping, 
+    // bhop_speed,
+    // HorizontalSpeedOf(),
+    // dodges,
+    // has_buff ? <"current buff: <0>", buff_str> : <"recent buff: <0>", buff_str>,
+    // has_mut
+
+    // >, null, Location.Right, 0.5);
+}
+
+rule: "Event Damage"
+Event.OnDamageDealt
+if (player == host)
+{
+    LogToInspector(<"<0> damage", EventDamage()>);
+}
+
+rule: "Remove Buff Hotkey"
+Event.OngoingPlayer
+if (IsInteractHeld())
+if (playerHasBuff)
+{
+    WaitIfTrue(1);
+
+    primaryFireDisabled = false;
+    AllowButton(player, Button.PrimaryFire);
+    heldBuffAmmo[currentBuffIn] = 0;
+    buffEnabled[currentBuffIn] = false;
+    buffColor = null;
+
+    playerHasBuff = false;
+    currentBuffIn = -1;
+}
+
+// rule: "Kill"
+// Event.OngoingPlayer
+// if (player == host && IsInteractHeld())
+// {
+//     Kill();
+// }
+
+Player[] bots: FilteredArray(All(), IsDummyBot(Curr()));
+Player[] humans: FilteredArray(All(), !IsDummyBot(Curr()));
+rule: "Bots"
+if (bots.Length < 8 - humans.Length)
+if (IsButtonHeld(host, Button.Interact) && !IsButtonHeld(host, Button.Crouch))
+{
+    CreateDummyBot(HeroOf(host), OppositeTeamOf(TeamOf(host)), -1, RayCastHitPosition(EyePosition(host), EyePosition(host) + Facing(host) * 100, null, null), Facing(host) * -1);
+    // SetRespawnMaxTime(LastCreatedEntity(), 1);
+}
+
+rule: "Destroy Bots"
+Event.OngoingPlayer
+if (IsButtonHeld(host, Button.Crouch) && IsButtonHeld(host, Button.Interact))
+{
+    DestroyAllDummyBots();
+}
+
+// rule: "Show OW Spawn Points"
+// if (match_started)
+// {
+//     for (Number i = 0; i < SpawnPoints(Team.All).Length; i++)
+//     {
+//         CreateEffect(All(), Effect.Sphere, Color.White, RayCastHitPosition(SpawnPoints(Team.All)[i], SpawnPoints(Team.All)[i] + Down(), null, null), 0.5, EffectRev.None);
+//     }
+// }
+
+// rule: "Bots Hold Left Click"
+// Event.OngoingPlayer
+// if (IsDummyBot())
+// {
+//     StartHoldingButton(player, Button.PrimaryFire);
+// }
+
+// rule: "Show start_pos"
+// Event.OngoingPlayer
+// {
+//     CreateEffect(player, Effect.Sphere, Color.Aqua, weapon_muzzle, 0.05);
+// }

@@ -1,0 +1,12 @@
+import "../../main.del";
+import ".mmain.del";
+
+rule: "[Mutator] :: Seer : Set Status"
+Event.OngoingPlayer
+if (mutatorEnabled[0])
+{
+    LogToInspector(<"Seer given to <0>", mutatorUser>);
+
+    StopForcingPlayerOutlines(All(), player);
+    StartForcingPlayerOutlines(All(), player, true, mutatorColors[1], OutlineType.Always);
+}
