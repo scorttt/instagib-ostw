@@ -23,7 +23,7 @@ import "pickups/buffs/ballista.del";
 import "pickups/buffs/electro.del";
 import "pickups/buffs/spark.del";
 import "pickups/buffs/arc.del";
-import "pickups/buffs/daybreak.del";
+import "pickups/buffs/hydrangea.del";
 
 import "pickups/mutators/.mmain.del";
 import "pickups/mutators/denial.del";
@@ -36,18 +36,15 @@ globalvar Number S_GAMEMODE; // chosen gamemode
 globalvar Number S_DELAY; // weapon fire delay
 globalvar Boolean matchStarted; // has the match started
 playervar Boolean info; // information toggle
-playervar Boolean primaryFireDisabled; // disables primary fire (e.g. for owning volt or denial being in use)
+playervar Boolean disablePrimaryFire; // disables primary fire (e.g. for owning volt or denial being in use)
 playervar Vector gunPos; // arbitrary position of the gun
 playervar Number delay; // weapon fire delay for the player
 playervar Vector firstHp;
-playervar Boolean healing; // if the player is passively healing
-playervar Any hot; // heal overtime control var
 
 // IsFiringPrimary() is always true with illari *unless* she is FIRING or doing literally ANYTHING that isnt walking, jumping, or crouching
 // this includes reloading, meleeing, using abilitys, using secondary fire, recharging primary, recharging secondary
 Boolean IllariFiring(Player p = player): Update(IsAlive(p)) && Update(!IsFiringPrimary(p)) && Update(!IsFiringSecondary(p)); 
-Any WeaponMuzzle(Vector start_pos, Vector dir): (start_pos + dir) + (WorldVectorOf(Vector(-1, -0.80, 0), player) * 0.14);
-
+Any WeaponMuzzle(Vector startPos, Vector dir): Update(startPos + dir + WorldVectorOf(Right(), player) * 0.18 + Normalize(Cross(dir, WorldVectorOf(Right(), player))) * 0.22);
 disabled rule: "---------------- Main ----------------"{}
 
 rule: "[Main] :: Initial Global"
@@ -58,7 +55,7 @@ rule: "[Main] :: Initial Global"
 
     SetMatchTime(1);
 
-    matchStarted = false;
+    matchStarted = false; 
 
     S_GAMEMODE = WorkshopSettingCombo("A. General",                             "Gamemode", 0, ["Deathmatch", "Team Deathmatch", "4TDM", "Limited TDM", "Freeze Tag TDM", "Keepaway FFA", "Keepaway TDM", "Domination TDM", "Domination 4TDM"], 1);
     S_MATCH_TIME_LIMIT = WorkshopSettingInteger("A. General",                   "Match Time (Minutes) (20)", 20, 1, 60, 3) * 60;
@@ -75,7 +72,6 @@ rule: "[Main] :: Initial Global"
     S_DODGE_AMT = WorkshopSettingInteger("C. Dodge",                            "Dodge Amount (2)", 2, 1, 100, 3);
 
     S_ENABLE_SLIDE = WorkshopSettingToggle("D. Slide",                          "Enable Sliding (On)", true, 1);
-    S_SLIDE_DUR = WorkshopSettingReal("D. Slide",                               "Slide Duration (1.5)", 1.5, 0.5, 10, 2);
     S_SLIDE_JUMP_STRENGTH = WorkshopSettingReal("D. Slide",                     "Slide Jump Strength (4)", 4, 1, 100, 3);
     S_SLIDE_SPEED = WorkshopSettingReal("D. Slide",                             "Slide Speed (10)", 10, 1, 100, 3);
 
@@ -83,7 +79,7 @@ rule: "[Main] :: Initial Global"
     S_BHOP_MAX_SPEED = WorkshopSettingInteger("E. Bunny Hopping",               "Maximum Speed Multiplier From Bunny Hopping (100000)", 100000, 200, 100000, 2);
     S_BHOP_SPEED_RATE = WorkshopSettingReal("E. Bunny Hopping",                 "Speed gain rate (13.5)", 13.5, 1, 100, 3);
 
-    S_ALL_BUFFS_ENABLED = WorkshopSettingToggle("F. Buffs",                     "Enable Buffs (On)", true, 1);
+    S_ENABLE_BUFFS = WorkshopSettingToggle("F. Buffs",                          "Enable Buffs (On)", true, 1);
     S_RANDOMIZE_BUFF_POS = WorkshopSettingToggle("F. Buffs",                    "Randomize Buff Locations (On)", true, 2);
 
     S_SPAWN_BUFF[0] = WorkshopSettingToggle("G. Pierce Buff",                   "Spawn Pierce (On)", true, 1);
@@ -101,8 +97,8 @@ rule: "[Main] :: Initial Global"
     S_BUFF_CD[2] = WorkshopSettingInteger("I. Spread Buff",                   "Spread Spawn Time (210)", 210, 5, 600, 2);
     S_BUFF_AMMO[2] = WorkshopSettingInteger("I. Spread Buff",                 "Spread Ammo (30)", 30, 1, 1000, 3);
     S_BUCKSHOT_CHARGE_AMT = WorkshopSettingInteger("I. Spread Buff",          "Spread Charge Amount (5)", 5, 1, 10, 4);
-    S_BUCKSHOT_CHARGE_SPD = WorkshopSettingReal("I. Spread Buff",             "Spread Charge Speed (0.5)", 0.5, 0.3, 5, 5);
-    S_BUCKSHOT_SPREAD = WorkshopSettingReal("I. Spread Buff",                 "Spread Radius (Lower is Tighter) (1)", 1, 0.1, 20, 6);
+    S_BUCKSHOT_CHARGE_SPD = WorkshopSettingReal("I. Spread Buff",             "Spread Charge Speed (0.4)", 0.4, 0.3, 5, 5);
+    S_BUCKSHOT_SPREAD = WorkshopSettingReal("I. Spread Buff",                 "Spread Radius (Lower is Tighter) (1.2)", 1.2, 0.1, 20, 6);
     S_BUCKSHOT_GROUP_AMT = WorkshopSettingInteger("I. Spread Buff",           "Spread Bullets Per Group (8)", 8, 3, 12, 7);
 
     S_SPAWN_BUFF[3] = WorkshopSettingToggle("J. Prism Buff",                    "Spawn Prism (On)", true, 1);
@@ -117,28 +113,28 @@ rule: "[Main] :: Initial Global"
     S_SPAWN_BUFF[5] = WorkshopSettingToggle("L. Electro Buff",                  "Spawn Electro (On)", true, 1);
     S_BUFF_CD[5] = WorkshopSettingInteger("L. Electro Buff",                    "Electro Spawn Time (100)", 100, 5, 600, 2);
     S_BUFF_AMMO[5] = WorkshopSettingInteger("L. Electro Buff",                  "Electro Ammo (20)", 20, 1, 1000, 3);
-    S_ELECTRO_PDELAY = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Delay After Hitting a surface (0.35)", 0.35, 0, 2, 4);
-    S_ELECTRO_PRAD = WorkshopSettingReal("L. Electro Buff",                     "Electro Grenade Explosion Radius (8)", 8, 1, 20, 5);
-    S_ELECTRO_PSPEED = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Speed (25)", 25, 1, 50, 6);
-    S_ELECTRO_PGRAV = WorkshopSettingReal("L. Electro Buff",                    "Electro Grenade Projecitile Gravity (-15)", -15, -100, 100, 7);
+    S_ELECTRO_PROJ_DELAY = WorkshopSettingReal("L. Electro Buff",               "Electro Grenade Delay After Hitting a surface (0.35)", 0.35, 0, 2, 4);
+    S_ELECTRO_PROJ_EXPLOSION_RADIUS = WorkshopSettingReal("L. Electro Buff",                     "Electro Grenade Explosion Radius (8)", 8, 1, 20, 5);
+    S_ELECTRO_PROJ_SPEED = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Speed (25)", 25, 1, 50, 6);
+    S_ELECTRO_PROJ_GRAV = WorkshopSettingReal("L. Electro Buff",                    "Electro Grenade Projecitile Gravity (-15)", -15, -100, 100, 7);
     S_ELECTRO_PDELTA = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Delta (Vertical Offset) (0.1)", 0.1, -1, 1, 8);
-
+ 
     S_SPAWN_BUFF[6] = WorkshopSettingToggle("M. Spark Buff",                    "Spawn Spark (On)", true, 1);
     S_BUFF_CD[6] = WorkshopSettingInteger("M. Spark Buff",                      "Spark Spawn Time (125)", 125, 5, 600, 2);
     S_BUFF_AMMO[6] = WorkshopSettingInteger("M. Spark Buff",                    "Spark Ammo (20)", 20, 1, 1000, 3);
-    S_SPRK_PRIESIZE = WorkshopSettingReal("M. Spark Buff",                      "Spark Primary Explosion Size (3)", 3, 1, 10, 5);
-    S_SPRK_PSPEED = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Speed (20)", 20, 1, 500, 4);
-    S_SPRK_PESIZE = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Explosion Size (8)", 8, 1, 100, 5);
-    S_SPRK_HITBOX_SIZE = WorkshopSettingReal("M. Spark Buff",                   "Spark Projectile Hitbox Size (0.85)", 0.85, 0.1, 10, 7);
+    S_SPRK_PRIMARY_EXPLOSION_RADIUS = WorkshopSettingReal("M. Spark Buff",                      "Spark Primary Explosion Size (3)", 3, 1, 10, 5);
+    S_SPRK_PROJ_SPEED = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Speed (20)", 20, 1, 500, 4);
+    S_SPRK_PROJ_EXPLOSION_SIZE = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Explosion Size (8)", 8, 1, 100, 5);
+    S_SPRK_HITBOX_RADIUS = WorkshopSettingReal("M. Spark Buff",                   "Spark Projectile Hitbox Size (0.85)", 0.85, 0.1, 10, 7);
 
     S_SPAWN_BUFF[7] = WorkshopSettingToggle("N. Arc Buff",                      "Spawn Arc (On)", true, 1);
     S_BUFF_CD[7] = WorkshopSettingInteger("N. Arc Buff",                        "Arc Spawn Time (195)", 195, 5, 600, 2);
     S_BUFF_AMMO[7] = WorkshopSettingInteger("N. Arc Buff",                      "Arc Ammo (540)", 540, 1, 10000, 3);
     S_ARC_BOUNCES = WorkshopSettingInteger("N. Arc Buff",                       "Arc Maximum Bounces (4)", 4, 1, 24, 5) + 1; // unsure why i have to add 1 here and not on ricochet
 
-    S_SPAWN_BUFF[8] = WorkshopSettingToggle("O. TBD Buff",                      "Spawn TBD Buff (On)", true, 1);
-    S_BUFF_CD[8] = WorkshopSettingInteger("O. TBD Buff",                        "TBD Spawn Time (125)", 125, 5, 600, 2);
-    S_BUFF_AMMO[8] = WorkshopSettingInteger("O. TBD Buff",                      "TBD Ammo", 100, 1, 1000, 3);
+    S_SPAWN_BUFF[8] = WorkshopSettingToggle("O. Hydrangea Buff",                "Spawn Hydrangea Buff (On)", true, 1);
+    S_BUFF_CD[8] = WorkshopSettingInteger("O. Hydrangea Buff",                  "Hydrangea Spawn Time (195)", 195, 5, 600, 2);
+    S_BUFF_AMMO[8] = WorkshopSettingInteger("O. Hydrangea Buff",                "Hydrangea Ammo (750)", 750, 1, 100000, 3);
 
     S_SPAWN_BUFF[9] = WorkshopSettingToggle("P. Volt Buff",                     "Spawn Volt (On)", true, 1);
     S_BUFF_CD[9] = WorkshopSettingInteger("P. Volt Buff",                       "Volt Spawn Time (165)", 165, 5, 600, 2);
@@ -149,8 +145,8 @@ rule: "[Main] :: Initial Global"
     S_MIN_VLT_DIST = WorkshopSettingReal("P. Volt Buff",                        "Volt Minimum Distance (2)", 2, 1, 300, 7);
     S_VLT_TIME = WorkshopSettingReal("P. Volt Buff",                            "Volt Overheat Time (3)", 3, 0.1, 10, 8);
 
-    S_ENABLE_MUTATORS = WorkshopSettingToggle("Q. Mutators",                           "Enable Mutators (On)", true, 1);
-    S_RANDOM_MUTATOR_COOLDOWN = WorkshopSettingToggle("Q. Mutators",                           "Randomize Relative Spawn Time (On)", true, 2);
+    S_ENABLE_MUTATORS = WorkshopSettingToggle("Q. Mutators",                    "Enable Mutators (On)", true, 1);
+    S_RANDOM_MUTATOR_COOLDOWN = WorkshopSettingToggle("Q. Mutators",            "Randomize Relative Spawn Time (On)", true, 2);
     S_M_CD = WorkshopSettingInteger("Q. Mutators",                              "Mutator Spawn Time (180)", 180, 5, 600, 3);
     S_M_CREATION = WorkshopSettingInteger("Q. Mutators",                        "Mutator Creation Time (15)", 15, 1, 600, 4);
     S_M_DURATION = WorkshopSettingInteger("Q. Mutators",                        "Mutator Duration (40)", 40, 5, 600, 5);
@@ -164,7 +160,7 @@ rule: "[Main] :: Initial Global"
     S_SPAWN_MUTATOR[6] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Denial (On)", true, 6);
     S_SPAWN_MUTATOR[7] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Mirage NYI (On)", true, 7);
 
-    if (!S_ALL_BUFFS_ENABLED)
+    if (!S_ENABLE_BUFFS)
     {
         for (Number i = 0; i < S_SPAWN_BUFF.Length; i++)
             S_SPAWN_BUFF[i] = false;
@@ -186,13 +182,13 @@ if (!matchStarted)
 if (IsGameInProgress())
 if (AllLiving().Length >= 1)
 {
-    LogToInspector("Match Started");
+    LogToInspector("Match Started"); 
     SetMatchTime(S_MATCH_TIME_LIMIT);
     matchStarted = true;
 
     if (validMap)
     {
-        if (S_ALL_BUFFS_ENABLED)
+        if (S_ENABLE_BUFFS)
         {
             for (Number i = 0; i < S_BUFF_CD.Length; i++)
             {
@@ -232,6 +228,20 @@ Event.OnDeath
     StopForcingPlayerOutlines(player, All());
 }
 
+rule: "[Main] :: Primary Fire Enabled"
+Event.OngoingPlayer
+if (!disablePrimaryFire)
+{
+    AllowButton(player, Button.PrimaryFire);
+}
+
+rule: "[Main] :: Primary Fire Disabled"
+Event.OngoingPlayer
+if (disablePrimaryFire)
+{
+    DisallowButton(player, Button.PrimaryFire);
+}
+
 rule: "[Main] :: Player Alive"
 Event.OngoingPlayer
 if (IsAlive())
@@ -248,7 +258,7 @@ if (IsAlive())
 
 rule: "[Main] :: Server Fire"
 Event.OngoingPlayer
-if (!primaryFireDisabled)
+if (!disablePrimaryFire)
 if (Update(IsPrimaryHeld()))
 if (Update(IsAlive()))
 if (Update(!IsFiringPrimary()))
