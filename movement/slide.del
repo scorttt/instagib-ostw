@@ -1,7 +1,6 @@
 import "../main.del";
 
 globalvar Boolean S_ENABLE_SLIDE;
-globalvar Number S_SLIDE_DUR;
 globalvar Number S_SLIDE_JUMP_STRENGTH;
 globalvar Number S_SLIDE_SPEED;
 playervar Boolean isSliding;
@@ -27,6 +26,7 @@ if (!isSliding)
 if (IsButtonHeld(player, Button.Crouch))
 if (IsOnGround() || AltitudeOf() < 0.2)
 {
+    // todo: something here keeps accelerating the player towards Vector(1, 0, 0) and im not sure what. workshop bug?
     AbortIf(!IsMoving(player) || !IsButtonHeld(player, Button.Crouch));
 
     slideThrottle = Vector(Near(ThrottleOf().X), 0, Near(ThrottleOf().Z));
@@ -43,10 +43,10 @@ if (IsOnGround() || AltitudeOf() < 0.2)
     SetGravity(player, 0);
 
     StartAccelerating(player, Down(), 30, 100, Relative.ToWorld, AccelerateRev.None);
-    StartAccelerating(player, Update(ThrottleOf()), S_SLIDE_SPEED / 2, 100, Relative.ToPlayer, AccelerateRev.DirectionRateAndMaxSpeed);
-    ApplyImpulse(player, Update(slideThrottle), S_SLIDE_SPEED, Relative.ToPlayer, ContraryMotion.Incorporate);
+    StartAccelerating(player, ThrottleOf(), S_SLIDE_SPEED / 2, 100, Relative.ToPlayer, AccelerateRev.DirectionRateAndMaxSpeed);
+    ApplyImpulse(player, slideThrottle, S_SLIDE_SPEED, Relative.ToPlayer, ContraryMotion.Incorporate);
 
-    WaitUntil(!IsButtonHeld(player, Button.Crouch), S_SLIDE_DUR);
+    WaitUntil(!IsButtonHeld(player, Button.Crouch), 999999);
     AllowButton(player, Button.Jump);
 
     isSliding = false;
@@ -54,18 +54,6 @@ if (IsOnGround() || AltitudeOf() < 0.2)
     SetGravity(player, 100);
     StopAccelerating();
 
-    // WaitUntil(IsJumping(), 0.25);
-
-    // if (IsJumping())
-    // {
-    //     ApplyImpulse(player, Up(), S_SLIDE_JUMP_STRENGTH, Relative.ToPlayer, ContraryMotion.Incorporate);
-
-    //     PlayEffect(All(), PlayEffect.RingExplosionSound, null, player, 20);
-    //     PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, null, player, 50);
-    //     PlayEffect(All(), PlayEffect.RingExplosion, Color.Gray, PosOf() + Vector(0, 0.5, 0), 2);
-    // }
-
-    // jumpTimer = 0;
     Wait(0.25);
 }
 
@@ -73,8 +61,17 @@ rule: "Slide Effect"
 Event.OngoingPlayer
 if (isSliding)
 {
-    PlayEffect(All(), PlayEffect.BadExplosion, Color.Gray, PosOf(), 0.2);
-    PlayEffect(All(), PlayEffect.Soldier76SprintStartSound, Color.Gray, PosOf(), 15);
+    slideThrottle = Vector(Near(ThrottleOf().X), 0, Near(ThrottleOf().Z));
+
+    if (slideThrottle == Vector())
+        slideThrottle = Vector(0, 0, 1);
+
+    if (HorizontalSpeedOf() > 4)
+    {
+        PlayEffect(All(), PlayEffect.BadExplosion, Color.Orange, PosOf(), 0.2);
+        PlayEffect(All(), PlayEffect.Soldier76SprintStartSound, Color.Gray, PosOf(), 15);
+    }
+
     Wait(0.032);
     LoopIfConditionIsTrue();
 }

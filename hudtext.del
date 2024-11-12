@@ -1,9 +1,7 @@
 import "main.del";
 
-// todo: rewrite ALL of this
-
-// will have weird alignment for monitors other than 16:9
-Vector txt_location(in Number X, in Number Y): 
+// will have weird alignment for aspect ratios other than 16:9
+Vector FacingTextLocation(in Number X, in Number Y): 
 Update(EyePosition(local) + 100 * 
           (X * WorldVectorOf(Right(), local, LocalVector.Rotation) + // X
           (Y // Y
@@ -19,155 +17,140 @@ rule: "[Main] :: General HUD Text"
     " \n\n\n\n\n\n\n\n", Location.Top, 0.1);
 }
 
+Color CanPlayerPickupBuffColor(Number index): 
+    local.playerHasBuff && 
+        (local.currentBuffIn != Once(index) || local.infAmmo)
+        ? Color.Gray : buffColors[Once(index)];
+
 rule: "[Main] :: Pickup HUD Text and Effects : Welcome to hell"
 if (validMap)
-if (S_ALL_BUFFS_ENABLED)
+if (S_ENABLE_BUFFS)
 {
-    for (Number i = 0; i < CountOf(buffNames); i++)
+    for (Number i = 0; i < buffNames.Length; i++)
     {
         if (S_SPAWN_BUFF[i])
         {
             // ammo
-            CreateHudText(local.buffEnabled[Once(i)] ? local : null, null, null, 
-            <"<0> <1> Ammo: <2>", 
-            buffIcons[Once(i)], 
-            buffNames[Once(i)], 
-            !local.infAmmo ? 
-                !local.laser ? 
-                    Ceil(local.heldBuffAmmo[Once(i)]) 
-                  : <"<0>%", Ceil(Ceil(local.heldBuffAmmo[Once(i)]) / S_BUFF_AMMO[Once(i)] * 100)>
-            : "∞">, 
-            Location.Top, 1, TextColor: buffColors[Once(i)], Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor);
+            CreateHudText(
+                VisibleTo:        local.buffEnabled[Once(i)] ? local : null,
+                Header:           null,
+                Subheader:        null,
+                Text:             <"<0> <1> Ammo: <2>",
+                                        buffIcons[Once(i)], 
+                                        buffNames[Once(i)], 
+                                        !local.infAmmo ? 
+                                            !local.showAmmoAsPercentage ? 
+                                                Ceil(local.heldBuffAmmo[Once(i)]) 
+                                            : <"<0>%", Ceil(Ceil(local.heldBuffAmmo[Once(i)]) / S_BUFF_AMMO[Once(i)] * 100)>
+                                        : "∞">, 
+                Location:         Location.Top, 
+                SortOrder:        1, 
+                TextColor:        buffColors[Once(i)], 
+                Reevaluation:     HudTextRev.VisibleToSortOrderStringAndColor);
 
-            // complete effects
-            CreateEffect(buffCooldown[Once(i)] == 0 ? All() : null, Effect.Orb, buffColors[Once(i)], buffPos[Once(i)], 2, EffectRev.VisibleTo);
-            CreateInWorldText(buffCooldown[Once(i)] == 0 ? All() : null, buffIcons[Once(i)], buffPos[Once(i)] + Vector(0, 0.65, 0), 2, Clipping.ClipAgainstSurfaces, InworldTextRev.VisibleToAndPosition);
+            // complete orb effect
+            CreateEffect(
+                VisibleTo:        buffCooldown[Once(i)] == 0 ? All() : null, 
+                Type:             Effect.BadAura, 
+                Color:            CanPlayerPickupBuffColor(i), 
+                Position:         buffPos[Once(i)], 
+                Radius:           0.45, 
+                Reevaluation:     EffectRev.VisibleToAndColor);
 
-            // unable to collect
-            CreateInWorldText(buffCooldown[Once(i)] == 0 
-                                && local.playerHasBuff 
-                                && (local.currentBuffIn != Once(i) || local.infAmmo)
-                                ? local : null, 
-                                IconString(Icon.No), buffPos[Once(i)] + Vector(0, 0.65, 0), 2, Clipping.ClipAgainstSurfaces, InworldTextRev.VisibleToAndPosition);
+            // complete text
+            CreateInWorldText(
+                VisibleTo:        buffCooldown[Once(i)] == 0 ? All() : null, 
+                Header:           " \n\n\n" + buffIcons[Once(i)], 
+                Position:         buffPos[Once(i)] + Vector(0, 0.085, 0),
+                Scale:            2.1, 
+                Clipping:         Clipping.ClipAgainstSurfaces, 
+                Reevaluation:     InworldTextRev.VisibleToAndPosition);
+
+            // completed/in-progress good aura effect
+            CreateEffect(
+                VisibleTo:        All(), 
+                Type:             Effect.GoodAura, 
+                Color:            CanPlayerPickupBuffColor(i),
+                Position:         buffPos[Once(i)], 
+                Radius:           buffPickupEffectSize[Once(i)] * 0.0045,
+                Reevaluation:     EffectRev.VisibleToPositionRadiusAndColor);
+
+            // completed/in-progress sparkle effect
+            CreateEffect(
+                VisibleTo:        All(), 
+                Type:             Effect.Sparkles, 
+                Color:            CanPlayerPickupBuffColor(i),
+                Position:         buffPos[Once(i)], 
+                Radius:           buffPickupEffectSize[Once(i)] * 0.0045,
+                Reevaluation:     EffectRev.VisibleToPositionRadiusAndColor);
+
+            // in progress sphere effect
+            CreateEffect(
+                VisibleTo:        buffCooldown[Once(i)] != 0 ? All() : null, 
+                Type:             Effect.Sphere, 
+                Color:            CanPlayerPickupBuffColor(i), 
+                Position:         buffPos[Once(i)], 
+                Radius:           buffPickupEffectSize[Once(i)] * 0.0045,
+                Reevaluation:     EffectRev.VisibleToPositionRadiusAndColor);
+
+            // in progress progress bar
+            CreateProgressBarInWorldText(
+                VisibleTo:        buffCooldown[Once(i)] != 0 ? All() : null, 
+                Value:            buffPickupEffectSize[Once(i)], 
+                Text:             null, 
+                Position:         buffPos[Once(i)] + Vector(0, buffPickupEffectSize[Once(i)] * 0.0045, 0),
+                Scale:            0, 
+                Clipping:         Clipping.ClipAgainstSurfaces, 
+                ProgressBarColor: buffColors[Once(i)], 
+                TextColor:        Color.White, 
+                Reevaluation:     ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);
         }
-    }
-
-    // pierce
-    if (S_SPAWN_BUFF[0])
-    {
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[Buff.Wallbang], buffPos[Buff.Wallbang], wallbangProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[Buff.Wallbang] != 0 ? All() : null, Effect.Sphere, buffColors[Buff.Wallbang], buffPos[Buff.Wallbang], wallbangProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[Buff.Wallbang] != 0 ? All() : null, wallbangProgressBar, null, 
-        buffPos[Buff.Wallbang] + Vector(0, wallbangProgressBar * 0.0045, 0), 0, 
-        Clipping.ClipAgainstSurfaces, buffColors[Buff.Wallbang], Color.White, ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);
-    }
-
-    // ricochet
-    if (S_SPAWN_BUFF[1])
-    {
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[Buff.Ricochet], buffPos[Buff.Ricochet], ricochetProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[Buff.Ricochet] != 0 ? All() : null, Effect.Sphere, buffColors[Buff.Ricochet], buffPos[Buff.Ricochet], ricochetProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[Buff.Ricochet] != 0 ? All() : null, ricochetProgressBar, null, buffPos[Buff.Ricochet] + Vector(0, ricochetProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[Buff.Ricochet], Color.White, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
     }
 
     // buckshot
     if (S_SPAWN_BUFF[2])
     {
         // alt fire
-        CreateHudText(local.buffEnabled[2] ? local : null, null, null, 
-        <"<0>: Charge shots", InputBindingString(Button.Reload)>, 
-        Location.Top, 1.1, TextColor: buffColors[2]);
+        CreateHudText(local.buffEnabled[2] ? local : null, null, 
+        <"<0>: Charge shots", InputBindingString(Button.Reload)>, null,
+        Location.Top, 1.1, SubheaderColor: buffColors[2]);
 
         // charge
-        CreateHudText(local.buffEnabled[2] ? local : null, null, null, 
-        <" Charges: <0>", local.chargeStr>, 
-        Location.Top, 1.2, TextColor: buffColors[2]);
-
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[2], buffPos[2], buckshotProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[2] != 0 ? All() : null, Effect.Sphere, buffColors[2], buffPos[2], buckshotProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[2] != 0 ? All() : null, buckshotProgressBar, null, buffPos[2] + Vector(0, buckshotProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[2], Color.White, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
+        CreateHudText(local.buffEnabled[2] ? local : null, null,  
+        <" Charges: <0>", local.chargeStr>, null,
+        Location.Top, 1.2, SubheaderColor: buffColors[2]);
     }
 
     // prism
     if (S_SPAWN_BUFF[3])
     {
         // alt fire
-        CreateHudText(local.buffEnabled[3] ? local : null, null, null,
-        <"<0>: Alternate fire", InputBindingString(Button.Reload)>,
-        Location.Top, 1.1, TextColor: buffColors[3]);
-
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[3], buffPos[3], prismProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[3] != 0 ? All() : null, Effect.Sphere, buffColors[3], buffPos[3], prismProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[3] != 0 ? All() : null, prismProgressBar, null, buffPos[3] + Vector(0, prismProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[3], Color.White, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
-    }
-
-    // ballista
-    if (S_SPAWN_BUFF[4])
-    {
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[4], buffPos[4], ballistaProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[4] != 0 ? All() : null, Effect.Sphere, buffColors[4], buffPos[4], ballistaProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[4] != 0 ? All() : null, ballistaProgressBar, null, buffPos[4] + Vector(0, ballistaProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[4], Color.White, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
+        CreateHudText(local.buffEnabled[3] ? local : null, null,
+        <"<0>: Alternate fire", InputBindingString(Button.Reload)>, null,
+        Location.Top, 1.1, SubheaderColor: buffColors[3]);
     }
 
     // electro
     if (S_SPAWN_BUFF[5])
     {
         // alt fire
-        CreateHudText(local.buffEnabled[5] ? local : null, null, null, 
-        <"<0>: Alternate fire", InputBindingString(Button.Reload)>,
-        Location.Top, 1.1, TextColor: buffColors[5]);
+        CreateHudText(local.buffEnabled[5] ? local : null, null, 
+        <"<0>: Alternate fire", InputBindingString(Button.Reload)>, null,
+        Location.Top, 1.1, SubheaderColor: buffColors[5]);
 
         // armed
-        CreateHudText(local.t_airtime != 0 ? local : null, null, null, 
-        AltFont(<"Detonation in: <0>", local.hit_surface ? Max(S_ELECTRO_PDELAY - local.airtime, 0.001) : Max(T_PDELAY - local.t_airtime, 0.001)>),
-        Location.Top, 1.2, TextColor: local.hit_surface || local.t_airtime > 1 ? Color.Red : buffColors[5], Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor);
-
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[5], buffPos[5], electroProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[5] != 0 ? All() : null, Effect.Sphere, buffColors[5], buffPos[5], electroProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[5] != 0 ? All() : null, electroProgressBar, null, buffPos[5] + Vector(0, electroProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[5], Color.White, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
+        CreateHudText(local.totalProjAirtime != 0 ? local : null, null,  
+        AltFont(<"Detonation in: <0>", local.projHitSurface ? Max(S_ELECTRO_PROJ_DELAY - local.airtime, 0.001) : Max(FINAL_PROJ_DELAY - local.totalProjAirtime, 0.001)>), null,
+        Location.Top, 1.2, SubheaderColor: local.projHitSurface || local.totalProjAirtime > 1 ? Color.Red : buffColors[5], Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor);
     }
 
     // spark
     if (S_SPAWN_BUFF[6])
     {
         // alt fire
-        CreateHudText(local.buffEnabled[6] ? local : null, null, null,
-        <"<0>: Alternate fire", InputBindingString(Button.Reload)>,
-        Location.Top, 1.1, TextColor: buffColors[6]);
-
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[6], buffPos[6], sparkProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[6] != 0 ? All() : null, Effect.Sphere, buffColors[6], buffPos[6], sparkProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[6] != 0 ? All() : null, sparkProgressBar, null, buffPos[6] + Vector(0, sparkProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[6], Color.White, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
-    }
-
-    // arc
-    if (S_SPAWN_BUFF[7])
-    {
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[7], buffPos[7], arcProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[7] != 0 ? All() : null, Effect.Sphere, buffColors[7], buffPos[7], arcProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[7] != 0 ? All() : null, arcProgressBar, null, buffPos[7] + Vector(0, arcProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[7], Color.White, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
-    }
-
-    // nebula
-    if (S_SPAWN_BUFF[8])
-    {
-        // alt fire
-        CreateHudText(local.buffEnabled[8] ? local : null, null, null,
-        <"<0>: Alternate fire", InputBindingString(Button.Reload)>,
-        Location.Top, 1.1, TextColor: buffColors[8]);
-
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[8], buffPos[8], nebulaProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[8] != 0 ? All() : null, Effect.Sphere, buffColors[8], buffPos[8], nebulaProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[8] != 0 ? All() : null, nebulaProgressBar, null, buffPos[8] + Vector(0, nebulaProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[8], Color.White, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
+        CreateHudText(local.buffEnabled[6] ? local : null, null, 
+        <"<0>: Alternate fire", InputBindingString(Button.Reload)>, null,
+        Location.Top, 1.1, SubheaderColor: buffColors[6]);
     }
 
     // volt
@@ -175,40 +158,44 @@ if (S_ALL_BUFFS_ENABLED)
     {
         // temperature
         CreateProgressBarHudText(local.buffEnabled[9] ? local : null, 
-        local.voltTemp * 100, !local.overheated ? <"<0>°", Floor(local.voltTemp * 100)> : "Overheat",
-        Location.Top, 1.2, CustomColor(
-            LinearInterpolate(255, 255, local.voltTemp), // r
-            LinearInterpolate(100, 0, local.voltTemp),  // g
-            LinearInterpolate(0, 0, local.voltTemp),  // b
+        local.voltTemp * 100, !local.overheated ? <"<0>%", Floor(Clamp(local.voltTemp * 100 + (local.voltTemp * (Time() + 1000)) % 8, 0, 99))> : "Overheat",
+        Location.Top, 1.2, 
+        CustomColor(
+            Lerp(255, 255, local.voltTemp), // r
+            Lerp(100, 0, local.voltTemp),  // g
+            Lerp(0, 0, local.voltTemp),  // b
             255), 
-            CustomColor(
-            LinearInterpolate(255, 255, local.voltTemp), // r
-            LinearInterpolate(100, 0, local.voltTemp),  // g
-            LinearInterpolate(0, 0, local.voltTemp),  // b
-            255), ProgressBarHudEvaluation.VisibleToValuesAndColor);
-
-        // in progress effects
-        CreateEffect(All(), Effect.GoodAura, buffColors[9], buffPos[9], voltProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateEffect(buffCooldown[9] != 0 ? All() : null, Effect.Sphere, buffColors[9], buffPos[9], voltProgressBar * 0.0045, EffectRev.VisibleToPositionAndRadius);
-        CreateProgressBarInWorldText(buffCooldown[9] != 0 ? All() : null, voltProgressBar, null, buffPos[9] + Vector(0, voltProgressBar * 0.0045, 0), 0, Clipping.ClipAgainstSurfaces, buffColors[9], null, ProgressBarWorldEvaluation.VisibleToPositionAndValues);
+        CustomColor(
+            Lerp(255, 255, local.voltTemp), // r
+            Lerp(100, 0, local.voltTemp),  // g
+            Lerp(0, 0, local.voltTemp),  // b
+            255), 
+        ProgressBarHudEvaluation.VisibleToValuesAndColor);
     }
 
     // mutators
     if (S_ENABLE_MUTATORS)
     {
         // mutator info
-        CreateHudText(isMutatorInWorld || mutatorUser != null ? RemoveFromArray(All(), mutatorUser) : null, mutatorIcon, mutatorStr, 
-        mutatorProgressBar != 100 && mutatorCooldown <= S_M_CREATION 
-            ? <"<0>%", Floor(mutatorProgressBar)> 
-            : !IsTrueForAny(All(), Curr().playerHasMutator) 
-                ? IconString(Icon.Checkmark)
-                : <"In-use by <0>", mutatorUser>,
-        Location.Left, 24, mutatorColors[0], mutatorColors[0], Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor);
+        CreateHudText(
+            isMutatorInWorld || mutatorUser != null ? RemoveFromArray(All(), mutatorUser) : null, 
+            mutatorIcon, 
+            mutatorStr, 
+            mutatorProgressBar != 100 && mutatorCooldown <= S_M_CREATION 
+                ? <"<0>%", Floor(mutatorProgressBar)> 
+                : !IsTrueForAny(All(), Curr().playerHasMutator) 
+                    ? IconString(Icon.Checkmark)
+                    : <"In-use by <0>", mutatorUser>,
+            Location.Left, 
+            24, 
+            mutatorColors[0], 
+            mutatorColors[0], 
+            Reevaluation: HudTextRev.VisibleToSortOrderStringAndColor);
 
         // icon
         CreateInWorldText(local.playerHasMutator ? local : null, 
         mutatorIcon, 
-        txt_location(-0.65, -1.028), 
+        FacingTextLocation(-0.65, -1.028), 
         1.2, 
         Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, 
         mutatorColors[0]);
@@ -216,7 +203,7 @@ if (S_ALL_BUFFS_ENABLED)
         // text
         CreateInWorldText(local.playerHasMutator ? local : null, 
         mutatorStr,
-        txt_location(0, -0.93), 
+        FacingTextLocation(0, -0.93), 
         1.75, 
         Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, 
         mutatorColors[0]);
@@ -224,7 +211,7 @@ if (S_ALL_BUFFS_ENABLED)
         // progress bar
         CreateProgressBarInWorldText(local.playerHasMutator ? local : null, local.mutatorNormalTimeLeft, 
         null,
-        txt_location(0, -1.235), 
+        FacingTextLocation(0, -1.235), 
         0.65, Clipping.DoNotClip, 
         mutatorColors[1], 
         null,
@@ -233,7 +220,7 @@ if (S_ALL_BUFFS_ENABLED)
         // ability text
         CreateInWorldText(local.playerHasMutator ? local : null, 
         StringReplace(mutatorDescs[chosenMutator], "*", InputBindingString(local.abilityButton)),
-        txt_location(0, -1.125), 
+        FacingTextLocation(0, -1.125), 
         1, 
         Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, 
         mutatorColors[0]);

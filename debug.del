@@ -42,26 +42,26 @@ rule: "Global Debug"
                   TextCount()>,
                   null, Location.Right, 0.2);
 
-    // // world information
-    // CreateHudText(host, null, 
-    // <"valid_map: <0>\nm_cd: <1>, mutator: <2> (<3>)\nfinal time: <4> + <5>, mut remaining: <6>", 
-    // valid_map,
-    // m_cd, chosen_mut, m_str,
-    // S_M_CD, rand, m_in.Length
+    // world information
+    CreateHudText(host, null, 
+    <"validMap: <0>\nmutatorCooldown: <1>, chosenMutator: <2> (<3>)\nfinal time: <4> + <5>, mut remaining: <6>", 
+    validMap,
+    mutatorCooldown, chosenMutator, mutatorStr,
+    S_M_CD, rand, mutatorIndex.Length
 
-    // >, null, Location.Right, 0.3);
+    >, null, Location.Right, 0.3);
 
-    // WaitUntil(valid_map, 10);
+    WaitUntil(validMap, 10);
 
-    // // buff world information
-    // for (Number i = 0; i < buff_pos.Length; i++)
+    // buff world information
+    // for (Number i = 0; i < buffPos.Length; i++)
     // {
     //     CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
-    //     Once(i), bNames[Once(i)],
-    //     buff_cd[Once(i)],
-    //     Once(buff_pos[i]),
-    //     DistanceBetween(PositionOf(host) + Up(), Once(buff_pos[i]))>, 
-    //     Once(buff_pos[i]), 
+    //     Once(i), buffNames[Once(i)],
+    //     buffCooldown[Once(i)],
+    //     Once(buffPos[i]),
+    //     DistanceBetween(PositionOf(host) + Up(), Once(buffPos[i]))>, 
+    //     Once(buffPos[i]), 
 
     //     1, Clipping.DoNotClip);
     // }
@@ -104,15 +104,15 @@ Event.OnPlayerJoin
             playerHasBuff = true;
             buffEnabled[i] = true;
             heldBuffAmmo[i] = S_BUFF_AMMO[i];
-            currentBuffStr[0] = buffNames[i];
-            currentBuffStr[1] = buffIcons[i];
+            heldBuffStr[HeldStr.Name] = buffNames[i];
+            heldBuffStr[HeldStr.Icon] = buffIcons[i];
             currentBuffIn = i;
             buffColor = buffColors[i];
 
-            if (i == 9 || i == 7)
+            if (i == 9 || i == 7 || i == 8)
             {
-                primaryFireDisabled = true;
-                laser = true;
+                disablePrimaryFire = true;
+                showAmmoAsPercentage = true;
                 DisallowButton(player, Button.PrimaryFire);
             }
         }
@@ -122,16 +122,16 @@ Event.OnPlayerJoin
         infAmmo = true;
 
     // player information
-    // CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\nbhopping: <4>, bhop_speed: <5>, speed: <6>\ndodges: <7>\n<8>\nhas mutator: <9>", 
-    // player, PositionOf(), Facing(), ThrottleOf(),
-    // bhopping, 
-    // bhop_speed,
-    // HorizontalSpeedOf(),
-    // dodges,
-    // has_buff ? <"current buff: <0>", buff_str> : <"recent buff: <0>", buff_str>,
-    // has_mut
+    CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\nbhopping: <4>, bhop_speed: <5>, speed: <6>\ndodges: <7>\n<8>\nhas mutator: <9>", 
+    player, PositionOf(), Facing(), ThrottleOf(),
+    bhopping, 
+    bhopSpeedRate,
+    HorizontalSpeedOf(),
+    dodges,
+    playerHasBuff ? <"current buff: <0>", heldBuffStr> : <"recent buff: <0>", heldBuffStr>,
+    playerHasMutator
 
-    // >, null, Location.Right, 0.5);
+    >, null, Location.Right, 0.5);
 }
 
 rule: "Event Damage"
@@ -148,7 +148,7 @@ if (playerHasBuff)
 {
     WaitIfTrue(1);
 
-    primaryFireDisabled = false;
+    disablePrimaryFire = false;
     AllowButton(player, Button.PrimaryFire);
     heldBuffAmmo[currentBuffIn] = 0;
     buffEnabled[currentBuffIn] = false;

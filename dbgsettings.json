@@ -14,7 +14,7 @@
       },
       "Deathmatch": {
         "Enabled Maps": [
-          "Château Guillard"
+          "Workshop Chamber"
         ]
       }
     },
@@ -24,7 +24,7 @@
           "Illari"
         ],
         "Illari": {
-          "Health": 50,
+          "Health": 40,
           "Damage Dealt": 500,
           "Damage Received": 500,
           "Healing Received": 500,
@@ -35,7 +35,7 @@
           "Solar Energy Recharge Rate": 500,
           "Outburst": false,
           "Healing Pylon": false,
-          "Ultimate Ability (Captive Sun)": false
+          "Ultimate Ability Captive Sun": false
         }
       }
     },

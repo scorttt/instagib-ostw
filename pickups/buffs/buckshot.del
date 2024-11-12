@@ -77,12 +77,12 @@ if (IllariFiring())
     Vector eyePos! = EyePosition();
 
     Number offset! = 0;
-    Number projectileAmt! = S_BUCKSHOT_GROUP_AMT * (chargeLvl + 1);
-    Number numGroups! = projectileAmt / S_BUCKSHOT_GROUP_AMT;
-    
-    Number initSpread! = spread;
+    Number buckshotProjAmt! = S_BUCKSHOT_GROUP_AMT * (chargeLvl + 1);
+    Number numGroups! = buckshotProjAmt / S_BUCKSHOT_GROUP_AMT;
 
-    for (Number i! = 1; i <= projectileAmt; i++)
+    Number initBuckshotSpread! = spread;
+
+    for (Number i! = 1; i <= buckshotProjAmt; i++)
     {
         buckshotHitPos[i] = RayHit(eyePos, eyePos + SpreadAngleDirection(player, spread, (i * groupDeg) + offset) * 300, AllLiving(), player);
         buckshotHitPlayer[i] = RayPlayer(eyePos, eyePos + SpreadAngleDirection(player, spread, (i * groupDeg) + offset) * 300, AllLiving(), player);
@@ -93,7 +93,7 @@ if (IllariFiring())
 
         if (i != 1 && i % S_BUCKSHOT_GROUP_AMT == 0)
         {
-            spread = initSpread - Near(i / S_BUCKSHOT_GROUP_AMT) * (initSpread / numGroups);
+            spread = initBuckshotSpread - Near(i / S_BUCKSHOT_GROUP_AMT) * (initBuckshotSpread / numGroups);
             offset += groupDeg / 2; // spread rotation offset (degrees)
         }
     }

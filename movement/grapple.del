@@ -1,0 +1,4 @@
+import "../main.del";
+
+rule: ""
+Event.OngoingPlayer

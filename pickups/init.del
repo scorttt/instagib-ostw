@@ -29,37 +29,37 @@ rule: "[Main] :: Pickup Init"
              AbilityIconString(Hero.Bastion,   Button.SecondaryFire), // 5
              AbilityIconString(Hero.Illari,    Button.Ultimate),      // 6
              AbilityIconString(Hero.Echo,      Button.Ability2),      // 7
-             AbilityIconString(Hero.Sigma,     Button.Ultimate),      // 8
+             AbilityIconString(Hero.Kiriko,    Button.Ability2),      // 8
              IconString       (Icon.Bolt)                     ];      // 9
 
-    buffNames = ["Pierce", 
-              "Ricochet", 
-              "Spread", 
-              "Prism", 
-              "Ballista", 
-              "Electro", 
-              "Spark", 
-              "Arc", 
-              "Peony", 
-              "Volt"];
+    buffNames =     ["Pierce", 
+                    "Ricochet", 
+                    "Spread", 
+                    "Prism", 
+                    "Ballista", 
+                    "Electro", 
+                    "Spark", 
+                    "Arc", 
+                    "Hydrangea", 
+                    "Volt"];
 
     mutatorNames = ["Seer", 
-              "Dummy", 
-              "TBD", 
-              "Poison", 
-              "Berserk", 
-              "Replicate", 
-              "Denial", 
-              "Mirage"];
+                    "Dummy", 
+                    "TBD", 
+                    "Poison", 
+                    "Berserk", 
+                    "Replicate", 
+                    "Denial", 
+                    "Mirage"];
 
     mutatorDescs = ["See all players through walls",
-              "NYI",
-              "NYI",
-              "NYI",
-              "Faster Movement, Faster firing, More Dodges, Infinite Ammo",
-              "NYI",
-              "Extra Life",
-              "NYI"];
+                    "NYI",
+                    "NYI",
+                    "NYI",
+                    "Faster Movement, Faster firing, More Dodges, Infinite Ammo",
+                    "NYI",
+                    "Extra Life",
+                    "NYI"];
 
     // map pickup locations
     Vector[] buffLocations = [];
@@ -537,7 +537,7 @@ rule: "[Main] :: Pickup Init"
     if (validMap)
     {
         Number buffLen = buffLocations.Length;
-        if (S_ALL_BUFFS_ENABLED)
+        if (S_ENABLE_BUFFS)
         {
             for (Number i = 0; i < buffLen; i++)
             {

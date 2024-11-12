@@ -14,7 +14,6 @@ if (buffEnabled[7])
 if (IsPrimaryHeld())
 if (!IsFiringSecondary())
 if (IsAlive())
-if (!HasStatus(player, Status.PhasedOut))
 {
     // todo: effects
     DisallowButton(player, Button.SecondaryFire); // disable illari impulse

@@ -3,28 +3,28 @@ import ".bmain.del";
 
 
 // logic
-globalvar Number S_ELECTRO_PDELAY;
-globalvar Number S_ELECTRO_PGRAV;
-globalvar Number S_ELECTRO_PSPEED;
+globalvar Number S_ELECTRO_PROJ_DELAY;
+globalvar Number S_ELECTRO_PROJ_GRAV;
+globalvar Number S_ELECTRO_PROJ_SPEED;
 globalvar Number S_ELECTRO_PDELTA;
-globalvar Number S_ELECTRO_PRAD;
-globalvar Number T_PDELAY;
+globalvar Number S_ELECTRO_PROJ_EXPLOSION_RADIUS;
+globalvar Number FINAL_PROJ_DELAY;
 globalvar Number PROJ_SIZE;
-globalvar Vector proj_grav_vec;
+globalvar Vector projGravVec;
 playervar Vector vel;
-playervar Vector proj_pos;
-playervar Boolean hit_surface; 
+playervar Vector projPos;
+playervar Boolean projHitSurface; 
 playervar Number airtime; // airtime after the projectile hits a surface
-playervar Number t_airtime; // total airtime, destroy the projectile after a set time regardless if it hit a surface or not
+playervar Number totalProjAirtime; // total airtime, destroy the projectile after a set time regardless if it hit a surface or not
 
 disabled rule: "---------------- Electro ----------------"{}
 
 rule: "[Buff] :: Electro : Init"
 {
-    WaitUntil(S_ELECTRO_PSPEED != 0, 1); // check to prevent projectile fuckery if i copy workshop code with this file focused
-    proj_grav_vec = Vector(0, S_ELECTRO_PGRAV, 0);
-    PROJ_SIZE = (0.25 + (S_ELECTRO_PSPEED / 100));
-    T_PDELAY = Clamp(S_ELECTRO_PDELAY * 4, 2, 3);
+    WaitUntil(S_ELECTRO_PROJ_SPEED != 0, 1); // check to prevent projectile fuckery if i copy workshop code with this file focused
+    projGravVec = Vector(0, S_ELECTRO_PROJ_GRAV, 0);
+    PROJ_SIZE = (0.25 + (S_ELECTRO_PROJ_SPEED / 100));
+    FINAL_PROJ_DELAY = Clamp(S_ELECTRO_PROJ_DELAY * 4, 2, 3);
 }
 
 rule: "[Buff] :: Electro : Action - Primary Fire"
@@ -34,7 +34,7 @@ if (buffEnabled[5])
     // i dont know what im going to do here yet
 }
 
-Number proj_check: DistanceBetween(proj_pos, Update(RayCastHitPosition(proj_pos, proj_pos + (vel * 0.016) * 100, AllLivingPlayers(), player)));
+Number projDistCheck: DistanceBetween(projPos, Update(RayCastHitPosition(projPos, projPos + (vel * 0.016) * 100, AllLivingPlayers(), player)));
 rule: "[Buff] :: Electro : Action - Launch Grenade"
 Event.OngoingPlayer
 if (buffEnabled[5])
@@ -45,85 +45,85 @@ if (IsAlive())
         heldBuffAmmo[5] -= 2;
 
     Any effect;
-    hit_surface = false;
-    t_airtime = 0;
+    projHitSurface = false;
+    totalProjAirtime = 0;
     airtime = 0;
-    proj_pos = EyePosition();
-    vel = Normalize(Facing() + Vector(0, S_ELECTRO_PDELTA, 0)) * S_ELECTRO_PSPEED;
+    projPos = EyePosition();
+    vel = Normalize(Facing() + Vector(0, S_ELECTRO_PDELTA, 0)) * S_ELECTRO_PROJ_SPEED;
 
     DestroyEffect(effect);
 
-    CreateEffect(All(), Effect.Orb, buffColors[5], proj_pos, 1);
+    CreateEffect(All(), Effect.Orb, buffColors[5], projPos, 1);
     effect[0] = LastCreatedEntity();
-    CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, Color.White, proj_pos, 45);
+    CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, Color.White, projPos, 45);
     effect[1] = LastCreatedEntity();
-    CreateEffect(All(), Effect.OrisaHaltTendrilSound, Color.White, proj_pos, 45);
+    CreateEffect(All(), Effect.OrisaHaltTendrilSound, Color.White, projPos, 45);
     effect[2] = LastCreatedEntity();
 
     Vector[] normals = [];
-    Vector[] hp = [];
-    Vector[] hp_reflection = [];
+    Vector[] hitPos = [];
+    Vector[] reflectionHitPos = [];
     Vector[] hp_player = [];
     Vector[] reflection = [];
 
     // projectile loop
-    while (proj_check >= PROJ_SIZE && t_airtime <= T_PDELAY && airtime <= S_ELECTRO_PDELAY)
+    while (projDistCheck >= PROJ_SIZE && totalProjAirtime <= FINAL_PROJ_DELAY && airtime <= S_ELECTRO_PROJ_DELAY)
     {
         // 62.5 ticks = 1 second, 3750 ticks = 1 minute
-        vel += proj_grav_vec * 0.016; // update vel with grav vector each loop
-        proj_pos += vel * 0.016; // update proj_pos with vel vector each loop
-        t_airtime += 0.016;
+        vel += projGravVec * 0.016; // update vel with grav vector each loop
+        projPos += vel * 0.016; // update projPos with vel vector each loop
+        totalProjAirtime += 0.016;
 
-        if (hit_surface)
+        if (projHitSurface)
             airtime += 0.016;
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[5], proj_pos, PROJ_SIZE);
+        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[5], projPos, PROJ_SIZE);
 
-        // reflection loop (without this the for below would fire twice for whatever reason)
-        if (proj_check <= PROJ_SIZE && S_ELECTRO_PDELAY > 0) // surface hit
+        // reflection loop (without this extra check the for below would fire twice for whatever reason)
+        if (projDistCheck <= PROJ_SIZE && S_ELECTRO_PROJ_DELAY > 0) // surface hit
         {
             // i < arbitrary amount of vectors to store, in an ideal world this wouldnt matter if the math was for constant contact with one surface
-            for (Number i = 0; i < 12 && proj_check <= PROJ_SIZE; i++) // another check
+            for (Number i = 0; i < 12 && projDistCheck <= PROJ_SIZE; i++) // another check
             {
                 # https://math.stackexchange.com/questions/13261/how-to-get-a-reflectionion-vector/3340378#3340378
                 if (i > 0)
                 {
-                    proj_pos = hp[i - 1];
+                    projPos = hitPos[i - 1];
                     vel = reflection[i - 1];
                 }
 
                 // get hit pos and normal
-                hp[i] = RayCastHitPosition(proj_pos, proj_pos + vel * 100, AllLivingPlayers(), player, true);
-                normals[i] = RayCastHitNormal(proj_pos, proj_pos + vel * 100, AllLivingPlayers(), player, true);
+                hitPos[i] = RayHit(projPos, projPos + vel * 100, AllLiving(), player);
+                normals[i] = RayNormal(projPos, projPos + vel * 100, AllLiving(), player);
 
                 // v - (2 * (v . n) * n)
                 reflection[i] = vel - (2 * (Dot(vel, normals[i])) * normals[i]);
-                hp_reflection[i] = RayCastHitPosition(hp[i], hp[i] + reflection[i] * 100, AllLivingPlayers(), player, true); // raycast from hit pos to reflection vector
+                reflectionHitPos[i] = RayHit(hitPos[i], hitPos[i] + reflection[i] * 100, AllLiving(), player); // raycast from hit pos to reflection vector
             }
 
-            PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, Color.White, proj_pos, 45);
-            PlayEffect(All(), PlayEffect.EchoStickyBombExplosionSound, Color.White, proj_pos, 45);
-            hit_surface = true;
-            proj_grav_vec = proj_grav_vec * -1; // flip gravity vector after each hit
+            PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, Color.White, projPos, 45);
+            PlayEffect(All(), PlayEffect.EchoStickyBombExplosionSound, Color.White, projPos, 45);
+            projHitSurface = true;
+            projGravVec = projGravVec * -1; // flip gravity vector after each hit
         }
 
         MinWait();
     }
 
-    hit_surface = false;
-    proj_grav_vec = Vector(0, S_ELECTRO_PGRAV, 0);
-    t_airtime = 0;
+    projHitSurface = false;
+    projGravVec = Vector(0, S_ELECTRO_PROJ_GRAV, 0);
+    totalProjAirtime = 0;
     airtime = 0;
-    Kill(FilteredArray(RemoveFromArray(AllLivingPlayers(), player), DistanceBetween(Curr(), proj_pos) <= S_ELECTRO_PRAD && IsInLineOfSight(Curr(), proj_pos)), player);
+    Kill(FilteredArray(AllLiving().Remove(player), DistanceBetween(Curr(), projPos) <= S_ELECTRO_PROJ_EXPLOSION_RADIUS && IsInLineOfSight(Curr(), projPos)), player);
 
     // effects
-    PlayEffect(All(), PlayEffect.EchoStickyBombExplosionEffect, Color.Team1, proj_pos, 0);
-    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[5], proj_pos, S_ELECTRO_PRAD);
+    PlayEffect(All(), PlayEffect.EchoStickyBombExplosionEffect, Color.Team1, projPos, 0);
+    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[5], projPos, S_ELECTRO_PROJ_EXPLOSION_RADIUS);
 
-    PlayEffect(All(), PlayEffect.WinstonJumpPackLandingSound, Color.White, proj_pos, 45);
-    PlayEffect(All(), PlayEffect.SigmaHypersphereImplosionSound, Color.White, proj_pos, 45);
-    PlayEffect(All(), PlayEffect.CassidyFlashbangExplosionSound, Color.White, proj_pos, 45);
-    PlayEffect(All(), PlayEffect.EchoStickyBombExplosionSound, Color.White, proj_pos, 100);
+    PlayEffect(All(), PlayEffect.WinstonJumpPackLandingSound, Color.White, projPos, 45);
+    PlayEffect(All(), PlayEffect.SigmaHypersphereImplosionSound, Color.White, projPos, 45);
+    PlayEffect(All(), PlayEffect.CassidyFlashbangExplosionSound, Color.White, projPos, 45);
+    PlayEffect(All(), PlayEffect.EchoStickyBombExplosionSound, Color.White, projPos, 100);
     DestroyEffect(effect);
 
     Wait(0.5);

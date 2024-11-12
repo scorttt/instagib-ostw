@@ -1,0 +1,88 @@
+import "../../main.del";
+import ".bmain.del";
+
+disabled rule: "---------------- Hydrangea ----------------"{}
+
+playervar Number hydOffset;
+playervar Number hydSpread = 1;
+
+// rule: "[Buff] :: Hydrangea Init"
+// {
+//     hydInitSpread = 0; // spread size
+// }
+
+rule: "[Buff] :: Hydrangea Fire Action"
+Event.OngoingPlayer
+if (buffEnabled[8])
+if (IsPrimaryHeld())
+if (!IsFiringSecondary())
+if (IsAlive())
+{
+    Player target! = null;
+    Player playerClosestToReticle! = null;
+    hydSpread = 1;
+
+    while (buffEnabled[8] && IsPrimaryHeld() && IsAlive())
+    {
+        AddOverTime(hydSpread, 0.2, 0, 5, 0.016);
+
+        playerClosestToReticle = PlayerClosestToReticle(player);
+
+        // todo: fix weirdness with dead players
+        target = IsInViewAngle(player, playerClosestToReticle, 30) && IsAlive(playerClosestToReticle) && IsInLineOfSight(EyePos(), playerClosestToReticle)
+                    ? playerClosestToReticle
+                    : null;
+
+        for (Number i = 1; i <= 8; i++)
+        {
+            Vector angle: SpreadAngleDirection(player, hydSpread, (i * 90) + hydOffset);
+
+            // todo: 4 pronged spread that expands and rotates over time, each section of the spread has 2 projectiles
+            CreateHomingProjectile(
+                ProjectileType: ProjectileType.MeiIcicle,
+                Player: player,
+                StartPosition: WeaponMuzzle(EyePos(), Facing()),
+                // Direction: SpreadAngleDirection(player, RandomReal(-3, 3), RandomReal(0, 360)),
+                Direction: angle,
+                Relative: Relative.ToWorld,
+                ModifyHealthType: ModifyHealthType.Damage,
+                AffectedTeam: Team.All,
+                Amount: 0.5,
+                AmountScalar: 1,
+                ExplosionRadius: 0,
+                ExplosionEffect: PlayEffect.GoodExplosion,
+                ExplosionSoundEffect: PlayEffect.ExplosionSound,
+                Oversize: 0,
+                Speed: 170,
+                Lifetime: 1,
+                Impulse: 0,
+                HomingTarget: target,
+                HomingStrength: 1
+            );
+
+            if (i != 1)
+            {
+                hydOffset += 2; // spread rotation offset (degrees)
+            }
+
+            heldBuffAmmo[8]--;
+            MinWait();
+        }
+    }
+
+    Wait(0.75);
+    LoopIfConditionIsTrue();
+}
+
+// rule: "[Buff] :: Hydrangea : Decrease Spread"
+// Event.OngoingPlayer
+// if (hydSpread > 1)
+// if (!IsPrimaryHeld())
+// {
+//     while (hydSpread > 1 && !IsPrimaryHeld())
+//     {
+//         SubtractOverTime(hydSpread, 0.5, 1, 4, 0.032);
+
+//         Wait(0.032);
+//     }
+// }
