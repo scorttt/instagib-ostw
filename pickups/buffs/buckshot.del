@@ -33,8 +33,8 @@ Event.OnPlayerJoin
 
 rule: "[Buff] :: Buckshot : Charge"
 Event.OngoingPlayer
-if (buffEnabled[2])
-if (heldBuffAmmo[2] > 1)
+if (buffEnabled[Buff.Buckshot])
+if (heldBuffAmmo[Buff.Buckshot] > 1)
 if (canChargeBuckshot)
 if (chargeLvl < S_BUCKSHOT_CHARGE_AMT)
 if (IsAlive())
@@ -46,14 +46,14 @@ if (IsReloadHeld())
     spread += 1;
 
     if (!infAmmo)
-        heldBuffAmmo[2]--;
+        heldBuffAmmo[Buff.Buckshot]--;
 
     hasChargeStr = StringSlice(chargeStrArr[0], 0, chargeLvl * 2);
     noChargeStr = StringSlice(chargeStrArr[1], 0, (S_BUCKSHOT_CHARGE_AMT * 2) - chargeLvl * 2);
 
     chargeStr = hasChargeStr + noChargeStr;
-    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColors[2], PosOf(), 1);
-    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[2], player, spread + 1);
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColors[Buff.Buckshot], PosOf(), 1);
+    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Buckshot], player, spread + 1);
     PlayEffect(player, PlayEffect.BuffImpactSound, null, player, 50);
 
     LoopIfConditionIsTrue();
@@ -61,12 +61,12 @@ if (IsReloadHeld())
 
 rule: "[Buff] :: Buckshot : Fire Action"
 Event.OngoingPlayer
-if (buffEnabled[2])
-if (heldBuffAmmo[2] > 0)
-if (IllariFiring())
+if (buffEnabled[Buff.Buckshot])
+if (heldBuffAmmo[Buff.Buckshot] > 0)
+if (IsFiringPrimary())
 {
     if (!infAmmo)
-        heldBuffAmmo[2]--;
+        heldBuffAmmo[Buff.Buckshot]--;
 
     canChargeBuckshot = false;
 
@@ -75,29 +75,28 @@ if (IllariFiring())
     Any[] buckshotEffects! = [];
 
     Vector eyePos! = EyePosition();
-
-    Number offset! = 0;
+    Number initBuckshotSpread! = spread;
     Number buckshotProjAmt! = S_BUCKSHOT_GROUP_AMT * (chargeLvl + 1);
     Number numGroups! = buckshotProjAmt / S_BUCKSHOT_GROUP_AMT;
+    Number offset! = 0;
+    groupDeg = 360 / S_BUCKSHOT_GROUP_AMT;
 
-    Number initBuckshotSpread! = spread;
-
-    for (Number i! = 1; i <= buckshotProjAmt; i++)
+    for (Number i = 1; i <= buckshotProjAmt; i++)
     {
-        buckshotHitPos[i] = RayHit(eyePos, eyePos + SpreadAngleDirection(player, spread, (i * groupDeg) + offset) * 300, AllLiving(), player);
-        buckshotHitPlayer[i] = RayPlayer(eyePos, eyePos + SpreadAngleDirection(player, spread, (i * groupDeg) + offset) * 300, AllLiving(), player);
+        Vector direction = SpreadAngleDirection(player, spread, (i * groupDeg) + offset) * 300;
+        buckshotHitPos[i] = RayHit(eyePos, eyePos + direction, AllLiving(), player);
+        buckshotHitPlayer[i] = RayPlayer(eyePos, eyePos + direction, AllLiving(), player);
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[2], buckshotHitPos[i], 0.25);
-        CreateBeamEffect(All(), BeamType.BadBeam, gunPos, buckshotHitPos[i], buffColors[2], EffectRev.None);
+        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Buckshot], buckshotHitPos[i], 0.25);
+        CreateBeamEffect(All(), BeamType.BadBeam, gunPos, buckshotHitPos[i], buffColors[Buff.Buckshot], EffectRev.None);
         buckshotEffects[i] = LastCreatedEntity();
 
-        if (i != 1 && i % S_BUCKSHOT_GROUP_AMT == 0)
+        if (i % S_BUCKSHOT_GROUP_AMT == 0 && i != buckshotProjAmt)
         {
-            spread = initBuckshotSpread - Near(i / S_BUCKSHOT_GROUP_AMT) * (initBuckshotSpread / numGroups);
+            spread = initBuckshotSpread - (i / S_BUCKSHOT_GROUP_AMT) * (initBuckshotSpread / numGroups);
             offset += groupDeg / 2; // spread rotation offset (degrees)
         }
     }
-
 
     Kill(buckshotHitPlayer, player);
 
