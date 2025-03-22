@@ -41,9 +41,6 @@ playervar Vector gunPos; // arbitrary position of the gun
 playervar Number delay; // weapon fire delay for the player
 playervar Vector firstHp;
 
-// IsFiringPrimary() is always true with illari *unless* she is FIRING or doing literally ANYTHING that isnt walking, jumping, or crouching
-// this includes reloading, meleeing, using abilitys, using secondary fire, recharging primary, recharging secondary
-Boolean IllariFiring(Player p = player): Update(IsAlive(p)) && Update(!IsFiringPrimary(p)) && Update(!IsFiringSecondary(p)); 
 Any WeaponMuzzle(Vector startPos, Vector dir): Update(startPos + dir + WorldVectorOf(Right(), player) * 0.18 + Normalize(Cross(dir, WorldVectorOf(Right(), player))) * 0.22);
 disabled rule: "---------------- Main ----------------"{}
 
@@ -215,6 +212,7 @@ Event.OnPlayerJoin
     }
 
     DisableGameModeHud();
+    DisallowButton(player, Button.PrimaryFire);
     StartScalingPlayer(player, 1.10);
 
     delay = S_DELAY;
@@ -254,15 +252,14 @@ if (IsAlive())
 
     Wait(1);
     canPickupMutator = true;
+    SetMaxHealth(player, (100 / MaxHealth()) * 100);
 }
 
 rule: "[Main] :: Server Fire"
 Event.OngoingPlayer
 if (!disablePrimaryFire)
-if (Update(IsPrimaryHeld()))
-if (Update(IsAlive()))
-if (Update(!IsFiringPrimary()))
-if (Update(!IsFiringSecondary()))
+if (IsAlive())
+if (IsPrimaryHeld())
 {
     if (playerHasBuff)
     {
@@ -270,10 +267,16 @@ if (Update(!IsFiringSecondary()))
         firstHp = RayHit(EyePos(), EyePos() + Facing() * 300, AllLiving(), player);
     }
 
-    DisallowButton(player, Button.PrimaryFire);
-    Wait(delay);
     AllowButton(player, Button.PrimaryFire);
+    PressButton(player, Button.PrimaryFire);
+    MinWait();
+
+    DisallowButton(player, Button.PrimaryFire);
+
+    Wait(1);
+    LoopIfConditionIsTrue();
 }
+
 
 rule: "[Main] :: Bullet Trail"
 Event.OngoingPlayer
@@ -299,6 +302,8 @@ if (!HasSpawned())
 
     Wait(1);
     LoopIfConditionIsTrue();
+
+    DisallowButton(player, Button.PrimaryFire);
 }
 
 rule: "[Main] :: End Game"
