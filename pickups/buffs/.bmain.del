@@ -198,7 +198,6 @@ if (IsTrueForAny(buffPos, DistanceBetween(Curr(), PositionOf() + Up()) < S_PICKU
     buffIn = -1;
     buffIn = IndexOfArrayValue(buffPos, SortedArray(buffPos, DistanceBetween(Curr(), player)).First); // idk if theres a better way to write this
 
-    // todo: fix buff firing after collection thanks blizzard for making illari the way she is
     // if (TotalTimeElapsed() > buffTimestamps[buffIn] + S_BUFF_CD[buffIn] &&
     if ((!playerHasBuff || (buffEnabled[buffIn] && !infAmmo) || (!playerHasBuff && infAmmo)) &&
        (canPickupBuff[buffIn]) &&
