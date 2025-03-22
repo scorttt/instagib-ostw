@@ -19,11 +19,11 @@ globalvar Boolean S_ENABLE_BUFFS; // setting whether buffs are allowed
 globalvar Boolean S_RANDOMIZE_BUFF_POS; // setting whether buffs randomly spawn in different locations each round
 globalvar Boolean[] canPickupBuff; // array of buff indices that can be collected
 playervar Boolean[] buffEnabled; // array of the enabled buff index
-globalvar Boolean[] buffTimer; // array of whether a buff cooldown is running
+globalvar Boolean[] buffTimerRunning; // array of whether a buff cooldown is running
 globalvar Number[] buffCooldown; // array of current buff cooldowns
 globalvar Vector[] buffPos; // array of set buff positions
 playervar Number[] heldBuffAmmo; // array of buff indices ammo
-playervar Boolean playerHasBuff; // whether the player owns a buff
+playervar Boolean playerHasBuff; // whether the player owns any buff
 playervar Number currentBuffIn; // currently held buff index
 globalvar Number buffIn; // index of the buff for the player to pick up (this probably shouldnt be a globalvar but it seems to be working fine, what could possibly go wrong)
 playervar String[] heldBuffStr; // string of the held buff
@@ -33,32 +33,19 @@ playervar Color unownedBuffColor; // buff color that the player does not already
 playervar Boolean infAmmo; // boolean if player has infinite ammo
 playervar Boolean showAmmoAsPercentage; // boolean if the buff is a laser
 
-// progress bar/effect size control vars. fuck you blizzard let me chase indicies
-// globalvar Number[] buffProgressBar;
-// globalvar Number wallbangProgressBar;
-// globalvar Number ricochetProgressBar;
-// globalvar Number buckshotProgressBar;
-// globalvar Number prismProgressBar;
-// globalvar Number ballistaProgressBar;
-// globalvar Number electroProgressBar;
-// globalvar Number sparkProgressBar;
-// globalvar Number arcProgressBar;
-// globalvar Number hydrandreaProgressBar;
-// globalvar Number voltProgressBar;
-
 
 enum Buff
 {
-    Wallbang,
-    Ricochet, 
-    Buckshot, 
-    Prism, 
-    Ballista, 
-    Electro,
-    Spark, 
-    Arc,
-    Hydandrea, 
-    Volt
+    Pierce, // 0
+    Ricochet, // 1
+    Buckshot, // 2
+    Prism, // 3
+    Ballista, // 4
+    Electro, // 5
+    Spark, // 6
+    Arc, // 7
+    Needle, // 8
+    Volt // 9
 }
 
 disabled rule: "---------------- Buff ----------------"{}
@@ -71,6 +58,8 @@ enum HeldStr
 
 void CollectBuff() playervar "[Buff] :: Buff Collection"
 {
+    buffTimestamps[buffIn] = TotalTimeElapsed();
+
     if (buffIn == Buff.Arc)
     {
         disablePrimaryFire = true;
@@ -84,9 +73,10 @@ void CollectBuff() playervar "[Buff] :: Buff Collection"
         voltTemp = 0;
         voltDist = S_MAX_VLT_DIST;
     }
-    else if (buffIn == Buff.Hydandrea)
+    else if (buffIn == Buff.Needle)
     {
         disablePrimaryFire = true;
+        showAmmoAsPercentage = true;
     }
     else 
     {
@@ -133,14 +123,14 @@ void BuffCooldown() "[Buff] :: Start Buff Timer"
     if (S_SPAWN_BUFF[buffIn] && buffCooldown[buffIn] == S_BUFF_CD[buffIn])
     {
         LogToInspector(<"<0> cooldown started", buffNames[buffIn]>);
-        buffTimer[buffIn] = true; // start timer
+        buffTimerRunning[buffIn] = true; // start timer
     }
 }
 
 void CreateOrb() "[Buff] :: Create Orb"
 {
     canPickupBuff[buffIn] = true;
-    buffTimer[buffIn] = false;
+    buffTimerRunning[buffIn] = false;
 
     LogToInspector(<"<0> created", buffNames[buffIn]>);
     PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColors[buffIn], buffPos[buffIn], 1);
@@ -160,10 +150,15 @@ if (IsTrueForAll(heldBuffAmmo, Curr() <= 0))
 
     playerHasBuff = false;
 
-    disablePrimaryFire = false;
+    if (disablePrimaryFire)
+    {
+        WaitUntil(!IsPrimaryHeld(), 999999);
+        disablePrimaryFire = false;
+    }
 }
 
 globalvar Number[] buffPickupEffectSize;
+globalvar Number[] buffTimestamps;
 
 rule: "[Buff] :: Buff Timer Handler"
 if (S_ENABLE_BUFFS)
@@ -173,7 +168,7 @@ if (IsTrueForAny(buffCooldown, Curr() != 0))
 {
     for (Number i = 0; i < buffNames.Length; i++)
     {
-        if (S_SPAWN_BUFF[i] && buffTimer[i])
+        if (S_SPAWN_BUFF[i] && buffTimerRunning[i])
         {
             // decrement buff cooldown
             SubtractOverTime(buffCooldown[i], S_BUFF_CD[i], 0, S_BUFF_CD[i], 0.032);
@@ -196,21 +191,20 @@ if (IsTrueForAny(buffCooldown, Curr() != 0))
 
 rule: "[Buff] :: Buff Collection"
 Event.OngoingPlayer
+if (HasSpawned())
+if (IsAlive())
 if (IsTrueForAny(buffPos, DistanceBetween(Curr(), PositionOf() + Up()) < S_PICKUP_RAD))
 {
-    for (Number i = 0; i < FilteredArray(buffTimer, Curr() == 0).Length; i++)
-    {
-        if (HasSpawned() && 
-           (!playerHasBuff || (buffEnabled[i] && !infAmmo) || (!playerHasBuff && infAmmo)) &&
-           (canPickupBuff[i]) &&
-           (DistanceBetween(buffPos[i], PositionOf() + Up()) < S_PICKUP_RAD) &&
-           (IsAlive()) &&
-           (!IllariFiring()))
-        {
-            buffIn = i;
-            CollectBuff();
-        }
-    }
+    buffIn = -1;
+    buffIn = IndexOfArrayValue(buffPos, SortedArray(buffPos, DistanceBetween(Curr(), player)).First); // idk if theres a better way to write this
+
+    // todo: fix buff firing after collection thanks blizzard for making illari the way she is
+    // if (TotalTimeElapsed() > buffTimestamps[buffIn] + S_BUFF_CD[buffIn] &&
+    if ((!playerHasBuff || (buffEnabled[buffIn] && !infAmmo) || (!playerHasBuff && infAmmo)) &&
+       (canPickupBuff[buffIn]) &&
+       (IsAlive()) && 
+       (Update(!IsFiringPrimary()) && Update(!IsFiringSecondary())))
+        CollectBuff();
 
     Wait(1);
     LoopIfConditionIsTrue();
