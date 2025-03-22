@@ -25,14 +25,12 @@ Event.OnPlayerJoin
 
 rule: "[Buff] :: Volt : Action - Fire"
 Event.OngoingPlayer
-if (buffEnabled[9])
+if (buffEnabled[Buff.Volt])
 if (!overheated)
 if (IsPrimaryHeld())
 if (!IsFiringSecondary())
 if (IsAlive())
 {
-    DisallowButton(player, Button.SecondaryFire); // disable illari impulse
-
     if (EntityExists(<Player>voltEffects)) // <Player> is required until OSTW fixes EntityExists() only allowing player type
         DestroyEffect(voltEffects);
 
@@ -40,12 +38,12 @@ if (IsAlive())
 
     WaitIfTrue(0.05); // brief hold
     if (!infAmmo)
-        heldBuffAmmo[9] -= 5;
+        heldBuffAmmo[Buff.Volt] -= 5;
 
     Vector voltHitPos = RayCastHitPosition(EyePosition(), EyePosition() + Facing() * voltDist, AllLivingPlayers(), player);
     MinWait();
 
-    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), voltHitPos, buffColors[9], EffectRev.VisibleToPositionRadiusAndColor);
+    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), voltHitPos, buffColors[Buff.Volt], EffectRev.VisibleToPositionRadiusAndColor);
     voltEffects[0] = LastCreatedEntity();
     CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, null, player, 100);
     voltEffects[1] = LastCreatedEntity();
@@ -54,14 +52,14 @@ if (IsAlive())
     CreateEffect(hit ? All() : null, Effect.WinstonTeslaCannonSound, null, voltHitPos, 100);
     voltEffects[3] = LastCreatedEntity();
 
-    while (buffEnabled[9] && !overheated && IsPrimaryHeld() && IsAlive())
+    while (buffEnabled[Buff.Volt] && !overheated && IsPrimaryHeld() && IsAlive())
     {
         AddOverTime(voltTemp, S_VLT_TIME, 0, 1, 0.016);
         SubtractOverTime(voltDist, S_VLT_TIME, S_MIN_VLT_DIST, S_MAX_VLT_DIST, 0.016);
 
         // slow the rate of ammo depletion the longer fire is held
         if (!infAmmo)
-            heldBuffAmmo[9] -= (1 - voltTemp) * 0.645;
+            heldBuffAmmo[Buff.Volt] -= (1 - voltTemp) * 0.645;
 
         voltDir = SpreadAngleDirection(player, RandomReal(-voltTemp * S_MAX_VLT_SPREAD, voltTemp * S_MAX_VLT_SPREAD), RandomReal(0, 360));
 
@@ -71,7 +69,7 @@ if (IsAlive())
         if (DistanceBetween(EyePos(), voltHitPos) < voltDist - 1)
         {
             hit = true;
-            PlayEffect(All(), PlayEffect.BadExplosion, buffColors[9], voltHitPos, 0.5);
+            PlayEffect(All(), PlayEffect.BadExplosion, buffColors[Buff.Volt], voltHitPos, 0.5);
         }
         else 
         {
@@ -92,18 +90,14 @@ if (IsAlive())
         }
     }
 
-    AllowButton(player, Button.SecondaryFire); // re enable illari impulse
-
     MinWait();
     DestroyEffect(voltEffects[0]);
     DestroyEffect(voltEffects[1]);
     DestroyEffect(voltEffects[2]);
     DestroyEffect(voltEffects[3]);
 
-    if (overheated) // check if the player ended the loop because of overheating to prevent the player from automatically firing
+    if (overheated) // check if the player ended the loop because of overheating 
     {
-        heldBuffAmmo[9] = Ceil(heldBuffAmmo[9]);
-
         disablePrimaryFire = false;
 
         WaitUntil(voltTemp == 0, 99999);
@@ -129,46 +123,46 @@ if (!IsPrimaryHeld() || overheated)
         AddOverTime(voltDist, S_VLT_TIME, S_MIN_VLT_DIST, S_MAX_VLT_DIST, 0.032);
         Wait(0.032);
 
-        if (voltTemp == 0 && buffEnabled[9])
+        if (voltTemp == 0 && buffEnabled[Buff.Volt])
         {
             overheated = false;
             disablePrimaryFire = true;
-            heldBuffAmmo[9] = Ceil(heldBuffAmmo[9]);
+            heldBuffAmmo[Buff.Volt] = Ceil(heldBuffAmmo[Buff.Volt]);
             break;
         }
     }
 }
 
-playervar Any[] chainEffects;
-playervar Player prevPlayer;
-playervar Player[] newPlayers;
-rule: "[Buff] :: Volt : Action - Chain Reaction"
-Event.OnDamageDealt
-if (buffEnabled[9])
-if (EventWasWorkshop())
-if (!overheated)
-{
-    // this is stupid
-    prevPlayer = Victim();
-    newPlayers = FilteredArray(RemoveFromArray(AllLiving(), player), DistanceBetween(prevPlayer, Curr()) < 10 && IsInLineOfSight(EyePos(prevPlayer), Curr()));
+// playervar Any[] chainEffects;
+// playervar Player prevPlayer;
+// playervar Player[] newPlayers;
+// rule: "[Buff] :: Volt : Action - Chain Reaction"
+// Event.OnDamageDealt
+// if (buffEnabled[Buff.Volt])
+// if (EventWasWorkshop())
+// if (!overheated)
+// {
+//     // this is stupid
+//     prevPlayer = Victim();
+//     newPlayers = FilteredArray(RemoveFromArray(AllLiving(), player), DistanceBetween(prevPlayer, Curr()) < 10 && IsInLineOfSight(EyePos(prevPlayer), Curr()));
 
-    Damage(newPlayers, player, EventDamage());
+//     Damage(RemoveFromArray(newPlayers, prevPlayer), player, EventDamage());
 
-    MinWait();
-}
+//     MinWait();
+// }
 
-rule: "[Buff] :: Volt : Action - Chain Reaction Effects"
-Event.OnDeath
-if (buffEnabled[9])
-if (newPlayers.Length > 1)
-{
-    // dunno why if this is in the main chain reaction rule it just fucking breaks im just gonna blame blizzard and call it a day tbh
-    for (Number i = 0; i < newPlayers.Length; i++)
-    {
-        CreateBeamEffect(player, BeamType.BadBeam, prevPlayer, newPlayers[i], buffColors[9], EffectRev.None);
-        PlayEffect(All(), PlayEffect.BadExplosion, buffColors[9], newPlayers[i], 1);
-        chainEffects[i] = LastCreatedEntity();
-    }
+// rule: "[Buff] :: Volt : Action - Chain Reaction Effects"
+// Event.OnDeath
+// if (buffEnabled[Buff.Volt])
+// if (newPlayers.Length > 1)
+// {
+//     // dunno why if this is in the main chain reaction rule it just fucking breaks im just gonna blame blizzard and call it a day tbh
+//     for (Number i = 0; i < newPlayers.Length; i++)
+//     {
+//         CreateBeamEffect(player, BeamType.BadBeam, prevPlayer, newPlayers[i], buffColors[Buff.Volt], EffectRev.None);
+//         PlayEffect(All(), PlayEffect.BadExplosion, buffColors[Buff.Volt], newPlayers[i], 1);
+//         chainEffects[i] = LastCreatedEntity();
+//     }
 
-    DestroyEffect(chainEffects);
-}
+//     DestroyEffect(chainEffects);
+// }

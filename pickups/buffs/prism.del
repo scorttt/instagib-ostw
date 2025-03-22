@@ -6,8 +6,8 @@ disabled rule: "---------------- Prism ----------------"{}
 
 rule: "[Buff] :: Prism : Fire Action"
 Event.OngoingPlayer
-if (buffEnabled[3])
-if (IllariFiring())
+if (buffEnabled[Buff.Prism])
+if (IsFiringPrimary())
 {
     
 }

@@ -15,15 +15,15 @@ Event.OnPlayerJoin
 
 rule: "[Buff] :: Ballista : Fire"
 Event.OngoingPlayer
-if (buffEnabled[4])
+if (buffEnabled[Buff.Ballista])
 if (balCanFire)
 if (IsAlive())
-if (IllariFiring())
+if (IsFiringPrimary())
 {
     balCanFire = false;
 
-    if (!infAmmo || mutatorEnabled[4])
-        heldBuffAmmo[4]--;
+    if (!infAmmo || mutatorEnabled[Buff.Ballista])
+        heldBuffAmmo[Buff.Ballista]--;
 
     ApplyImpulse(player, Vector(0, 0.5, 0) + Facing() * -1, 20, Relative.ToWorld, ContraryMotion.Cancel);
 
@@ -39,8 +39,8 @@ if (IllariFiring())
     {
         Vector pos = eyePos + facing * (i * S_BAL_SIZE);
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[4], pos, S_BAL_SIZE);
-        PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, buffColors[4], pos, 100);
+        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Ballista], pos, S_BAL_SIZE);
+        PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, buffColors[Buff.Ballista], pos, 100);
 
         Player[] players = FilteredArray(RemoveFromArray(AllLiving(), player), 
         DistanceBetween(PosOf(Curr()) + Up(),              pos) <= S_BAL_SIZE || 

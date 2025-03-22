@@ -10,16 +10,16 @@ rule: "Global Debug"
 
     S_FAST_PICKUP_SPAWN[0] = WorkshopSettingToggle(". Debug",                 "Fast Buff Spawn", true, -12);
     S_FAST_PICKUP_SPAWN[1] = WorkshopSettingToggle(". Debug",                 "Fast Mutator Spawn", false, -11);
-    spawnWithBuff[0] = WorkshopSettingToggle(". Debug",                      "Spawn With Pierce", false, -10);
-    spawnWithBuff[1] = WorkshopSettingToggle(". Debug",                      "Spawn With Ricochet", false, -9);
-    spawnWithBuff[2] = WorkshopSettingToggle(". Debug",                      "Spawn With Buckshot", false, -8);
-    spawnWithBuff[3] = WorkshopSettingToggle(". Debug",                      "Spawn With Prism", false, -7);
-    spawnWithBuff[4] = WorkshopSettingToggle(". Debug",                      "Spawn With Ballista", false, -6);
-    spawnWithBuff[5] = WorkshopSettingToggle(". Debug",                      "Spawn With Electro", false, -5);
-    spawnWithBuff[6] = WorkshopSettingToggle(". Debug",                      "Spawn With Spark", false, -4);
-    spawnWithBuff[7] = WorkshopSettingToggle(". Debug",                      "Spawn With Arc", false, -3);
-    spawnWithBuff[8] = WorkshopSettingToggle(". Debug",                      "Spawn With Nebula", false, -2);
-    spawnWithBuff[9] = WorkshopSettingToggle(". Debug",                      "Spawn With Volt", false, -1);
+    spawnWithBuff[Buff.Pierce] = WorkshopSettingToggle(". Debug",                      "Spawn With Pierce", false, -10);
+    spawnWithBuff[Buff.Ricochet] = WorkshopSettingToggle(". Debug",                      "Spawn With Ricochet", false, -9);
+    spawnWithBuff[Buff.Buckshot] = WorkshopSettingToggle(". Debug",                      "Spawn With Buckshot", false, -8);
+    spawnWithBuff[Buff.Prism] = WorkshopSettingToggle(". Debug",                      "Spawn With Prism", false, -7);
+    spawnWithBuff[Buff.Ballista] = WorkshopSettingToggle(". Debug",                      "Spawn With Ballista", false, -6);
+    spawnWithBuff[Buff.Electro] = WorkshopSettingToggle(". Debug",                      "Spawn With Electro", false, -5);
+    spawnWithBuff[Buff.Spark] = WorkshopSettingToggle(". Debug",                      "Spawn With Spark", false, -4);
+    spawnWithBuff[Buff.Arc] = WorkshopSettingToggle(". Debug",                      "Spawn With Arc", false, -3);
+    spawnWithBuff[Buff.Needle] = WorkshopSettingToggle(". Debug",                      "Spawn With Needle", false, -2);
+    spawnWithBuff[Buff.Volt] = WorkshopSettingToggle(". Debug",                      "Spawn With Volt", false, -1);
     infiniteAmmoDbg = WorkshopSettingToggle(". Debug",                           "Infinite Ammo", false, -0.9);
 
     if (S_FAST_PICKUP_SPAWN[0])
@@ -54,17 +54,17 @@ rule: "Global Debug"
     WaitUntil(validMap, 10);
 
     // buff world information
-    // for (Number i = 0; i < buffPos.Length; i++)
-    // {
-    //     CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
-    //     Once(i), buffNames[Once(i)],
-    //     buffCooldown[Once(i)],
-    //     Once(buffPos[i]),
-    //     DistanceBetween(PositionOf(host) + Up(), Once(buffPos[i]))>, 
-    //     Once(buffPos[i]), 
+    for (Number i = 0; i < buffPos.Length; i++)
+    {
+        CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
+        Once(i), buffNames[Once(i)],
+        buffCooldown[Once(i)],
+        Once(buffPos[i]),
+        DistanceBetween(PositionOf(host) + Up(), Once(buffPos[i]))>, 
+        Once(buffPos[i]), 
 
-    //     1, Clipping.DoNotClip);
-    // }
+        1, Clipping.DoNotClip);
+    }
 
     // // mutator world information
     // CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 

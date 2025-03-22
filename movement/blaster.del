@@ -1,0 +1,106 @@
+import "../main.del";
+
+globalvar Number S_SEC_PSPEED;
+globalvar Number S_SEC_RADIUS;
+globalvar Number S_SEC_STRENGTH;
+globalvar Boolean S_SEC_ENABLED;
+playervar Boolean canManuallyDetonateSec;
+playervar Vector secProjPos;
+playervar Any secOrb;
+playervar Vector secProjStart;
+playervar Vector secProjEnd;
+disabled rule: "---------------- Blaster ----------------"{}
+
+// rule: "[Blaster] :: Projectile"
+// Event.OngoingPlayer
+// if (S_SEC_ENABLED)
+// if (IsButtonHeld(player, Button.SecondaryFire))
+// if (IsAlive())
+// {
+//     CreateProjectile(ProjectileType.EchoStickyBomb, null, RayHit(EyePos(), EyePos() + Facing(), inclplayers: AllLiving(), exclplayers: player), Facing(), 
+//     Relative.ToWorld, ModifyHealthType.Heal, Team.Team2, 
+//     0, 0, S_SEC_RADIUS,
+//     PlayEffect.BadExplosion, PlayEffect.RingExplosionSound,
+//     0.05, S_SEC_PSPEED, 2, S_SEC_STRENGTH, 0, 0);
+// }
+
+// rule: "[Blaster] :: Init"
+// Event.OnPlayerJoin
+// {
+//     secEyepos = Vector(-10000, -10000, -10000);
+// }
+
+playervar Boolean secProjInAir;
+rule: "[Blaster] :: Projectile"
+Event.OngoingPlayer
+if (S_SEC_ENABLED)
+if (IsButtonHeld(player, Button.SecondaryFire))
+if (IsAlive())
+{
+    MinWait();
+
+    secProjStart = EyePos();
+    secProjEnd = EyePosition() + Facing() * 300;
+    secProjPos = secProjStart;
+
+    MinWait();
+
+    PlayEffect(All(), PlayEffect.RingExplosionSound, null, player, 50);
+
+    DestroyEffect(secOrb);
+
+    CreateProjectileEffect(
+        VisibleTo: All(),
+        ProjectileType: ProjectileType.EchoStickyBomb, 
+        FriendlyTo: null, 
+        Position: secProjPos,
+        Direction: DirectionTowards(secProjPos, secProjEnd), 
+        Oversize: 0, 
+        Reevaluation: ProjectileEffectReeval.VisibleToFriendlyToPositionDirectionAndSize
+    );
+    secOrb = LastCreatedEntity();
+
+    secProjInAir = true;
+
+    ChaseVariableAtRate(secProjPos, RayHit(secProjStart, secProjEnd, AllLivingPlayers(), player), S_SEC_PSPEED, RateChaseReevaluation.DestinationAndRate);
+
+    Wait(1);
+}
+
+rule: "[Blaster] :: Projectile Impulse"
+Event.OngoingPlayer
+if (secProjInAir)
+if (DistanceBetween(secProjPos, RayHit(secProjStart, secProjEnd, AllLivingPlayers(), player)) < 0.5 || (IsButtonHeld(player, Button.SecondaryFire) && canManuallyDetonateSec))
+{
+    secProjInAir = false;
+    canManuallyDetonateSec = false;
+    DestroyEffect(secOrb);
+
+    StopChasingVariable(secProjPos);
+
+    Any[] players! = FilteredArray(AllLivingPlayers(), (DistanceBetween(Curr(), secProjPos) <= S_SEC_RADIUS) 
+                    || DistanceBetween(EyePos(Curr()), secProjPos) <= S_SEC_RADIUS 
+                    || DistanceBetween(PosOf(Curr()), secProjPos) <= S_SEC_RADIUS);
+
+    for (Number i! = 0; i < players.Length; i++)
+    {
+        Vector direction! = DirectionTowards(secProjPos, players[i]);
+        direction = direction - Vector(0, direction.Y, 0);
+        ApplyImpulse(players[i], direction + Up(), S_SEC_STRENGTH, Relative.ToWorld, ContraryMotion.Incorporate);
+    }
+
+    Damage(RemoveFromArray(players, player), player, 0.4);
+    PlayEffect(All(), PlayEffect.GoodExplosion, Color.Red, secProjPos, S_SEC_RADIUS);
+}
+
+rule: "[Blaster] :: Projectile Misc Loop"
+Event.OngoingPlayer
+if (secProjInAir)
+{
+    if (DistanceBetween(secProjStart, secProjPos) > 13)
+        canManuallyDetonateSec = true;
+
+    PlayEffect(All(), PlayEffect.BadExplosion, Color.Red, secProjPos, 0.1);
+    MinWait();
+    LoopIfConditionIsTrue();
+}

@@ -1,7 +1,7 @@
 import "../../main.del";
 import ".bmain.del";
 
-globalvar Number S_NUM_WALLBANGS;
+globalvar Number S_NUM_PIERCES;
 globalvar Number S_MAX_THICKNESS;
 
 disabled rule: "---------------- Pierce ----------------"{}
@@ -9,12 +9,12 @@ disabled rule: "---------------- Pierce ----------------"{}
 
 rule: "[Buff] :: Pierce : Action"
 Event.OngoingPlayer
-if (buffEnabled[0])
-if (heldBuffAmmo[0] > 0)
+if (buffEnabled[Buff.Pierce])
+if (heldBuffAmmo[Buff.Pierce] > 0)
 if (Update(firstHp != null))
 {
     if (!infAmmo)
-        heldBuffAmmo[0]--;
+        heldBuffAmmo[Buff.Pierce]--;
 
     Any[] wbEff;
     Vector prevHp = EyePos();
@@ -25,7 +25,7 @@ if (Update(firstHp != null))
 
     if (DistanceBetween(prevHp, firstHp) < 300)
     {
-        for (Number i = 0; i < S_NUM_WALLBANGS + 1; i++)
+        for (Number i = 0; i < S_NUM_PIERCES + 1; i++)
         {
             if (i > 0)
                 prevHp = hp[i - 1];
@@ -37,12 +37,12 @@ if (Update(firstHp != null))
             if (i > 0)
             {
                 exitHp[i] = RayHit(hp[i], hp[i] + DirectionTowards(hp[i], prevHp) * DistanceBetween(hp[i], prevHp), null, null);
-                PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[0], exitHp[i], 0.3);
+                PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Pierce], exitHp[i], 0.3);
 
-                CreateBeamEffect(All(), BeamType.BadBeam, exitHp[i], hp[i], buffColors[0], EffectRev.None);
+                CreateBeamEffect(All(), BeamType.BadBeam, exitHp[i], hp[i], buffColors[Buff.Pierce], EffectRev.None);
                 wbEff[i] = LastCreatedEntity();
 
-                PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[0], hp[i], 0.3);
+                PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Pierce], hp[i], 0.3);
 
                 // CreateEffect(All(), Effect.Sphere, Color.Yellow, hp[Once(i)] + offset, 0.3);
                 // CreateEffect(All(), Effect.Sphere, Color.Yellow, exitHp[Once(i)] + offset, 0.3);

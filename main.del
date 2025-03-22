@@ -8,7 +8,8 @@ import "debug.del";
 import "hudtext.del";
 
 import "movement/bhop.del";
-import "movement/beam.del";
+// import "movement/beam.del";
+import "movement/blaster.del";
 import "movement/dodge.del";
 import "movement/slide.del";
 
@@ -59,10 +60,15 @@ rule: "[Main] :: Initial Global"
     S_PICKUP_RAD = WorkshopSettingReal("A. General",                            "Pickup Collection Radius (1.25)", 1.25, 0.5, 3, 4);
     S_DELAY = WorkshopSettingReal("A. General",                                 "Weapon Fire Delay (1)", 1, 0.6, 5, 5);
 
-    S_ENABLE_BEAM = WorkshopSettingToggle("B. Knockback Beam",                  "Enable Beam (On)", true, 1);
-    S_BEAM_DMG = WorkshopSettingReal("B. Knockback Beam",                       "Beam Damage Per Tick (1)", 1, 0, 10) / 25;
-    S_BEAM_PLAYER_KNOCKBACK_STRENGTH = WorkshopSettingReal("B. Knockback Beam", "Hit Player Knockback Strength (10)", 10, 1, 20, 2);
-    S_BEAM_USER_KNOCKBACK_STRENGTH = WorkshopSettingReal("B. Knockback Beam",   "User Knockback Strength (0.37)", 0.37, 0, 100, 3);
+    S_SEC_ENABLED = WorkshopSettingToggle("B. Blaster (Secondary Fire)",        "Enable Blaster (On)", true, 1);
+    S_SEC_PSPEED = WorkshopSettingReal("B. Blaster (Secondary Fire)",           "Blaster Projectile Speed (70)", 70, 1, 500, 3);
+    S_SEC_RADIUS = WorkshopSettingReal("B. Blaster (Secondary Fire)",           "Blaster Explosion Radius (2.5)", 2.5, 1, 20, 4);
+    S_SEC_STRENGTH = WorkshopSettingReal("B. Blaster (Secondary Fire)",         "Blaster Explosion Strength (15)", 15, 1, 100, 5); 
+
+    // S_ENABLE_BEAM = WorkshopSettingToggle("B. Knockback Beam",                  "Enable Beam (On)", true, 1);
+    // S_BEAM_DMG = WorkshopSettingReal("B. Knockback Beam",                       "Beam Damage Per Tick (1)", 1, 0, 10) / 25;
+    // S_BEAM_PLAYER_KNOCKBACK_STRENGTH = WorkshopSettingReal("B. Knockback Beam", "Hit Player Knockback Strength (10)", 10, 1, 20, 2);
+    // S_BEAM_USER_KNOCKBACK_STRENGTH = WorkshopSettingReal("B. Knockback Beam",   "User Knockback Strength (0.37)", 0.37, 0, 100, 3);
 
     S_DODGE_ENABLED = WorkshopSettingToggle("C. Dodge",                         "Enable Dodge (On)", true, 1);
     S_DODGE_FORCE = WorkshopSettingReal("C. Dodge",                             "Dodge Strength (14)", 14, 1, 100, 2);
@@ -79,64 +85,64 @@ rule: "[Main] :: Initial Global"
     S_ENABLE_BUFFS = WorkshopSettingToggle("F. Buffs",                          "Enable Buffs (On)", true, 1);
     S_RANDOMIZE_BUFF_POS = WorkshopSettingToggle("F. Buffs",                    "Randomize Buff Locations (On)", true, 2);
 
-    S_SPAWN_BUFF[0] = WorkshopSettingToggle("G. Pierce Buff",                   "Spawn Pierce (On)", true, 1);
-    S_BUFF_CD[0] = WorkshopSettingInteger("G. Pierce Buff",                     "Pierce Spawn Time (75)", 75, 5, 600, 2);
-    S_BUFF_AMMO[0] = WorkshopSettingInteger("G. Pierce Buff",                   "Pierce Ammo (20)", 20, 1, 1000, 3);
-    S_NUM_WALLBANGS = WorkshopSettingInteger("G. Pierce Buff",                  "Amount Of Surfaces to Pierce (3)", 3, 1, 16, 4);
-    S_MAX_THICKNESS = WorkshopSettingInteger("G. Pierce Buff",                  "Maximum Surface Thickness to Pierce (0 is disabled)", 0, 0, 100, 4);
+    S_SPAWN_BUFF[Buff.Pierce] = WorkshopSettingToggle("G. Pierce Buff",                   "Spawn Pierce (On)", true, 1);
+    S_BUFF_CD[Buff.Pierce] = WorkshopSettingInteger("G. Pierce Buff",                     "Pierce Spawn Time (75)", 75, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Pierce] = WorkshopSettingInteger("G. Pierce Buff",                   "Pierce Ammo (20)", 20, 1, 1000, 3);
+    S_NUM_PIERCES = WorkshopSettingInteger("G. Pierce Buff",                  "Amount Of Surfaces to Pierce (3)", 3, 1, 16, 4);
+    S_MAX_THICKNESS = WorkshopSettingInteger("G. Pierce Buff",                  "Maximum Surface Thickness to Pierce (0 disables check)", 0, 0, 100, 4);
 
-    S_SPAWN_BUFF[1] = WorkshopSettingToggle("H. Ricochet Buff",                 "Spawn Ricochet (On)", true, 1);
-    S_BUFF_CD[1] = WorkshopSettingInteger("H. Ricochet Buff",                   "Ricochet Spawn Time (80)", 80, 5, 600, 2);
-    S_BUFF_AMMO[1] = WorkshopSettingInteger("H. Ricochet Buff",                 "Ricochet Ammo (15)", 15, 1, 1000, 3);
+    S_SPAWN_BUFF[Buff.Ricochet] = WorkshopSettingToggle("H. Ricochet Buff",                 "Spawn Ricochet (On)", true, 1);
+    S_BUFF_CD[Buff.Ricochet] = WorkshopSettingInteger("H. Ricochet Buff",                   "Ricochet Spawn Time (80)", 80, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Ricochet] = WorkshopSettingInteger("H. Ricochet Buff",                 "Ricochet Ammo (15)", 15, 1, 1000, 3);
     S_NUM_RICOCHETS = WorkshopSettingInteger("H. Ricochet Buff",                "Ricochet Maximum Bounces (5)", 5, 1, 24, 4);
 
-    S_SPAWN_BUFF[2] = WorkshopSettingToggle("I. Spread Buff",                 "Spawn Spread (On)", true, 1);
-    S_BUFF_CD[2] = WorkshopSettingInteger("I. Spread Buff",                   "Spread Spawn Time (210)", 210, 5, 600, 2);
-    S_BUFF_AMMO[2] = WorkshopSettingInteger("I. Spread Buff",                 "Spread Ammo (30)", 30, 1, 1000, 3);
+    S_SPAWN_BUFF[Buff.Buckshot] = WorkshopSettingToggle("I. Spread Buff",                 "Spawn Spread (On)", true, 1);
+    S_BUFF_CD[Buff.Buckshot] = WorkshopSettingInteger("I. Spread Buff",                   "Spread Spawn Time (210)", 210, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Buckshot] = WorkshopSettingInteger("I. Spread Buff",                 "Spread Ammo (30)", 30, 1, 1000, 3);
     S_BUCKSHOT_CHARGE_AMT = WorkshopSettingInteger("I. Spread Buff",          "Spread Charge Amount (5)", 5, 1, 10, 4);
     S_BUCKSHOT_CHARGE_SPD = WorkshopSettingReal("I. Spread Buff",             "Spread Charge Speed (0.4)", 0.4, 0.3, 5, 5);
     S_BUCKSHOT_SPREAD = WorkshopSettingReal("I. Spread Buff",                 "Spread Radius (Lower is Tighter) (1.2)", 1.2, 0.1, 20, 6);
     S_BUCKSHOT_GROUP_AMT = WorkshopSettingInteger("I. Spread Buff",           "Spread Bullets Per Group (8)", 8, 3, 12, 7);
 
-    S_SPAWN_BUFF[3] = WorkshopSettingToggle("J. Prism Buff",                    "Spawn Prism (On)", true, 1);
-    S_BUFF_CD[3] = WorkshopSettingInteger("J. Prism Buff",                      "Prism Spawn Time (195)", 195, 5, 600, 2);
-    S_BUFF_AMMO[3] = WorkshopSettingInteger("J. Prism Buff",                    "Prism Ammo (10)", 10, 1, 1000, 3);
+    S_SPAWN_BUFF[Buff.Prism] = WorkshopSettingToggle("J. Prism Buff",                    "Spawn Prism (On)", true, 1);
+    S_BUFF_CD[Buff.Prism] = WorkshopSettingInteger("J. Prism Buff",                      "Prism Spawn Time (195)", 195, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Prism] = WorkshopSettingInteger("J. Prism Buff",                    "Prism Ammo (10)", 10, 1, 1000, 3);
 
-    S_SPAWN_BUFF[4] = WorkshopSettingToggle("K. Ballista Buff",                 "Spawn Ballista (On)", true, 1);
-    S_BUFF_CD[4] = WorkshopSettingInteger("K. Ballista Buff",                   "Ballista Spawn Time (240)", 240, 5, 600, 2);
-    S_BUFF_AMMO[4] = WorkshopSettingInteger("K. Ballista Buff",                 "Ballista Ammo (1)", 1, 1, 1000, 3);
+    S_SPAWN_BUFF[Buff.Ballista] = WorkshopSettingToggle("K. Ballista Buff",                 "Spawn Ballista (On)", true, 1);
+    S_BUFF_CD[Buff.Ballista] = WorkshopSettingInteger("K. Ballista Buff",                   "Ballista Spawn Time (240)", 240, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Ballista] = WorkshopSettingInteger("K. Ballista Buff",                 "Ballista Ammo (1)", 1, 1, 1000, 3);
     S_BAL_SIZE = WorkshopSettingReal("K. Ballista Buff",                        "Ballista Explosion Size (3)", 3, 0.5, 20, 4);
 
-    S_SPAWN_BUFF[5] = WorkshopSettingToggle("L. Electro Buff",                  "Spawn Electro (On)", true, 1);
-    S_BUFF_CD[5] = WorkshopSettingInteger("L. Electro Buff",                    "Electro Spawn Time (100)", 100, 5, 600, 2);
-    S_BUFF_AMMO[5] = WorkshopSettingInteger("L. Electro Buff",                  "Electro Ammo (20)", 20, 1, 1000, 3);
+    S_SPAWN_BUFF[Buff.Electro] = WorkshopSettingToggle("L. Electro Buff",                  "Spawn Electro (On)", true, 1);
+    S_BUFF_CD[Buff.Electro] = WorkshopSettingInteger("L. Electro Buff",                    "Electro Spawn Time (100)", 100, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Electro] = WorkshopSettingInteger("L. Electro Buff",                  "Electro Ammo (20)", 20, 1, 1000, 3);
     S_ELECTRO_PROJ_DELAY = WorkshopSettingReal("L. Electro Buff",               "Electro Grenade Delay After Hitting a surface (0.35)", 0.35, 0, 2, 4);
     S_ELECTRO_PROJ_EXPLOSION_RADIUS = WorkshopSettingReal("L. Electro Buff",                     "Electro Grenade Explosion Radius (8)", 8, 1, 20, 5);
     S_ELECTRO_PROJ_SPEED = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Speed (25)", 25, 1, 50, 6);
     S_ELECTRO_PROJ_GRAV = WorkshopSettingReal("L. Electro Buff",                    "Electro Grenade Projecitile Gravity (-15)", -15, -100, 100, 7);
     S_ELECTRO_PDELTA = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Delta (Vertical Offset) (0.1)", 0.1, -1, 1, 8);
  
-    S_SPAWN_BUFF[6] = WorkshopSettingToggle("M. Spark Buff",                    "Spawn Spark (On)", true, 1);
-    S_BUFF_CD[6] = WorkshopSettingInteger("M. Spark Buff",                      "Spark Spawn Time (125)", 125, 5, 600, 2);
-    S_BUFF_AMMO[6] = WorkshopSettingInteger("M. Spark Buff",                    "Spark Ammo (20)", 20, 1, 1000, 3);
+    S_SPAWN_BUFF[Buff.Spark] = WorkshopSettingToggle("M. Spark Buff",                    "Spawn Spark (On)", true, 1);
+    S_BUFF_CD[Buff.Spark] = WorkshopSettingInteger("M. Spark Buff",                      "Spark Spawn Time (125)", 125, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Spark] = WorkshopSettingInteger("M. Spark Buff",                    "Spark Ammo (20)", 20, 1, 1000, 3);
     S_SPRK_PRIMARY_EXPLOSION_RADIUS = WorkshopSettingReal("M. Spark Buff",                      "Spark Primary Explosion Size (3)", 3, 1, 10, 5);
     S_SPRK_PROJ_SPEED = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Speed (20)", 20, 1, 500, 4);
     S_SPRK_PROJ_EXPLOSION_SIZE = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Explosion Size (8)", 8, 1, 100, 5);
     S_SPRK_HITBOX_RADIUS = WorkshopSettingReal("M. Spark Buff",                   "Spark Projectile Hitbox Size (0.85)", 0.85, 0.1, 10, 7);
 
-    S_SPAWN_BUFF[7] = WorkshopSettingToggle("N. Arc Buff",                      "Spawn Arc (On)", true, 1);
-    S_BUFF_CD[7] = WorkshopSettingInteger("N. Arc Buff",                        "Arc Spawn Time (195)", 195, 5, 600, 2);
-    S_BUFF_AMMO[7] = WorkshopSettingInteger("N. Arc Buff",                      "Arc Ammo (540)", 540, 1, 10000, 3);
+    S_SPAWN_BUFF[Buff.Arc] = WorkshopSettingToggle("N. Arc Buff",                      "Spawn Arc (On)", true, 1);
+    S_BUFF_CD[Buff.Arc] = WorkshopSettingInteger("N. Arc Buff",                        "Arc Spawn Time (195)", 195, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Arc] = WorkshopSettingInteger("N. Arc Buff",                      "Arc Ammo (540)", 540, 1, 10000, 3);
     S_ARC_BOUNCES = WorkshopSettingInteger("N. Arc Buff",                       "Arc Maximum Bounces (4)", 4, 1, 24, 5) + 1; // unsure why i have to add 1 here and not on ricochet
 
-    S_SPAWN_BUFF[8] = WorkshopSettingToggle("O. Hydrangea Buff",                "Spawn Hydrangea Buff (On)", true, 1);
-    S_BUFF_CD[8] = WorkshopSettingInteger("O. Hydrangea Buff",                  "Hydrangea Spawn Time (195)", 195, 5, 600, 2);
-    S_BUFF_AMMO[8] = WorkshopSettingInteger("O. Hydrangea Buff",                "Hydrangea Ammo (750)", 750, 1, 100000, 3);
+    S_SPAWN_BUFF[Buff.Needle] = WorkshopSettingToggle("O. Needle Buff",                "Spawn Needle Buff (On)", true, 1);
+    S_BUFF_CD[Buff.Needle] = WorkshopSettingInteger("O. Needle Buff",                  "Needle Spawn Time (195)", 195, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Needle] = WorkshopSettingInteger("O. Needle Buff",                "Needle Ammo (1000)", 1000, 1, 100000, 3);
 
-    S_SPAWN_BUFF[9] = WorkshopSettingToggle("P. Volt Buff",                     "Spawn Volt (On)", true, 1);
-    S_BUFF_CD[9] = WorkshopSettingInteger("P. Volt Buff",                       "Volt Spawn Time (165)", 165, 5, 600, 2);
-    S_BUFF_AMMO[9] = WorkshopSettingReal("P. Volt Buff",                        "Volt Ammo (150)", 150, 1, 10000, 3);
-    S_VLT_DMG = WorkshopSettingReal("P. Volt Buff",                             "Volt Damage (20)", 20, 0.04, 300, 4) / 25;
+    S_SPAWN_BUFF[Buff.Volt] = WorkshopSettingToggle("P. Volt Buff",                     "Spawn Volt (On)", true, 1);
+    S_BUFF_CD[Buff.Volt] = WorkshopSettingInteger("P. Volt Buff",                       "Volt Spawn Time (165)", 165, 5, 600, 2);
+    S_BUFF_AMMO[Buff.Volt] = WorkshopSettingReal("P. Volt Buff",                        "Volt Ammo (150)", 150, 1, 10000, 3);
+    S_VLT_DMG = WorkshopSettingReal("P. Volt Buff",                             "Volt Damage (15)", 10, 0.04, 300, 4) / 25;
     S_MAX_VLT_SPREAD = WorkshopSettingReal("P. Volt Buff",                      "Volt Maximum Spread (Lower is Tighter) (17)", 17, 0, 100, 5);
     S_MAX_VLT_DIST = WorkshopSettingReal("P. Volt Buff",                        "Volt Maximum Distance (100)", 100, 1, 300, 6);
     S_MIN_VLT_DIST = WorkshopSettingReal("P. Volt Buff",                        "Volt Minimum Distance (2)", 2, 1, 300, 7);

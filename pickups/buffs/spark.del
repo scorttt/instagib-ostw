@@ -25,12 +25,12 @@ Event.OnPlayerJoin
 Boolean sparkCheck: Update(AngleBetweenVectors(DirectionTowards(EyePos(), sparkPos), Facing()) <= S_SPRK_HITBOX_RADIUS && IsInLineOfSight(EyePos(), sparkPos));
 rule: "[Buff] :: Spark : Fire"
 Event.OngoingPlayer
-if (buffEnabled[6])
-if (IllariFiring())
+if (buffEnabled[Buff.Spark])
+if (IsFiringPrimary())
 if (Update(firstHp != null))
 {
     if (!infAmmo)
-        heldBuffAmmo[6]--;
+        heldBuffAmmo[Buff.Spark]--;
 
     if (!sparkCheck)
     {
@@ -38,7 +38,7 @@ if (Update(firstHp != null))
 
         Kill(FilteredArray(AllLiving().Remove(player), DistanceBetween(Curr(), sparkHitPos) <= S_SPRK_PRIMARY_EXPLOSION_RADIUS && IsInLineOfSight(Curr(), sparkHitPos)), player);
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[6], sparkHitPos, S_SPRK_PRIMARY_EXPLOSION_RADIUS);
+        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Spark], sparkHitPos, S_SPRK_PRIMARY_EXPLOSION_RADIUS);
     }
     else
     {
@@ -48,12 +48,12 @@ if (Update(firstHp != null))
 
 rule: "[Buff] :: Spark : Action - Launch Projectile"
 Event.OngoingPlayer
-if (buffEnabled[6])
+if (buffEnabled[Buff.Spark])
 if (IsButtonHeld(player, Button.Reload))
 if (IsAlive())
 {
     if (!infAmmo)
-        heldBuffAmmo[6]--;
+        heldBuffAmmo[Buff.Spark]--;
 
     disablePrimaryFire = true;
 
@@ -68,7 +68,7 @@ if (IsAlive())
 
     CreateProjectileEffect(All(), ProjectileType.ZaryaGraviton, player, sparkPos, Once(Facing()), S_SPRK_HITBOX_RADIUS / 5);
     sparkEffect[0] = LastCreatedEntity();
-    CreateEffect(All(), Effect.GoodAura, buffColors[6], sparkPos, S_SPRK_HITBOX_RADIUS + 0.1);
+    CreateEffect(All(), Effect.GoodAura, buffColors[Buff.Spark], sparkPos, S_SPRK_HITBOX_RADIUS + 0.1);
     sparkEffect[1] = LastCreatedEntity();
 
     Wait(0.1);
@@ -88,8 +88,8 @@ void SparkProjectile(in Number size)
 
     Kill(FilteredArray(AllLiving().Remove(player), DistanceBetween(Curr(), sparkPos) <= size && IsInLineOfSight(Curr(), sparkPos)), player);
 
-    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[6], sparkPos, size);
-    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[6], sparkPos, size * 2.5);
+    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Spark], sparkPos, size);
+    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[Buff.Spark], sparkPos, size * 2.5);
     PlayEffect(All(), PlayEffect.ZaryaParticleCannonExplosionEffect, Color.Team1, sparkPos, size * 2.5);
 
     DestroyEffect(sparkEffect);
@@ -106,10 +106,10 @@ if (DistanceBetween(sparkPos, RayCastHitPosition(sparkRayHitStart, sparkRayHitEn
 
 rule: "[Buff] :: Spark : Action - Shot Projectile"
 Event.OngoingPlayer
-if (buffEnabled[6])
+if (buffEnabled[Buff.Spark])
 if (sparkCheck) // projectile hitbox
 if (isSparkInAir)
-if (IllariFiring())
+if (IsFiringPrimary())
 {
     SparkProjectile(S_SPRK_PROJ_EXPLOSION_SIZE);
 }

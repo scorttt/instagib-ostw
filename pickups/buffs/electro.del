@@ -29,7 +29,7 @@ rule: "[Buff] :: Electro : Init"
 
 rule: "[Buff] :: Electro : Action - Primary Fire"
 Event.OngoingPlayer
-if (buffEnabled[5])
+if (buffEnabled[Buff.Electro])
 {
     // i dont know what im going to do here yet
 }
@@ -37,12 +37,12 @@ if (buffEnabled[5])
 Number projDistCheck: DistanceBetween(projPos, Update(RayCastHitPosition(projPos, projPos + (vel * 0.016) * 100, AllLivingPlayers(), player)));
 rule: "[Buff] :: Electro : Action - Launch Grenade"
 Event.OngoingPlayer
-if (buffEnabled[5])
+if (buffEnabled[Buff.Electro])
 if (IsButtonHeld(player, Button.Reload))
 if (IsAlive())
 {
     if (!infAmmo)
-        heldBuffAmmo[5] -= 2;
+        heldBuffAmmo[Buff.Electro] -= 2;
 
     Any effect;
     projHitSurface = false;
@@ -53,7 +53,7 @@ if (IsAlive())
 
     DestroyEffect(effect);
 
-    CreateEffect(All(), Effect.Orb, buffColors[5], projPos, 1);
+    CreateEffect(All(), Effect.Orb, buffColors[Buff.Electro], projPos, 1);
     effect[0] = LastCreatedEntity();
     CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, Color.White, projPos, 45);
     effect[1] = LastCreatedEntity();
@@ -63,7 +63,7 @@ if (IsAlive())
     Vector[] normals = [];
     Vector[] hitPos = [];
     Vector[] reflectionHitPos = [];
-    Vector[] hp_player = [];
+    Vector[] hpPlayer = [];
     Vector[] reflection = [];
 
     // projectile loop
@@ -77,7 +77,7 @@ if (IsAlive())
         if (projHitSurface)
             airtime += 0.016;
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[5], projPos, PROJ_SIZE);
+        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Electro], projPos, PROJ_SIZE);
 
         // reflection loop (without this extra check the for below would fire twice for whatever reason)
         if (projDistCheck <= PROJ_SIZE && S_ELECTRO_PROJ_DELAY > 0) // surface hit
@@ -118,7 +118,7 @@ if (IsAlive())
 
     // effects
     PlayEffect(All(), PlayEffect.EchoStickyBombExplosionEffect, Color.Team1, projPos, 0);
-    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[5], projPos, S_ELECTRO_PROJ_EXPLOSION_RADIUS);
+    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Electro], projPos, S_ELECTRO_PROJ_EXPLOSION_RADIUS);
 
     PlayEffect(All(), PlayEffect.WinstonJumpPackLandingSound, Color.White, projPos, 45);
     PlayEffect(All(), PlayEffect.SigmaHypersphereImplosionSound, Color.White, projPos, 45);

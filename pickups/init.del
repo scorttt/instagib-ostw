@@ -40,7 +40,7 @@ rule: "[Main] :: Pickup Init"
                     "Electro", 
                     "Spark", 
                     "Arc", 
-                    "Hydrangea", 
+                    "Needle", 
                     "Volt"];
 
     mutatorNames = ["Seer", 

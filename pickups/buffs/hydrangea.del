@@ -1,19 +1,19 @@
 import "../../main.del";
 import ".bmain.del";
 
-disabled rule: "---------------- Hydrangea ----------------"{}
+disabled rule: "---------------- Needle ----------------"{}
 
 playervar Number hydOffset;
 playervar Number hydSpread = 1;
 
-// rule: "[Buff] :: Hydrangea Init"
+// rule: "[Buff] :: Needle Init"
 // {
 //     hydInitSpread = 0; // spread size
 // }
 
-rule: "[Buff] :: Hydrangea Fire Action"
+rule: "[Buff] :: Needle Fire Action"
 Event.OngoingPlayer
-if (buffEnabled[8])
+if (buffEnabled[Buff.Needle])
 if (IsPrimaryHeld())
 if (!IsFiringSecondary())
 if (IsAlive())
@@ -22,7 +22,7 @@ if (IsAlive())
     Player playerClosestToReticle! = null;
     hydSpread = 1;
 
-    while (buffEnabled[8] && IsPrimaryHeld() && IsAlive())
+    while (buffEnabled[Buff.Needle] && IsPrimaryHeld() && IsAlive())
     {
         AddOverTime(hydSpread, 0.2, 0, 5, 0.016);
 
@@ -32,6 +32,26 @@ if (IsAlive())
         target = IsInViewAngle(player, playerClosestToReticle, 30) && IsAlive(playerClosestToReticle) && IsInLineOfSight(EyePos(), playerClosestToReticle)
                     ? playerClosestToReticle
                     : null;
+        CreateHomingProjectile(
+                ProjectileType: ProjectileType.MeiIcicle,
+                Player: player,
+                StartPosition: WeaponMuzzle(EyePos(), Facing()),
+                Direction: Facing(),
+                Relative: Relative.ToWorld,
+                ModifyHealthType: ModifyHealthType.Damage,
+                AffectedTeam: Team.All,
+                Amount: 0.5,
+                AmountScalar: 1,
+                ExplosionRadius: 0,
+                ExplosionEffect: PlayEffect.GoodExplosion,
+                ExplosionSoundEffect: PlayEffect.ExplosionSound,
+                Oversize: 0,
+                Speed: 170,
+                Lifetime: 1,
+                Impulse: 0,
+                HomingTarget: target,
+                HomingStrength: 1
+            );
 
         for (Number i = 1; i <= 8; i++)
         {
@@ -65,7 +85,7 @@ if (IsAlive())
                 hydOffset += 2; // spread rotation offset (degrees)
             }
 
-            heldBuffAmmo[8]--;
+            heldBuffAmmo[Buff.Needle] -= 3;
             MinWait();
         }
     }
@@ -74,7 +94,7 @@ if (IsAlive())
     LoopIfConditionIsTrue();
 }
 
-// rule: "[Buff] :: Hydrangea : Decrease Spread"
+// rule: "[Buff] :: Needle : Decrease Spread"
 // Event.OngoingPlayer
 // if (hydSpread > 1)
 // if (!IsPrimaryHeld())

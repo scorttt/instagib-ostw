@@ -108,35 +108,35 @@ if (S_ENABLE_BUFFS)
     }
 
     // buckshot
-    if (S_SPAWN_BUFF[2])
+    if (S_SPAWN_BUFF[Buff.Buckshot])
     {
         // alt fire
-        CreateHudText(local.buffEnabled[2] ? local : null, null, 
+        CreateHudText(local.buffEnabled[Buff.Buckshot] ? local : null, null, 
         <"<0>: Charge shots", InputBindingString(Button.Reload)>, null,
-        Location.Top, 1.1, SubheaderColor: buffColors[2]);
+        Location.Top, 1.1, SubheaderColor: buffColors[Buff.Buckshot]);
 
         // charge
-        CreateHudText(local.buffEnabled[2] ? local : null, null,  
+        CreateHudText(local.buffEnabled[Buff.Buckshot] ? local : null, null,  
         <" Charges: <0>", local.chargeStr>, null,
-        Location.Top, 1.2, SubheaderColor: buffColors[2]);
+        Location.Top, 1.2, SubheaderColor: buffColors[Buff.Buckshot]);
     }
 
     // prism
-    if (S_SPAWN_BUFF[3])
+    if (S_SPAWN_BUFF[Buff.Prism])
     {
         // alt fire
-        CreateHudText(local.buffEnabled[3] ? local : null, null,
+        CreateHudText(local.buffEnabled[Buff.Prism] ? local : null, null,
         <"<0>: Alternate fire", InputBindingString(Button.Reload)>, null,
-        Location.Top, 1.1, SubheaderColor: buffColors[3]);
+        Location.Top, 1.1, SubheaderColor: buffColors[Buff.Prism]);
     }
 
     // electro
-    if (S_SPAWN_BUFF[5])
+    if (S_SPAWN_BUFF[Buff.Electro])
     {
         // alt fire
-        CreateHudText(local.buffEnabled[5] ? local : null, null, 
+        CreateHudText(local.buffEnabled[Buff.Electro] ? local : null, null, 
         <"<0>: Alternate fire", InputBindingString(Button.Reload)>, null,
-        Location.Top, 1.1, SubheaderColor: buffColors[5]);
+        Location.Top, 1.1, SubheaderColor: buffColors[Buff.Electro]);
 
         // armed
         CreateHudText(local.totalProjAirtime != 0 ? local : null, null,  
@@ -145,19 +145,19 @@ if (S_ENABLE_BUFFS)
     }
 
     // spark
-    if (S_SPAWN_BUFF[6])
+    if (S_SPAWN_BUFF[Buff.Spark])
     {
         // alt fire
-        CreateHudText(local.buffEnabled[6] ? local : null, null, 
+        CreateHudText(local.buffEnabled[Buff.Spark] ? local : null, null, 
         <"<0>: Alternate fire", InputBindingString(Button.Reload)>, null,
-        Location.Top, 1.1, SubheaderColor: buffColors[6]);
+        Location.Top, 1.1, SubheaderColor: buffColors[Buff.Spark]);
     }
 
     // volt
-    if (S_SPAWN_BUFF[9])
+    if (S_SPAWN_BUFF[Buff.Volt])
     {
         // temperature
-        CreateProgressBarHudText(local.buffEnabled[9] ? local : null, 
+        CreateProgressBarHudText(local.buffEnabled[Buff.Volt] ? local : null, 
         local.voltTemp * 100, !local.overheated ? <"<0>%", Floor(Clamp(local.voltTemp * 100 + (local.voltTemp * (Time() + 1000)) % 8, 0, 99))> : "Overheat",
         Location.Top, 1.2, 
         CustomColor(
@@ -232,6 +232,6 @@ if (S_ENABLE_BUFFS)
         CreateEffect(isMutatorInWorld ? All() : null, Effect.Sparkles, mutatorColors[0], mutatorPos, mutatorProgressBar * 0.0045, EffectRev.VisibleToPositionRadiusAndColor);
 
         // mutator spawned
-        CreateInWorldText(isMutatorInWorld && mutatorProgressBar == 100 ? All() : null, mutatorIcon, mutatorPos + Vector(0, 0.65, 0), 2, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString);
+        CreateInWorldText(isMutatorInWorld && mutatorProgressBar == 100 ? All() : null, " \n\n\n" + mutatorIcon, mutatorPos + Vector(0, 0.65, 0), 2, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString);
     }
 }

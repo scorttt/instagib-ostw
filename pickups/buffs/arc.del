@@ -10,14 +10,12 @@ disabled rule: "---------------- Arc ----------------"{}
 
 rule: "[Buff] :: Arc : Action - Fire"
 Event.OngoingPlayer
-if (buffEnabled[7])
+if (buffEnabled[Buff.Arc])
 if (IsPrimaryHeld())
 if (!IsFiringSecondary())
 if (IsAlive())
 {
     // todo: effects
-    DisallowButton(player, Button.SecondaryFire); // disable illari impulse
-
     effTick = 0;
     DestroyEffect(arcEffects);
 
@@ -26,7 +24,7 @@ if (IsAlive())
     Vector[] normals;
     Vector[] hp;
     Vector[] hp_ricochets;
-    Any[] hp_player;
+    Any[] hpPlayer;
     Any[] ricochets;
 
     Vector arc_hit = RayCastHitPosition(EyePosition(), EyePosition() + Facing() * 300, AllLivingPlayers(), player);
@@ -34,27 +32,27 @@ if (IsAlive())
     WaitIfTrue(0.05); // brief hold
     Boolean[] hit;
 
-    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), arc_hit, buffColors[7], EffectRev.VisibleToPositionRadiusAndColor);
+    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), arc_hit, buffColors[Buff.Arc], EffectRev.VisibleToPositionRadiusAndColor);
     arcEffects[0] = LastCreatedEntity();
     // CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, null, player, 100);
-    // arc_effects[1] = LastCreatedEntity();
+    // arcEffects[1] = LastCreatedEntity();
     // CreateEffect(All(), Effect.OmnicSlicerBeamSound, null, player, 100);
-    // arc_effects[2] = LastCreatedEntity();
+    // arcEffects[2] = LastCreatedEntity();
     // CreateEffect(hit ? All() : null, Effect.WinstonTeslaCannonSound, null, arc_hit, 100);
-    // arc_effects[3] = LastCreatedEntity();
+    // arcEffects[3] = LastCreatedEntity();
     // CreateEffect(hit ? All() : null, Effect.OmnicSlicerBeamSound, null, player, 100);
-    // arc_effects[4] = LastCreatedEntity();
+    // arcEffects[4] = LastCreatedEntity();
 
     for (Number i = 1; i < S_ARC_BOUNCES; i++)
     {
-        CreateBeamEffect(hit[Once(i - 1)] ? All() : null, BeamType.BadBeam, hp[Once(i - 1)], hp[Once(i)], buffColors[7], EffectRev.VisibleToPositionRadiusAndColor);
+        CreateBeamEffect(hit[Once(i - 1)] ? All() : null, BeamType.BadBeam, hp[Once(i - 1)], hp[Once(i)], buffColors[Buff.Arc], EffectRev.VisibleToPositionRadiusAndColor);
         arcEffects[i + S_ARC_BOUNCES + 1] = LastCreatedEntity();
     }
 
-    while (IsPrimaryHeld() && IsAlive() && buffEnabled[7])
+    while (IsPrimaryHeld() && IsAlive() && buffEnabled[Buff.Arc])
     {
         if (!infAmmo)
-            heldBuffAmmo[7]--;
+            heldBuffAmmo[Buff.Arc]--;
 
         effTick++;
         eye_pos = EyePosition();
@@ -73,20 +71,20 @@ if (IsAlive())
                 }
 
                 hp[i] =        RayHit   (eye_pos, eye_pos + facing * 300, AllLivingPlayers(), player);
-                hp_player[i] = RayPlayer(eye_pos, eye_pos + facing * 300, AllLivingPlayers(), player);
+                hpPlayer[i] = RayPlayer(eye_pos, eye_pos + facing * 300, AllLivingPlayers(), player);
                 normals[i] =   RayNormal(eye_pos, eye_pos + facing * 300, AllLivingPlayers(), player);
 
                 ricochets[i] =    facing - (2 * (normals[i] * Dot(facing, normals[i])));
                 hp_ricochets[i] = RayHit(hp[i], hp[i] + hp_ricochets[i] * 300, AllLivingPlayers(), player);
 
-                Kill(hp_player[i], player);
+                Kill(hpPlayer[i], player);
 
                 if (DistanceBetween(eye_pos, hp[i]) < 299)
                 {
                     hit[i] = true;
 
                     if (effTick % 4 == 0)
-                        PlayEffect(All(), PlayEffect.BadExplosion, buffColors[7], hp[i], 0.25);
+                        PlayEffect(All(), PlayEffect.BadExplosion, buffColors[Buff.Arc], hp[i], 0.25);
                 }
                 else
                 {
@@ -101,8 +99,6 @@ if (IsAlive())
 
         MinWait();
     }
-
-    AllowButton(player, Button.SecondaryFire); // reenable illari impulse
 
     MinWait();
 

@@ -29,10 +29,9 @@
           "Damage Received": 500,
           "Healing Received": 500,
           "Movement Speed": 135,
+          "Secondary Fire": false,
           "No Ammunition Requirement": true,
           "Quick Melee": false,
-          "Solar Energy Maximum": 65,
-          "Solar Energy Recharge Rate": 500,
           "Outburst": false,
           "Healing Pylon": false,
           "Ultimate Ability Captive Sun": false
