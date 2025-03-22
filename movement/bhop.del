@@ -69,8 +69,7 @@ if (bhopping || isSliding)
 
 rule: "[Bhop] :: Too Slow"
 Event.OngoingPlayer
-if (!isSliding)
-if (bhopping) 
+if (bhopping || isSliding) 
 if (HorizontalSpeedOf() < minSpeed)
 {
     ResetSpeed();
