@@ -37,6 +37,7 @@ if (S_SEC_ENABLED)
 if (IsButtonHeld(player, Button.SecondaryFire))
 if (IsAlive())
 {
+    secProjInAir = false;
     MinWait();
 
     secProjStart = EyePos();
@@ -93,14 +94,18 @@ if (DistanceBetween(secProjPos, RayHit(secProjStart, secProjEnd, AllLivingPlayer
     PlayEffect(All(), PlayEffect.GoodExplosion, Color.Red, secProjPos, S_SEC_RADIUS);
 }
 
+rule: "[Blaster] :: Projectile Effect Loop"
+Event.OngoingPlayer
+if (secProjInAir)
+{
+    PlayEffect(All(), PlayEffect.BadExplosion, Color.Red, secProjPos, 0.1);
+    MinWait();
+    LoopIfConditionIsTrue();
+}
 rule: "[Blaster] :: Projectile Misc Loop"
 Event.OngoingPlayer
 if (secProjInAir)
 {
-    if (DistanceBetween(secProjStart, secProjPos) > 13)
-        canManuallyDetonateSec = true;
-
-    PlayEffect(All(), PlayEffect.BadExplosion, Color.Red, secProjPos, 0.1);
-    MinWait();
-    LoopIfConditionIsTrue();
+    WaitUntil(!IsSecondaryHeld() && DistanceBetween(secProjStart, secProjPos) > 10, 99999);
+    canManuallyDetonateSec = true;
 }
