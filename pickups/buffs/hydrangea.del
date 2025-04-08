@@ -26,7 +26,8 @@ if (IsAlive())
     {
         AddOverTime(hydSpread, 0.2, 0, 5, 0.016);
 
-        playerClosestToReticle = PlayerClosestToReticle(player);
+        // playerClosestToReticle = PlayerClosestToReticle(player);
+        playerClosestToReticle = SortedArray(EnemyPlayers(), AngleBetweenVectors(Facing(), PositionOf(Curr()) + Up() - EyePos())).First;
 
         // todo: fix weirdness with dead players
         target = IsInViewAngle(player, playerClosestToReticle, 30) && IsAlive(playerClosestToReticle) && IsInLineOfSight(EyePos(), playerClosestToReticle)
