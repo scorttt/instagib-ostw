@@ -4,6 +4,7 @@ globalvar Number S_DODGE_FORCE;
 globalvar Number S_DODGE_AMT;
 globalvar Boolean S_DODGE_ENABLED;
 playervar Boolean infDodges;
+playervar Boolean isDodging;
 playervar Vector throttle;
 playervar Number dodges;
 playervar Number maxDodges;
@@ -25,6 +26,7 @@ if (IsAlive())
 if (IsInAir())
 if (IsButtonHeld(player, Button.Ability1))
 {
+    isDodging = true;
     Number y: 0.6;
 
     // hacky fix for controller users
@@ -40,6 +42,9 @@ if (IsButtonHeld(player, Button.Ability1))
 
     if (!infDodges)
         dodges--;
+    
+    Wait(0.25);
+    isDodging = false;
 }
 
 rule: "[Dodge] :: On Ground"

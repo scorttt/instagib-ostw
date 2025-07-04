@@ -6,27 +6,30 @@ globalvar Boolean S_BHOP_ENABLED;
 
 playervar Boolean bhopping; // is the player bhopping
 playervar Boolean autoBhop; // is the player auto bhopping
-playervar Number moveSpeedPercent; // movement speed multiplier
+playervar Number bhopSpeedPercent; // movement speed multiplier
 playervar Number bhopSpeedRate; // bhop speed rate
-playervar Number defaultBhopSpeedPercent; // default movement speed multiplier (modified by mutators like berkserk and mobility)
+playervar Number bhopSpeedFloor; // default movement speed multiplier (modified by mutators like berkserk or stimpack ability)
 
-Number minSpeed: 6.93; // minimum bhop speed, adjust this along side the movement speed multiplier in custom game settings
+playervar Number minSpeed; // minimum bhop speed
 
 disabled rule: "---------------- Bhop ----------------"{}
 
 void ResetSpeed() playervar "[Bhop] :: Reset Speed"
 {
-    StopChasingVariable(moveSpeedPercent);
+    StopChasingVariable(bhopSpeedPercent);
     bhopping = false;
-    moveSpeedPercent = defaultBhopSpeedPercent;
-    SetMoveSpeed(player, moveSpeedPercent);
+    expectedSpeed = 0;
+    lastSpeedWhenHitWall = 0;
+    bhopSpeedPercent = bhopSpeedFloor;
+    SetMoveSpeed(player, bhopSpeedPercent);
 }
 
 rule: "[Bhop] :: Init"
 Event.OnPlayerJoin
 {
-    defaultBhopSpeedPercent = 100;
-    moveSpeedPercent = defaultBhopSpeedPercent;
+    minSpeed = 5.5 * (S_MOVE_SPEED / 100) * 0.91; // account for backwards speed, seems to be 10% slower than moving forward with some buffer just in case
+    bhopSpeedFloor = S_MOVE_SPEED;
+    bhopSpeedPercent = bhopSpeedFloor;
     bhopSpeedRate = S_BHOP_SPEED_RATE;
 }
 
@@ -53,19 +56,19 @@ if (S_BHOP_ENABLED)
 if (IsInAir())
 if (HorizontalSpeedOf() > minSpeed || isSliding)
 {
-    ChaseVariableAtRate(moveSpeedPercent, S_BHOP_MAX_SPEED, bhopSpeedRate, RateChaseReevaluation.DestinationAndRate);
+    ChaseVariableAtRate(bhopSpeedPercent, S_BHOP_MAX_SPEED, bhopSpeedRate, RateChaseReevaluation.DestinationAndRate);
     bhopping = true;
-    SetMoveSpeed(player, moveSpeedPercent);
+    SetMoveSpeed(player, bhopSpeedPercent);
 }
 
-rule: "[Bhop] :: Update Speed"
-Event.OngoingPlayer
-if (bhopping || isSliding)
-{
-    SetMoveSpeed(player, moveSpeedPercent);
-    Wait(0.064);
-    LoopIfConditionIsTrue();
-}
+// rule: "[Bhop] :: Update Speed"
+// Event.OngoingPlayer
+// if (bhopping || isSliding)
+// {
+//     SetMoveSpeed(player, moveSpeedPercent);
+//     Wait(0.064);
+//     LoopIfConditionIsTrue();
+// }
 
 rule: "[Bhop] :: Too Slow"
 Event.OngoingPlayer
@@ -75,11 +78,68 @@ if (HorizontalSpeedOf() < minSpeed)
     ResetSpeed();
 }
 
+// playervar Vector wishDir;
+// rule: "[Bhop] :: Continue Moving Forward"
+// Event.OngoingPlayer
+// if (bhopping) 
+// if (ThrottleOf().Z < 0.5)
+// {
+//     // scuffed quake-like air strafing, if the player has enough speed and is not holding w, then we can allow them to continue moving forward
+//     if (ThrottleOf().Z < 0.5)
+//     {
+//         wishDir = Vector(Facing().X, 0, Facing().Z);
+//         StartThrottleInDirection(player, wishDir, 1, Relative.ToWorld);
+//     }
+
+//     WaitUntil(ThrottleOf().Z > 0.5 || !bhopping, 999999);
+//     StopThrottleInDirection(player);
+//     wishDir = null;
+// }
+
+playervar Number horizontalSpeed;
+playervar Number expectedSpeed;
+playervar Number lastSpeedWhenHitWall;
+playervar Number rewardSpeedPercentage; // percentage of speed increase when going faster than expected
+playervar Number penaltySpeedPercentage;
+rule: "[Bhop] :: Speed Adjustment Loop"
+Event.OngoingPlayer
+if (bhopping)
+if (!isSliding)
+{
+    horizontalSpeed = HorizontalSpeedOf();
+    // 5.5 is the expected speed with no movement speed modifiers (usually every character's forwards speed besides genji/tracer), 0.1 is a buffer to account for minor speed variations
+    expectedSpeed = 5.5 * (bhopSpeedPercent / 100) - 0.1;
+
+    // record the last speed when hitting a wall based on their current speed, if its lower than expected (e.g. its not 5.5 * moveSpeedPercent / 100) then we know they hit a wall and we can penalize them
+    if (horizontalSpeed < expectedSpeed)
+    {
+        lastSpeedWhenHitWall = horizontalSpeed;
+
+        // penalize player move speed percentage for hitting walls relative to the speed that they were going as the hit the wall
+        // 2.5 is a penalty factor, can be adjusted to make it more or less punishing. higher is less punishing, lower is more punishing. can just remove the division to make it technically "correct" but thats not fun
+        penaltySpeedPercentage = ((lastSpeedWhenHitWall / expectedSpeed) * 100) / 2.5;
+        bhopSpeedPercent = Max(bhopSpeedPercent - penaltySpeedPercentage, bhopSpeedFloor);
+    }
+    else if (horizontalSpeed - 0.5 > expectedSpeed && !isDodging) // if the player is actually going faster than expected, then we can instead reward the player by increasing their speed
+    {
+        // reward player move speed percentage for going faster than expected relative to the speed boost they got
+        rewardSpeedPercentage = ((horizontalSpeed / expectedSpeed) * 100) / 2.5;
+        bhopSpeedPercent = Min(bhopSpeedPercent + rewardSpeedPercentage, S_BHOP_MAX_SPEED);
+    }
+
+    SetMoveSpeed(player, bhopSpeedPercent);
+    Wait(0.064);
+    LoopIfConditionIsTrue();
+    lastSpeedWhenHitWall = 0;
+    expectedSpeed = 0;
+}
+
+
 rule: "[Bhop] :: Player too slow but on ground"
 Event.OngoingPlayer
 if (IsOnGround())
 if (!autoBhop)
-if (moveSpeedPercent > defaultBhopSpeedPercent)
+if (bhopSpeedPercent > bhopSpeedFloor)
 {
     WaitIfTrue(0.25);
     ResetSpeed();
