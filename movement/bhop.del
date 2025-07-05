@@ -17,10 +17,11 @@ disabled rule: "---------------- Bhop ----------------"{}
 void ResetSpeed() playervar "[Bhop] :: Reset Speed"
 {
     StopChasingVariable(bhopSpeedPercent);
-    tooSlow = true;
     bhopping = false;
     expectedSpeed = 0;
     lastSpeedWhenHitWall = 0;
+    bhopSpeedPercent = bhopSpeedFloor;
+    SetMoveSpeed(player, bhopSpeedPercent);
 }
 
 rule: "[Bhop] :: Init"
@@ -57,8 +58,6 @@ if (HorizontalSpeedOf() > minSpeed/*  || isSliding */)
 {
     ChaseVariableAtRate(bhopSpeedPercent, S_BHOP_MAX_SPEED, bhopSpeedRate, RateChaseReevaluation.DestinationAndRate);
     bhopping = true;
-
-    tooSlow = false;
 }
 
 rule: "[Bhop] :: Too Slow"
@@ -92,18 +91,17 @@ playervar Number expectedSpeed;
 playervar Number lastSpeedWhenHitWall;
 playervar Number rewardSpeedPercentage; // percentage of speed increase when going faster than expected
 playervar Number penaltySpeedPercentage;
-playervar Boolean tooSlow;
 
 rule: "[Bhop] :: Speed Adjustment Loop"
 Event.OngoingPlayer
-if (bhopping || tooSlow)
+if (bhopping)
 {
     horizontalSpeed = HorizontalSpeedOf();
     // 5.5 is the expected speed with no movement speed modifiers (usually every character's forwards speed besides genji/tracer), 0.1 is a buffer to account for minor speed variations
     expectedSpeed = 5.5 * (bhopSpeedPercent / 100) - 0.1;
 
     // record the last speed when hitting a wall based on their current speed, if its lower than expected (e.g. its not 5.5 * moveSpeedPercent / 100) then we know they hit a wall and we can penalize them
-    if (horizontalSpeed < expectedSpeed || tooSlow)
+    if (horizontalSpeed < expectedSpeed)
     {
         lastSpeedWhenHitWall = horizontalSpeed;
 
