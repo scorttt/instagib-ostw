@@ -17,11 +17,10 @@ disabled rule: "---------------- Bhop ----------------"{}
 void ResetSpeed() playervar "[Bhop] :: Reset Speed"
 {
     StopChasingVariable(bhopSpeedPercent);
+    tooSlow = true;
     bhopping = false;
     expectedSpeed = 0;
     lastSpeedWhenHitWall = 0;
-    bhopSpeedPercent = bhopSpeedFloor;
-    SetMoveSpeed(player, bhopSpeedPercent);
 }
 
 rule: "[Bhop] :: Init"
@@ -36,7 +35,7 @@ Event.OnPlayerJoin
 rule: "[Bhop] :: Auto Hop"
 Event.OngoingPlayer
 if (S_BHOP_ENABLED)
-if (!isSliding)
+// if (!isSliding)
 if (IsOnGround())
 if (!IsButtonHeld(player, Button.Crouch))
 if (IsJumpHeld())
@@ -50,29 +49,21 @@ if (IsJumpHeld())
         autoBhop = false;
 }
 
-rule: "[Bhop] :: Gain Speed"
+rule: "[Bhop] :: Gain Speed Chase"
 Event.OngoingPlayer
 if (S_BHOP_ENABLED)
 if (IsInAir())
-if (HorizontalSpeedOf() > minSpeed || isSliding)
+if (HorizontalSpeedOf() > minSpeed/*  || isSliding */)
 {
     ChaseVariableAtRate(bhopSpeedPercent, S_BHOP_MAX_SPEED, bhopSpeedRate, RateChaseReevaluation.DestinationAndRate);
     bhopping = true;
-    SetMoveSpeed(player, bhopSpeedPercent);
-}
 
-// rule: "[Bhop] :: Update Speed"
-// Event.OngoingPlayer
-// if (bhopping || isSliding)
-// {
-//     SetMoveSpeed(player, moveSpeedPercent);
-//     Wait(0.064);
-//     LoopIfConditionIsTrue();
-// }
+    tooSlow = false;
+}
 
 rule: "[Bhop] :: Too Slow"
 Event.OngoingPlayer
-if (bhopping || isSliding) 
+if (bhopping) 
 if (HorizontalSpeedOf() < minSpeed)
 {
     ResetSpeed();
@@ -101,41 +92,43 @@ playervar Number expectedSpeed;
 playervar Number lastSpeedWhenHitWall;
 playervar Number rewardSpeedPercentage; // percentage of speed increase when going faster than expected
 playervar Number penaltySpeedPercentage;
+playervar Boolean tooSlow;
+
 rule: "[Bhop] :: Speed Adjustment Loop"
 Event.OngoingPlayer
-if (bhopping)
-if (!isSliding)
+if (bhopping || tooSlow)
 {
     horizontalSpeed = HorizontalSpeedOf();
     // 5.5 is the expected speed with no movement speed modifiers (usually every character's forwards speed besides genji/tracer), 0.1 is a buffer to account for minor speed variations
     expectedSpeed = 5.5 * (bhopSpeedPercent / 100) - 0.1;
 
     // record the last speed when hitting a wall based on their current speed, if its lower than expected (e.g. its not 5.5 * moveSpeedPercent / 100) then we know they hit a wall and we can penalize them
-    if (horizontalSpeed < expectedSpeed)
+    if (horizontalSpeed < expectedSpeed || tooSlow)
     {
         lastSpeedWhenHitWall = horizontalSpeed;
 
         // penalize player move speed percentage for hitting walls relative to the speed that they were going as the hit the wall
-        // 2.5 is a penalty factor, can be adjusted to make it more or less punishing. higher is less punishing, lower is more punishing. can just remove the division to make it technically "correct" but thats not fun
-        penaltySpeedPercentage = ((lastSpeedWhenHitWall / expectedSpeed) * 100) / 2.5;
+        penaltySpeedPercentage = ((lastSpeedWhenHitWall / expectedSpeed) * 100) * 0.3;
         bhopSpeedPercent = Max(bhopSpeedPercent - penaltySpeedPercentage, bhopSpeedFloor);
     }
-    else if (horizontalSpeed - 0.5 > expectedSpeed && !isDodging) // if the player is actually going faster than expected, then we can instead reward the player by increasing their speed
+    else if (horizontalSpeed - 0.5 > expectedSpeed) // if the player is actually going faster than expected, then we can instead reward the player by increasing their speed
     {
         // reward player move speed percentage for going faster than expected relative to the speed boost they got
-        rewardSpeedPercentage = ((horizontalSpeed / expectedSpeed) * 100) / 2.5;
+        rewardSpeedPercentage = ((horizontalSpeed / expectedSpeed) * 100) * 0.3;
         bhopSpeedPercent = Min(bhopSpeedPercent + rewardSpeedPercentage, S_BHOP_MAX_SPEED);
+
+        expectedSpeed = horizontalSpeed - 0.1;
     }
 
     SetMoveSpeed(player, bhopSpeedPercent);
     Wait(0.064);
     LoopIfConditionIsTrue();
+
     lastSpeedWhenHitWall = 0;
     expectedSpeed = 0;
 }
 
-
-rule: "[Bhop] :: Player too slow but on ground"
+rule: "[Bhop] :: Player on ground"
 Event.OngoingPlayer
 if (IsOnGround())
 if (!autoBhop)
