@@ -4,8 +4,8 @@ globalvar Number S_DODGE_FORCE;
 globalvar Number S_DODGE_AMT;
 globalvar Boolean S_DODGE_ENABLED;
 playervar Boolean infDodges;
-playervar Boolean isDodging;
 playervar Vector throttle;
+playervar Number dodgeForce;
 playervar Number dodges;
 playervar Number maxDodges;
 
@@ -15,18 +15,18 @@ rule: "[Dodge] :: Init"
 Event.OnPlayerJoin
 {
     maxDodges = S_DODGE_AMT;
+    dodgeForce = S_DODGE_FORCE;
 }
 
 rule: "[Dodge] :: Action"
 Event.OngoingPlayer
 if (S_DODGE_ENABLED)
 if (dodges > 0)
-if (!isSliding)
+// if (!isSliding)
 if (IsAlive())
 if (IsInAir())
 if (IsButtonHeld(player, Button.Ability1))
 {
-    isDodging = true;
     Number y: 0.6;
 
     // hacky fix for controller users
@@ -35,16 +35,13 @@ if (IsButtonHeld(player, Button.Ability1))
     if (throttle == Vector(0, y, 0))
         throttle = Vector(0, y, 1);
 
-    ApplyImpulse(player, throttle, S_DODGE_FORCE, Relative.ToPlayer, ContraryMotion.Cancel);
+    ApplyImpulse(player, throttle, dodgeForce, Relative.ToPlayer, ContraryMotion.Cancel);
 
     PlayEffect(All(), PlayEffect.BadExplosion, Color.Gray, PositionOf(), 1);
     PlayEffect(All(), PlayEffect.RingExplosion, Color.Gray, PositionOf(), 2);
 
     if (!infDodges)
         dodges--;
-    
-    Wait(0.25);
-    isDodging = false;
 }
 
 rule: "[Dodge] :: On Ground"
