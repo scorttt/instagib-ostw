@@ -10,7 +10,7 @@ playervar Number bhopSpeedPercent; // movement speed multiplier
 playervar Number bhopSpeedRate; // bhop speed rate
 playervar Number bhopSpeedFloor; // default movement speed multiplier (modified by mutators like berkserk or stimpack ability)
 
-playervar Number minSpeed; // minimum bhop speed
+globalvar Number MIN_SPEED; // minimum bhop speed
 
 disabled rule: "---------------- Bhop ----------------"{}
 
@@ -27,7 +27,6 @@ void ResetSpeed() playervar "[Bhop] :: Reset Speed"
 rule: "[Bhop] :: Init"
 Event.OnPlayerJoin
 {
-    minSpeed = 5.5 * (S_MOVE_SPEED / 100) * 0.91; // account for backwards speed, seems to be 10% slower than moving forward with some buffer just in case
     bhopSpeedFloor = S_MOVE_SPEED;
     bhopSpeedPercent = bhopSpeedFloor;
     bhopSpeedRate = S_BHOP_SPEED_RATE;
@@ -55,7 +54,7 @@ rule: "[Bhop] :: Gain Speed Chase"
 Event.OngoingPlayer
 if (S_BHOP_ENABLED)
 if (IsInAir())
-if (HorizontalSpeedOf() > minSpeed/*  || isSliding */)
+if (HorizontalSpeedOf() > MIN_SPEED/*  || isSliding */)
 {
     ChaseVariableAtRate(bhopSpeedPercent, S_BHOP_MAX_SPEED, bhopSpeedRate, RateChaseReevaluation.DestinationAndRate);
     bhopping = true;
@@ -64,7 +63,7 @@ if (HorizontalSpeedOf() > minSpeed/*  || isSliding */)
 rule: "[Bhop] :: Too Slow"
 Event.OngoingPlayer
 if (bhopping) 
-if (HorizontalSpeedOf() < minSpeed)
+if (HorizontalSpeedOf() < MIN_SPEED)
 {
     ResetSpeed();
 }

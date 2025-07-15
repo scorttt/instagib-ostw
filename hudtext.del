@@ -8,13 +8,41 @@ Update(EyePosition(local) + 100 *
           - 0.200) * DirectionFromAngles(HorizontalAngleFromDirection(Facing(local)), VerticalAngleFromDirection(Facing(local)) - 90) +
           3 * Facing(local)));
 
+Number orangeThreshold: (20 - MIN_SPEED) / (35 - MIN_SPEED);
+Number redThreshold: (25 - MIN_SPEED) / (35 - MIN_SPEED);
+Number purpleThreshold: (35 - MIN_SPEED) / (35 - MIN_SPEED);
+Number threshold: Max(0, Min(1, (HorizontalSpeedOf(local) - MIN_SPEED) / (35 - MIN_SPEED)));
+
+Color speedColor: 
+    CustomColor(
+        // r
+        threshold < orangeThreshold ? 255 : 
+        threshold < redThreshold ? 255 : 
+        Near(255 - ((threshold - redThreshold) / (purpleThreshold - redThreshold)) * 95),
+
+        // g
+        threshold < orangeThreshold ? Near(255 - (threshold / orangeThreshold) * 90) : 
+        threshold < redThreshold ? Near(165 - ((threshold - orangeThreshold) / (redThreshold - orangeThreshold)) * 165) : 
+        Near(((threshold - redThreshold) / (purpleThreshold - redThreshold)) * 80),
+
+        // b
+        threshold < orangeThreshold ? Near(255 - (threshold / orangeThreshold) * 255) : 
+        threshold < redThreshold ? 0 : 
+        Near(((threshold - redThreshold) / (purpleThreshold - redThreshold)) * 180),
+
+        255);
+
 rule: "[Main] :: General HUD Text"
 {
     // time
     CreateHudText(All(), null, <"<0>:<1><2>", Floor(MatchTime() / 60 % 60), 
                                 MatchTime() % 60 < 10 ? "0" : "", 
                                 Floor(MatchTime() % 60)>,
-    " \n\n\n\n\n\n\n\n", Location.Top, 0.1);
+    " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", Location.Top, 0.1);
+
+    // speedometer
+    CreateHudText(local, null, <"<0>", HorizontalSpeedOf(local) + 0.001>,
+    null, Location.Top, 0.2, Color.White, speedColor, Color.White, HudTextRev.VisibleToSortOrderStringAndColor);
 }
 
 Color CanPlayerPickupBuffColor(Number index): 

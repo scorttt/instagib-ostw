@@ -178,6 +178,9 @@ rule: "[Main] :: Initial Global"
                 mutatorIndex = Append(mutatorIndex, i); // populate m_in with the indices of the mutators that are enabled
         }
     }
+
+    MIN_SPEED = 5.5 * (S_MOVE_SPEED / 100) * 0.91; // account for backwards speed, seems to be 10% slower than moving forward with some buffer just in case
+    initilized = true;
 }
 
 rule: "[Main] :: Start Match"
