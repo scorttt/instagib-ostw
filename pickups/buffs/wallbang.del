@@ -37,12 +37,12 @@ if (Update(firstHp != null))
             if (i > 0)
             {
                 exitHp[i] = RayHit(hp[i], hp[i] + DirectionTowards(hp[i], prevHp) * DistanceBetween(hp[i], prevHp), null, null);
-                PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Pierce], exitHp[i], 0.3);
+                PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Pierce], exitHp[i], 0.3);
 
-                CreateBeamEffect(All(), BeamType.BadBeam, exitHp[i], hp[i], buffColors[Buff.Pierce], EffectRev.None);
+                CreateBeamEffect(All(), BeamType.BadBeam, exitHp[i], hp[i], BUFF_COLORS[Buff.Pierce], EffectRev.None);
                 wbEff[i] = LastCreatedEntity();
 
-                PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Pierce], hp[i], 0.3);
+                PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Pierce], hp[i], 0.3);
 
                 // CreateEffect(All(), Effect.Sphere, Color.Yellow, hp[Once(i)] + offset, 0.3);
                 // CreateEffect(All(), Effect.Sphere, Color.Yellow, exitHp[Once(i)] + offset, 0.3);

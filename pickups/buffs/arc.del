@@ -32,7 +32,7 @@ if (IsAlive())
     WaitIfTrue(0.05); // brief hold
     Boolean[] hit;
 
-    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), arc_hit, buffColors[Buff.Arc], EffectRev.VisibleToPositionRadiusAndColor);
+    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), arc_hit, BUFF_COLORS[Buff.Arc], EffectRev.VisibleToPositionRadiusAndColor);
     arcEffects[0] = LastCreatedEntity();
     // CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, null, player, 100);
     // arcEffects[1] = LastCreatedEntity();
@@ -45,7 +45,7 @@ if (IsAlive())
 
     for (Number i = 1; i < S_ARC_BOUNCES; i++)
     {
-        CreateBeamEffect(hit[Once(i - 1)] ? All() : null, BeamType.BadBeam, hp[Once(i - 1)], hp[Once(i)], buffColors[Buff.Arc], EffectRev.VisibleToPositionRadiusAndColor);
+        CreateBeamEffect(hit[Once(i - 1)] ? All() : null, BeamType.BadBeam, hp[Once(i - 1)], hp[Once(i)], BUFF_COLORS[Buff.Arc], EffectRev.VisibleToPositionRadiusAndColor);
         arcEffects[i + S_ARC_BOUNCES + 1] = LastCreatedEntity();
     }
 
@@ -84,7 +84,7 @@ if (IsAlive())
                     hit[i] = true;
 
                     if (effTick % 4 == 0)
-                        PlayEffect(All(), PlayEffect.BadExplosion, buffColors[Buff.Arc], hp[i], 0.25);
+                        PlayEffect(All(), PlayEffect.BadExplosion, BUFF_COLORS[Buff.Arc], hp[i], 0.25);
                 }
                 else
                 {

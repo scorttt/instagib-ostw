@@ -43,7 +43,7 @@ if (IsAlive())
     Vector voltHitPos = RayCastHitPosition(EyePosition(), EyePosition() + Facing() * voltDist, AllLivingPlayers(), player);
     MinWait();
 
-    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), voltHitPos, buffColors[Buff.Volt], EffectRev.VisibleToPositionRadiusAndColor);
+    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), voltHitPos, BUFF_COLORS[Buff.Volt], EffectRev.VisibleToPositionRadiusAndColor);
     voltEffects[0] = LastCreatedEntity();
     CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, null, player, 100);
     voltEffects[1] = LastCreatedEntity();
@@ -69,7 +69,7 @@ if (IsAlive())
         if (DistanceBetween(EyePos(), voltHitPos) < voltDist - 1)
         {
             hit = true;
-            PlayEffect(All(), PlayEffect.BadExplosion, buffColors[Buff.Volt], voltHitPos, 0.5);
+            PlayEffect(All(), PlayEffect.BadExplosion, BUFF_COLORS[Buff.Volt], voltHitPos, 0.5);
         }
         else 
         {

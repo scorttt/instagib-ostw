@@ -29,7 +29,6 @@ globalvar Number buffIn; // index of the buff for the player to pick up (this pr
 playervar String[] heldBuffStr; // string of the held buff
 globalvar Any buffTrail; // beam effect for firing weapon with a buff
 playervar Color buffColor; // the given buff color to the player
-playervar Color unownedBuffColor; // buff color that the player does not already own
 playervar Boolean infAmmo; // boolean if player has infinite ammo
 playervar Boolean showAmmoAsPercentage; // boolean if the buff is a laser
 
@@ -84,12 +83,12 @@ void CollectBuff() playervar "[Buff] :: Buff Collection"
     }
 
     // dont know why this is necessary but pickup strings are broken without it so whatever
-    heldBuffStr[HeldStr.Name] = buffNames[buffIn];
-    heldBuffStr[HeldStr.Icon] = buffIcons[buffIn];
+    heldBuffStr[HeldStr.Name] = BUFF_NAMES[buffIn];
+    heldBuffStr[HeldStr.Icon] = BUFF_ICONS[buffIn];
 
     currentBuffIn = buffIn;
     canPickupBuff[buffIn] = false;
-    buffColor = buffColors[buffIn];
+    buffColor = BUFF_COLORS[buffIn];
 
     if (!playerHasBuff)
     {
@@ -122,7 +121,7 @@ void BuffCooldown() "[Buff] :: Start Buff Timer"
 {
     if (S_SPAWN_BUFF[buffIn] && buffCooldown[buffIn] == S_BUFF_CD[buffIn])
     {
-        LogToInspector(<"<0> cooldown started", buffNames[buffIn]>);
+        LogToInspector(<"<0> cooldown started", BUFF_NAMES[buffIn]>);
         buffTimerRunning[buffIn] = true; // start timer
     }
 }
@@ -132,10 +131,10 @@ void CreateOrb() "[Buff] :: Create Orb"
     canPickupBuff[buffIn] = true;
     buffTimerRunning[buffIn] = false;
 
-    LogToInspector(<"<0> created", buffNames[buffIn]>);
-    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColors[buffIn], buffPos[buffIn], 1);
-    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[buffIn], buffPos[buffIn], 3);
-    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[buffIn], buffPos[buffIn] + Vector(0, -0.5, 0), 2);
+    LogToInspector(<"<0> created", BUFF_NAMES[buffIn]>);
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, BUFF_COLORS[buffIn], buffPos[buffIn], 1);
+    PlayEffect(All(), PlayEffect.RingExplosion, BUFF_COLORS[buffIn], buffPos[buffIn], 3);
+    PlayEffect(All(), PlayEffect.RingExplosion, BUFF_COLORS[buffIn], buffPos[buffIn] + Vector(0, -0.5, 0), 2);
 }
 
 rule: "[Buff] :: Remove Buff"
@@ -166,7 +165,7 @@ if (matchStarted)
 if (validMap)
 if (IsTrueForAny(buffCooldown, Curr() != 0))
 {
-    for (Number i = 0; i < buffNames.Length; i++)
+    for (Number i = 0; i < BUFF_NAMES.Length; i++)
     {
         if (S_SPAWN_BUFF[i] && buffTimerRunning[i])
         {

@@ -32,15 +32,15 @@ if (IsFiringPrimary())
 
     Any center = eyePos + facing * 300;
 
-    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, center, buffColors[currentBuffIn], EffectRev.VisibleToPositionRadiusAndColor); // center beam
+    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, center, BUFF_COLORS[currentBuffIn], EffectRev.VisibleToPositionRadiusAndColor); // center beam
     balEffect = LastCreatedEntity();
 
     for (Number i = 1; i < 200; i++)
     {
         Vector pos = eyePos + facing * (i * S_BAL_SIZE);
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Ballista], pos, S_BAL_SIZE);
-        PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, buffColors[Buff.Ballista], pos, 100);
+        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Ballista], pos, S_BAL_SIZE);
+        PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, BUFF_COLORS[Buff.Ballista], pos, 100);
 
         Player[] players = FilteredArray(RemoveFromArray(AllLiving(), player), 
         DistanceBetween(PosOf(Curr()) + Up(),              pos) <= S_BAL_SIZE || 

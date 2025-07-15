@@ -52,8 +52,8 @@ if (IsReloadHeld())
     noChargeStr = StringSlice(chargeStrArr[1], 0, (S_BUCKSHOT_CHARGE_AMT * 2) - chargeLvl * 2);
 
     chargeStr = hasChargeStr + noChargeStr;
-    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColors[Buff.Buckshot], PosOf(), 1);
-    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Buckshot], player, spread + 1);
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, BUFF_COLORS[Buff.Buckshot], PosOf(), 1);
+    PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Buckshot], player, spread + 1);
     PlayEffect(player, PlayEffect.BuffImpactSound, null, player, 50);
 
     LoopIfConditionIsTrue();
@@ -67,6 +67,8 @@ if (IsFiringPrimary())
 {
     if (!infAmmo)
         heldBuffAmmo[Buff.Buckshot]--;
+
+    Wait(0.064);
 
     canChargeBuckshot = false;
 
@@ -87,8 +89,8 @@ if (IsFiringPrimary())
         buckshotHitPos[i] = RayHit(eyePos, eyePos + direction, AllLiving(), player);
         buckshotHitPlayer[i] = RayPlayer(eyePos, eyePos + direction, AllLiving(), player);
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Buckshot], buckshotHitPos[i], 0.25);
-        CreateBeamEffect(All(), BeamType.BadBeam, gunPos, buckshotHitPos[i], buffColors[Buff.Buckshot], EffectRev.None);
+        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Buckshot], buckshotHitPos[i], 0.25);
+        CreateBeamEffect(All(), BeamType.BadBeam, gunPos, buckshotHitPos[i], BUFF_COLORS[Buff.Buckshot], EffectRev.None);
         buckshotEffects[i] = LastCreatedEntity();
 
         if (i % S_BUCKSHOT_GROUP_AMT == 0 && i != buckshotProjAmt)

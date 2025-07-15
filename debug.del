@@ -43,28 +43,28 @@ rule: "Global Debug"
                   null, Location.Right, 0.2);
 
     // world information
-    CreateHudText(host, null, 
-    <"validMap: <0>\nmutatorCooldown: <1>, chosenMutator: <2> (<3>)\nfinal time: <4> + <5>, mut remaining: <6>", 
-    validMap,
-    mutatorCooldown, chosenMutator, mutatorStr,
-    S_M_CD, rand, mutatorIndex.Length
+    // CreateHudText(host, null, 
+    // <"validMap: <0>\nmutatorCooldown: <1>, chosenMutator: <2> (<3>)\nfinal time: <4> + <5>, mut remaining: <6>", 
+    // validMap,
+    // mutatorCooldown, chosenMutator, mutatorStr,
+    // S_M_CD, rand, mutatorIndex.Length
 
-    >, null, Location.Right, 0.3);
+    // >, null, Location.Right, 0.3);
 
-    WaitUntil(validMap, 10);
+    // WaitUntil(validMap, 10);
 
     // buff world information
-    for (Number i = 0; i < buffPos.Length; i++)
-    {
-        CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
-        Once(i), buffNames[Once(i)],
-        buffCooldown[Once(i)],
-        Once(buffPos[i]),
-        DistanceBetween(PositionOf(host) + Up(), Once(buffPos[i]))>, 
-        Once(buffPos[i]), 
+    // for (Number i = 0; i < buffPos.Length; i++)
+    // {
+    //     CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
+    //     Once(i), buffNames[Once(i)],
+    //     buffCooldown[Once(i)],
+    //     Once(buffPos[i]),
+    //     DistanceBetween(PositionOf(host) + Up(), Once(buffPos[i]))>, 
+    //     Once(buffPos[i]), 
 
-        1, Clipping.DoNotClip);
-    }
+    //     1, Clipping.DoNotClip);
+    // }
 
     // // mutator world information
     // CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
@@ -77,25 +77,25 @@ rule: "Player Debug"
 Event.OnPlayerJoin
 {
     // against wall?
-    CreateHudText(player, null, Update(IsTrueForAny([
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 0,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 1,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 2,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 3,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 4,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 5,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 6,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 7,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 8,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 9,  0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 10, 0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 11, 0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 12, 0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 13, 0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 14, 0), null, All()),
-            RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 15, 0), null, All())],
-            DistanceBetween(EyePos(), Curr()) <= 0.9999)),
-            null, Location.Right, 0.3);
+    // CreateHudText(player, null, Update(IsTrueForAny([
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 0,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 1,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 2,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 3,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 4,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 5,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 6,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 7,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 8,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 9,  0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 10, 0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 11, 0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 12, 0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 13, 0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 14, 0), null, All()),
+    //         RayHit(EyePos(), EyePos() + DirectionFromAngles(HorizontalFacingAngleOf() + 22.5 * 15, 0), null, All())],
+    //         DistanceBetween(EyePos(), Curr()) <= 0.9999)),
+    //         null, Location.Right, 0.3);
 
     for (Number i = 0; i < spawnWithBuff.Length; i++)
     {
@@ -104,10 +104,10 @@ Event.OnPlayerJoin
             playerHasBuff = true;
             buffEnabled[i] = true;
             heldBuffAmmo[i] = S_BUFF_AMMO[i];
-            heldBuffStr[HeldStr.Name] = buffNames[i];
-            heldBuffStr[HeldStr.Icon] = buffIcons[i];
+            heldBuffStr[HeldStr.Name] = BUFF_NAMES[i];
+            heldBuffStr[HeldStr.Icon] = BUFF_ICONS[i];
             currentBuffIn = i;
-            buffColor = buffColors[i];
+            buffColor = BUFF_COLORS[i];
 
             if (i == 9 || i == 7 || i == 8)
             {
@@ -122,16 +122,14 @@ Event.OnPlayerJoin
         infAmmo = true;
 
     // player information
-    CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\nbhopping: <4>, bhop_speed: <5>, speed: <6>\ndodges: <7>\n<8>\nhas mutator: <9>", 
-    player, PositionOf(), Facing(), ThrottleOf(),
-    bhopping, 
-    bhopSpeedRate,
-    HorizontalSpeedOf(),
-    dodges,
-    playerHasBuff ? <"current buff: <0>", heldBuffStr> : <"recent buff: <0>", heldBuffStr>,
-    playerHasMutator
+    // CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\nbhopping: <4>, bhSpeedFloor: <5>, bhSpeedPercent: <6>, HSpeed: <7>\ndodges: <8>\n<9>\nhas mutator: <10>", 
+    // player, PositionOf(), Facing(), ThrottleOf(),
+    // bhopping, bhopSpeedFloor, bhopSpeedPercent, HorizontalSpeedOf(), 
+    // dodges,
+    // playerHasBuff ? <"current buff: <0>", heldBuffStr> : <"recent buff: <0>", heldBuffStr>,
+    // playerHasMutator
 
-    >, null, Location.Right, 0.5);
+    // >, null, Location.Right, 0.5);
 }
 
 rule: "Event Damage"

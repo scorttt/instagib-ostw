@@ -38,7 +38,7 @@ if (Update(firstHp != null))
 
         Kill(FilteredArray(AllLiving().Remove(player), DistanceBetween(Curr(), sparkHitPos) <= S_SPRK_PRIMARY_EXPLOSION_RADIUS && IsInLineOfSight(Curr(), sparkHitPos)), player);
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Spark], sparkHitPos, S_SPRK_PRIMARY_EXPLOSION_RADIUS);
+        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Spark], sparkHitPos, S_SPRK_PRIMARY_EXPLOSION_RADIUS);
     }
     else
     {
@@ -68,7 +68,7 @@ if (IsAlive())
 
     CreateProjectileEffect(All(), ProjectileType.ZaryaGraviton, player, sparkPos, Once(Facing()), S_SPRK_HITBOX_RADIUS / 5);
     sparkEffect[0] = LastCreatedEntity();
-    CreateEffect(All(), Effect.GoodAura, buffColors[Buff.Spark], sparkPos, S_SPRK_HITBOX_RADIUS + 0.1);
+    CreateEffect(All(), Effect.GoodAura, BUFF_COLORS[Buff.Spark], sparkPos, S_SPRK_HITBOX_RADIUS + 0.1);
     sparkEffect[1] = LastCreatedEntity();
 
     Wait(0.1);
@@ -88,8 +88,8 @@ void SparkProjectile(in Number size)
 
     Kill(FilteredArray(AllLiving().Remove(player), DistanceBetween(Curr(), sparkPos) <= size && IsInLineOfSight(Curr(), sparkPos)), player);
 
-    PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[Buff.Spark], sparkPos, size);
-    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[Buff.Spark], sparkPos, size * 2.5);
+    PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Spark], sparkPos, size);
+    PlayEffect(All(), PlayEffect.RingExplosion, BUFF_COLORS[Buff.Spark], sparkPos, size * 2.5);
     PlayEffect(All(), PlayEffect.ZaryaParticleCannonExplosionEffect, Color.Team1, sparkPos, size * 2.5);
 
     DestroyEffect(sparkEffect);
