@@ -19,7 +19,7 @@ void ResetSpeed() playervar "[Bhop] :: Reset Speed"
     StopChasingVariable(bhopSpeedPercent);
     bhopping = false;
     expectedSpeed = 0;
-    lastSpeedWhenHitWall = 0;
+    lastSlowDown = 0;
     bhopSpeedPercent = bhopSpeedFloor;
     SetMoveSpeed(player, bhopSpeedPercent);
 }
@@ -31,6 +31,7 @@ Event.OnPlayerJoin
     bhopSpeedFloor = S_MOVE_SPEED;
     bhopSpeedPercent = bhopSpeedFloor;
     bhopSpeedRate = S_BHOP_SPEED_RATE;
+    bhopRewardFactor = 0.3;
 }
 
 rule: "[Bhop] :: Auto Hop"
@@ -68,61 +69,46 @@ if (HorizontalSpeedOf() < minSpeed)
     ResetSpeed();
 }
 
-// playervar Vector wishDir;
-// rule: "[Bhop] :: Continue Moving Forward"
-// Event.OngoingPlayer
-// if (bhopping) 
-// if (ThrottleOf().Z < 0.5)
-// {
-//     // scuffed quake-like air strafing, if the player has enough speed and is not holding w, then we can allow them to continue moving forward
-//     if (ThrottleOf().Z < 0.5)
-//     {
-//         wishDir = Vector(Facing().X, 0, Facing().Z);
-//         StartThrottleInDirection(player, wishDir, 1, Relative.ToWorld);
-//     }
-
-//     WaitUntil(ThrottleOf().Z > 0.5 || !bhopping, 999999);
-//     StopThrottleInDirection(player);
-//     wishDir = null;
-// }
-
 playervar Number horizontalSpeed;
 playervar Number expectedSpeed;
-playervar Number lastSpeedWhenHitWall;
+playervar Number lastSlowDown;
 playervar Number rewardSpeedPercentage; // percentage of speed increase when going faster than expected
 playervar Number penaltySpeedPercentage;
+playervar Number bhopRewardFactor;
 
 rule: "[Bhop] :: Speed Adjustment Loop"
 Event.OngoingPlayer
 if (bhopping)
 {
     horizontalSpeed = HorizontalSpeedOf();
-    // 5.5 is the expected speed with no movement speed modifiers (usually every character's forwards speed besides genji/tracer), 0.1 is a buffer to account for minor speed variations
+    // 5.5 is the expected speed with no movement speed modifiers (usually every character's forwards speed besides genji/tracer) 0.1 buffer to account for minor speed variations in movement
     expectedSpeed = 5.5 * (bhopSpeedPercent / 100) - 0.1;
 
-    // record the last speed when hitting a wall based on their current speed, if its lower than expected (e.g. its not 5.5 * moveSpeedPercent / 100) then we know they hit a wall and we can penalize them
-    if (horizontalSpeed < expectedSpeed)
+    if (expectedSpeed != 0)
     {
-        lastSpeedWhenHitWall = horizontalSpeed;
+        if (horizontalSpeed <= expectedSpeed) // punish player, we know they slowed down from a wall or something because their current speed is lower than expected
+        {
+            lastSlowDown = horizontalSpeed;
 
-        // penalize player move speed percentage for hitting walls relative to the speed that they were going as the hit the wall
-        penaltySpeedPercentage = ((lastSpeedWhenHitWall / expectedSpeed) * 100) * 0.3;
-        bhopSpeedPercent = Max(bhopSpeedPercent - penaltySpeedPercentage, bhopSpeedFloor);
-    }
-    else if (horizontalSpeed - 0.5 > expectedSpeed) // if the player is actually going faster than expected, then we can instead reward the player by increasing their speed
-    {
-        // reward player move speed percentage for going faster than expected relative to the speed boost they got
-        rewardSpeedPercentage = ((horizontalSpeed / expectedSpeed) * 100) * 0.3;
-        bhopSpeedPercent = Min(bhopSpeedPercent + rewardSpeedPercentage, S_BHOP_MAX_SPEED);
+            // move speed percentage penalization relative to the speed that they were going as their last slowdown
+            penaltySpeedPercentage = ((lastSlowDown / expectedSpeed) * 100);
+            bhopSpeedPercent = Max(bhopSpeedPercent - penaltySpeedPercentage, bhopSpeedFloor);
+        }
+        else if (horizontalSpeed - 0.2 > expectedSpeed) // reward player for going faster than expected
+        {
+            // reward player move speed percentage for going faster than expected relative to the speed boost they got
+            rewardSpeedPercentage = ((horizontalSpeed / expectedSpeed) * 100) * bhopRewardFactor;
+            bhopSpeedPercent = Min(bhopSpeedPercent + rewardSpeedPercentage, S_BHOP_MAX_SPEED);
 
-        expectedSpeed = horizontalSpeed - 0.1;
+            expectedSpeed = horizontalSpeed - 0.1;
+        }
     }
 
     SetMoveSpeed(player, bhopSpeedPercent);
     Wait(0.064);
     LoopIfConditionIsTrue();
 
-    lastSpeedWhenHitWall = 0;
+    lastSlowDown = 0;
     expectedSpeed = 0;
 }
 
