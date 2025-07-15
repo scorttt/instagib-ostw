@@ -14,7 +14,7 @@
       },
       "Deathmatch": {
         "Enabled Maps": [
-          "Workshop Chamber"
+          "Château Guillard"
         ]
       }
     },
@@ -28,13 +28,15 @@
           "Damage Dealt": 500,
           "Damage Received": 500,
           "Healing Received": 500,
-          "Movement Speed": 135,
           "Secondary Fire": false,
           "No Ammunition Requirement": true,
           "Quick Melee": false,
           "Outburst": false,
           "Healing Pylon": false,
-          "Ultimate Ability Captive Sun": false
+          "Ultimate Ability Captive Sun": true,
+          "Ultimate Generation Captive Sun": 100,
+          "Ultimate Generation - Combat Captive Sun": 0,
+          "Ultimate Generation - Passive Captive Sun": 0
         }
       }
     },
