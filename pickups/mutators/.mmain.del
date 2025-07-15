@@ -8,7 +8,7 @@ globalvar Number S_M_CD; // constant for All() mutators
 globalvar Number S_M_CREATION; // constant for the mutator to spawn after m_cd runs low
 globalvar Number S_M_DURATION; // constant for the mutator duration
 globalvar Number chosenMutator; // chosen id of the mutator
-globalvar Vector[] mutatorLocations; // array of All() possible mutator locations
+globalvar Vector[] MUTATOR_LOCATIONS; // array of All() possible mutator locations
 globalvar Color[] mutatorColors; // color of the currently spawned mutator, 0: category color 1: mutator color
 globalvar Vector mutatorPos; // final position of the mutator
 globalvar Number mutatorProgressBar; // progress bar control var for S_M_CREATION
@@ -79,7 +79,7 @@ void RemoveMutator() playervar "[Mutator] :: Remove Mutator"
     {
         if (mutatorEnabled[i])
         {
-            LogToInspector(<"<0> removed from <1>", mutatorNames[i], mutatorUser>);
+            LogToInspector(<"<0> removed from <1>", MUTATOR_NAMES[i], mutatorUser>);
             mutatorEnabled[i] = false;
 
             switch (i)
@@ -94,7 +94,6 @@ void RemoveMutator() playervar "[Mutator] :: Remove Mutator"
                 case (3):
                     break;
                 case (4):
-                    delay = S_DELAY;
                     infAmmo = false;
 
                     infDodges = false;
@@ -102,10 +101,15 @@ void RemoveMutator() playervar "[Mutator] :: Remove Mutator"
                     if (dodges > S_DODGE_AMT)
                         dodges = maxDodges;
 
-                    defaultBhopSpeedPercent = 100;
-                    bhopSpeedRate = S_BHOP_SPEED_RATE;
-                    moveSpeedPercent -= 75;
-                    SetMoveSpeed(player, moveSpeedPercent);
+                    if (usingAbility && equippedAbility == Ability.Stimpack)
+                        delay = S_DELAY * 0.70;
+                    else 
+                        delay = S_DELAY;
+
+                    bhopSpeedFloor /= 2;
+                    bhopSpeedRate = S_BHOP_SPEED_RATE / 2;
+                    bhopSpeedPercent /= 2;
+                    SetMoveSpeed(player, bhopSpeedPercent);
                     break;
                 case (5):
                     break;
@@ -151,7 +155,7 @@ if (!mutatorEnabled[6])
     {
         newMutatorPos = RayCastHitPosition(PositionOf(), PositionOf() + Down() * 100, null, All(), false) + Up();
 
-        if (newMutatorPos.Y < lowestMapY)
+        if (newMutatorPos.Y < LOWEST_MAP_Y)
         {
             newMutatorPos = NearestWalkablePosition(Victim()) + Up();
         }
@@ -168,7 +172,7 @@ globalvar Number rand;
 void SetMutatorPosition() "[Mutator] :: Set new position and reset time"
 {
     // get a random position from the mutatorLocations array in pickups/init.del
-    Vector chosenMutatorPos = mutatorLocations.Random(); 
+    Vector chosenMutatorPos = MUTATOR_LOCATIONS.Random(); 
     mutatorPos = chosenMutatorPos;
 
     if (mutatorIndex.Length > 0)
@@ -181,49 +185,49 @@ void SetMutatorPosition() "[Mutator] :: Set new position and reset time"
                 mutatorColors[0] = Color.SkyBlue;
                 mutatorColors[1] = Color.White;
                 mutatorIcon = AbilityIconString(Hero.Widowmaker, Button.Ultimate);
-                mutatorStr = mutatorNames[0];
+                mutatorStr = MUTATOR_NAMES[0];
                 break;
             case (1):
                 mutatorColors[0] = Color.SkyBlue;
                 mutatorColors[1] = Color.Blue;
                 mutatorIcon = AbilityIconString(Hero.Roadhog, Button.Ultimate);
-                mutatorStr = mutatorNames[1];
+                mutatorStr = MUTATOR_NAMES[1];
                 break;
             case (2):
                 mutatorColors[0] = Color.SkyBlue;
                 mutatorColors[1] = Color.Purple;
                 mutatorIcon = AbilityIconString(Hero.Sombra, Button.Ability1);
-                mutatorStr = mutatorNames[2];
+                mutatorStr = MUTATOR_NAMES[2];
                 break;
             case (3):
                 mutatorColors[0] = Color.Red;
                 mutatorColors[1] = Color.Black;
                 mutatorIcon = IconString(Icon.Poison);
-                mutatorStr = mutatorNames[3];
+                mutatorStr = MUTATOR_NAMES[3];
                 break;
             case (4):
                 mutatorColors[0] = Color.Red;
                 mutatorColors[1] = Color.Orange;
                 mutatorIcon = AbilityIconString(Hero.Reaper, Button.Ultimate);
-                mutatorStr = mutatorNames[4];
+                mutatorStr = MUTATOR_NAMES[4];
                 break;
             case (5):
                 mutatorColors[0] = Color.Red;
                 mutatorColors[1] = Color.Violet;
                 mutatorIcon = AbilityIconString(Hero.Moira, Button.SecondaryFire);
-                mutatorStr = mutatorNames[5];
+                mutatorStr = MUTATOR_NAMES[5];
                 break;
             case (6): // denial
                 mutatorColors[0] = Color.Purple;
                 mutatorColors[1] = Color.Violet;
                 mutatorIcon = AbilityIconString(Hero.Baptiste, Button.Ability2);
-                mutatorStr = mutatorNames[6];
+                mutatorStr = MUTATOR_NAMES[6];
                 break;
             case (7):
                 mutatorColors[0] = Color.Purple;
                 mutatorColors[1] = Color.SkyBlue;
                 mutatorIcon = AbilityIconString(Hero.Echo, Button.Ultimate);
-                mutatorStr = mutatorNames[7];
+                mutatorStr = MUTATOR_NAMES[7];
                 break;
         }
     }

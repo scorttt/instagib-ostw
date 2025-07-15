@@ -11,7 +11,7 @@ import "movement/bhop.del";
 // import "movement/beam.del";
 import "movement/blaster.del";
 import "movement/dodge.del";
-import "movement/slide.del";
+// import "movement/slide.del";
 
 import "pickups/init.del";
 
@@ -31,11 +31,22 @@ import "pickups/mutators/denial.del";
 import "pickups/mutators/seer.del";
 import "pickups/mutators/berserk.del";
 
+import "pickups/collectables/.cmain.del";
+import "pickups/collectables/timer.del";
+import "pickups/collectables/adrenaline.del";
+import "pickups/collectables/ammo.del";
+
+globalvar String txCharacter;
+String TXString(String value): "{0}TX {1}>".Format([txCharacter, value]);
+
 globalvar Number S_MATCH_TIME_LIMIT; // maximum match time
 globalvar Number S_PICKUP_RAD; // minimum radius to collect a buff
-globalvar Number S_GAMEMODE; // chosen gamemode
+// globalvar Number S_GAMEMODE; // chosen gamemode
 globalvar Number S_DELAY; // weapon fire delay
+globalvar Number S_MOVE_SPEED; // player move speed
+globalvar Number S_ABILITY_CHARGE_TIME; // ability charge time
 globalvar Boolean matchStarted; // has the match started
+globalvar Boolean initilized;
 playervar Boolean info; // information toggle
 playervar Boolean disablePrimaryFire; // disables primary fire (e.g. for owning volt or denial being in use)
 playervar Vector gunPos; // arbitrary position of the gun
@@ -47,6 +58,14 @@ disabled rule: "---------------- Main ----------------"{}
 
 rule: "[Main] :: Initial Global"
 {
+    # unsanitized string stuff for tx strings, might break in future updates
+    CreateDummyBot(<Hero>AllHeroes(), <Team>host, false, null, null);
+    StartForcingDummyBotName(LastCreatedEntity(), "______________________________________________________________________________________________________________________________〼");
+    txCharacter = StringSplit(FirstOf(LastCreatedEntity()), EmptyArray());
+    StartForcingDummyBotName(LastCreatedEntity(), "______________________________________________________________________________________________________________________________ࡀ");
+    txCharacter = StringSlice(StringReplace("______________________________________________________________________________________________________________________________〼", txCharacter, FirstOf(LastCreatedEntity())), 126, true);
+    DestroyAllDummyBots();
+
     DisableInspectorRecording();
     DisableCompletion();
     DisableAnnouncer();
@@ -55,13 +74,15 @@ rule: "[Main] :: Initial Global"
 
     matchStarted = false; 
 
-    S_GAMEMODE = WorkshopSettingCombo("A. General",                             "Gamemode", 0, ["Deathmatch", "Team Deathmatch", "4TDM", "Limited TDM", "Freeze Tag TDM", "Keepaway FFA", "Keepaway TDM", "Domination TDM", "Domination 4TDM"], 1);
+    // S_GAMEMODE = WorkshopSettingCombo("A. General",                             "Gamemode", 0, ["Deathmatch", "Team Deathmatch", "4TDM", "Limited TDM", "Freeze Tag TDM", "Keepaway FFA", "Keepaway TDM", "Domination TDM", "Domination 4TDM"], 1);
     S_MATCH_TIME_LIMIT = WorkshopSettingInteger("A. General",                   "Match Time (Minutes) (20)", 20, 1, 60, 3) * 60;
     S_PICKUP_RAD = WorkshopSettingReal("A. General",                            "Pickup Collection Radius (1.25)", 1.25, 0.5, 3, 4);
-    S_DELAY = WorkshopSettingReal("A. General",                                 "Weapon Fire Delay (1)", 1, 0.6, 5, 5);
+    S_DELAY = WorkshopSettingReal("A. General",                                 "Weapon Fire Delay (1.11)", 1.11, 0.6, 5, 5);
+    S_MOVE_SPEED = WorkshopSettingReal("A. General",                            "General Move Speed (135)", 135, 50, 300, 6);
+    S_ABILITY_CHARGE_TIME = WorkshopSettingReal("A. General",                   "Ability Charge Time (60)", 60, 1, 600, 7) / 100;
 
     S_SEC_ENABLED = WorkshopSettingToggle("B. Blaster (Secondary Fire)",        "Enable Blaster (On)", true, 1);
-    S_SEC_PSPEED = WorkshopSettingReal("B. Blaster (Secondary Fire)",           "Blaster Projectile Speed (70)", 70, 1, 500, 3);
+    S_SEC_PSPEED = WorkshopSettingReal("B. Blaster (Secondary Fire)",           "Blaster Projectile Speed (60)", 60, 1, 500, 3);
     S_SEC_RADIUS = WorkshopSettingReal("B. Blaster (Secondary Fire)",           "Blaster Explosion Radius (2.5)", 2.5, 1, 20, 4);
     S_SEC_STRENGTH = WorkshopSettingReal("B. Blaster (Secondary Fire)",         "Blaster Explosion Strength (15)", 15, 1, 100, 5); 
 
@@ -74,13 +95,13 @@ rule: "[Main] :: Initial Global"
     S_DODGE_FORCE = WorkshopSettingReal("C. Dodge",                             "Dodge Strength (14)", 14, 1, 100, 2);
     S_DODGE_AMT = WorkshopSettingInteger("C. Dodge",                            "Dodge Amount (2)", 2, 1, 100, 3);
 
-    S_ENABLE_SLIDE = WorkshopSettingToggle("D. Slide",                          "Enable Sliding (On)", true, 1);
-    S_SLIDE_JUMP_STRENGTH = WorkshopSettingReal("D. Slide",                     "Slide Jump Strength (4)", 4, 1, 100, 3);
-    S_SLIDE_SPEED = WorkshopSettingReal("D. Slide",                             "Slide Speed (10)", 10, 1, 100, 3);
+    // S_ENABLE_SLIDE = WorkshopSettingToggle("D. Slide",                          "Enable Sliding (On)", true, 1);
+    // S_SLIDE_JUMP_STRENGTH = WorkshopSettingReal("D. Slide",                     "Slide Jump Strength (4)", 4, 1, 100, 3);
+    // S_SLIDE_SPEED = WorkshopSettingReal("D. Slide",                             "Slide Speed (10)", 10, 1, 100, 3);
 
     S_BHOP_ENABLED = WorkshopSettingToggle("E. Bunny Hopping",                  "Enable Bunny Hopping (On)", true, 1);
     S_BHOP_MAX_SPEED = WorkshopSettingInteger("E. Bunny Hopping",               "Maximum Speed Multiplier From Bunny Hopping (100000)", 100000, 200, 100000, 2);
-    S_BHOP_SPEED_RATE = WorkshopSettingReal("E. Bunny Hopping",                 "Speed gain rate (13.5)", 13.5, 1, 100, 3);
+    S_BHOP_SPEED_RATE = WorkshopSettingReal("E. Bunny Hopping",                 "Speed gain rate (9.8)", 9.8, 1, 100, 3);
 
     S_ENABLE_BUFFS = WorkshopSettingToggle("F. Buffs",                          "Enable Buffs (On)", true, 1);
     S_RANDOMIZE_BUFF_POS = WorkshopSettingToggle("F. Buffs",                    "Randomize Buff Locations (On)", true, 2);
@@ -155,13 +176,13 @@ rule: "[Main] :: Initial Global"
     S_M_DURATION = WorkshopSettingInteger("Q. Mutators",                        "Mutator Duration (40)", 40, 5, 600, 5);
 
     S_SPAWN_MUTATOR[0] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Seer (On)", true, 0);
-    S_SPAWN_MUTATOR[1] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Dummy NYI (On)", true, 1);
-    S_SPAWN_MUTATOR[2] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn NYI (On)", true, 2);
-    S_SPAWN_MUTATOR[3] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Poison NYI (On)", true, 3);
+    S_SPAWN_MUTATOR[1] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Dummy NYI (On)", false, 1);
+    S_SPAWN_MUTATOR[2] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn NYI (On)", false, 2);
+    S_SPAWN_MUTATOR[3] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Poison NYI (On)", false, 3);
     S_SPAWN_MUTATOR[4] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Berserk (On)", true, 4);
-    S_SPAWN_MUTATOR[5] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Replicate NYI (On)", true, 5);
+    S_SPAWN_MUTATOR[5] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Replicate NYI (On)", false, 5);
     S_SPAWN_MUTATOR[6] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Denial (On)", true, 6);
-    S_SPAWN_MUTATOR[7] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Mirage NYI (On)", true, 7);
+    S_SPAWN_MUTATOR[7] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Mirage NYI (On)", false, 7);
 
     if (!S_ENABLE_BUFFS)
     {
@@ -214,6 +235,7 @@ if (AllLiving().Length >= 1)
 rule: "[Main] :: Player Join/Init"
 Event.OnPlayerJoin
 {
+    WaitUntil(initilized, 3);
     if (validMap)
     {
         CreateEffect(IsAlive() && playerHasBuff && !HasStatus(player, Status.PhasedOut) ? All() : null, Effect.GoodAura, buffColor, player, 0.5, EffectRev.VisibleToPositionRadiusAndColor);
@@ -222,7 +244,11 @@ Event.OnPlayerJoin
 
     DisableGameModeHud();
     DisallowButton(player, Button.PrimaryFire);
+    DisallowButton(player, Button.Ultimate);
     StartScalingPlayer(player, 1.10);
+
+    // TODO: remove this and make this an option in a radial wheel
+    equippedAbility = Ability.Stimpack; 
 
     delay = S_DELAY;
     playerHasBuff = false;
@@ -262,27 +288,26 @@ if (IsAlive())
     Wait(1);
     canPickupMutator = true;
     SetMaxHealth(player, (100 / MaxHealth()) * 100);
+    SetMoveSpeed(player, S_MOVE_SPEED);
 }
 
+playervar Boolean firingPrimary;
 rule: "[Main] :: Server Fire"
 Event.OngoingPlayer
 if (!disablePrimaryFire)
 if (IsAlive())
 if (IsPrimaryHeld())
 {
-    if (playerHasBuff)
-    {
-        gunPos = WeaponMuzzle(EyePos(), Facing());
-        firstHp = RayHit(EyePos(), EyePos() + Facing() * 300, AllLiving(), player);
-    }
-
     AllowButton(player, Button.PrimaryFire);
     PressButton(player, Button.PrimaryFire);
+
+    firingPrimary = true;
     MinWait();
 
     DisallowButton(player, Button.PrimaryFire);
+    firingPrimary = false;
 
-    Wait(1);
+    Wait(delay);
     LoopIfConditionIsTrue();
 }
 
@@ -290,12 +315,20 @@ if (IsPrimaryHeld())
 rule: "[Main] :: Bullet Trail"
 Event.OngoingPlayer
 if (playerHasBuff)
-if (firstHp != null)
+if (firingPrimary)
 {
-    if (DistanceBetween(EyePos(), firstHp) < 300)
-        PlayEffect(All(), PlayEffect.GoodExplosion, buffColors[currentBuffIn], firstHp, 0.3);
+    Wait(0.064); // this shit is so ass !!! stupid wait for the beam to better align with illari firing, will still be unaligned during mouse movement no matter what
 
-    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, firstHp, buffColors[currentBuffIn], EffectRev.None);
+    // if (playerHasBuff)
+    // {
+        gunPos = WeaponMuzzle(EyePos(), Facing());
+        firstHp = RayHit(EyePos(), EyePos() + Facing() * 300, AllLiving(), player);
+    // }
+
+    if (DistanceBetween(EyePos(), firstHp) < 300)
+        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[currentBuffIn], firstHp, 0.3);
+
+    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, firstHp, BUFF_COLORS[currentBuffIn], EffectRev.None);
     buffTrail = LastCreatedEntity();
 
     Wait(0.25);
@@ -320,4 +353,121 @@ if (matchStarted)
 if (MatchTime() <= 0)
 {
     EnableCompletion();
+}
+
+playervar Boolean usingAbility;
+playervar Number equippedAbility;
+playervar Any abilityEffect;
+
+enum Ability
+{
+    None = -1,
+    Teleport = 0,
+    Mimic = 1,
+    Foresight = 2,
+    Fade = 3,
+    Stimpack = 4,
+    Lock = 5
+}
+
+rule: "[Ability] :: Give Ult over time"
+Event.OngoingPlayer
+if (IsAlive())
+if (UltimateChargePercent() != 100)
+if (!usingAbility)
+{
+    // workshop doesnt like floats for some reason so this is set to 1 per 0.6 seconds for the desired 60 seconds to ult
+    SetUltimateCharge(player, UltimateChargePercent() + 1); 
+    // SetUltimateCharge(player, 100); 
+    Wait(S_ABILITY_CHARGE_TIME);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Ability] :: Remove Some Ult Charge on Death"
+Event.OnDeath
+if (!usingAbility)
+{
+    SetUltimateCharge(player, (UltimateChargePercent() * 0.8) - 10); // lose ult charge on death
+}   
+
+rule: "[Ability] :: Ult Button Override"
+Event.OngoingPlayer
+if (IsAlive())
+if (UltimateChargePercent() == 100)
+if (IsButtonHeld(player, Button.Ultimate))
+if (equippedAbility != Ability.None)
+{
+    usingAbility = true;
+    PlayEffect(player, PlayEffect.BaptisteBioticLauncherExplosionSound, Color.Team1, player, 50);
+    SetUltimateCharge(player, 0);
+}
+
+rule: "[Ability] :: Ult Replacement"
+Event.OngoingPlayer
+if (usingAbility)
+{
+    switch (equippedAbility)
+    {
+        case Ability.Teleport: 
+            break;
+        case Ability.Mimic:
+            break;
+        case Ability.Foresight:
+            break;
+        case Ability.Fade:
+            break;
+        case Ability.Stimpack:
+            CreateEffect(All(), Effect.WinstonPrimalRageEffect, Color.Team1, player, 1, EffectRev.VisibleToPositionRadiusAndColor);
+            abilityEffect[0] = LastCreatedEntity();
+            CreateEffect(All(), Effect.Soldier76SprintingEffect, Color.Team1, player, 1, EffectRev.VisibleToPositionRadiusAndColor);
+            abilityEffect[1] = LastCreatedEntity();
+            CreateEffect(player, Effect.WinstonTeslaCannonTargetSound, Color.Team1, player, 30, EffectRev.VisibleToPositionRadiusAndColor);
+            abilityEffect[2] = LastCreatedEntity();
+
+            if (!mutatorEnabled[4])
+                delay *= 0.70;
+
+            bhopSpeedRate = S_BHOP_SPEED_RATE * 1.30;
+            bhopSpeedFloor *= 1.30;
+            bhopSpeedPercent *= 1.30;
+            bhopRewardFactor *= 1.30;
+            dodgeForce *= 1.30;
+            SetMoveSpeed(player, bhopSpeedPercent);
+            break;
+        case Ability.Lock:
+            break;
+    }
+
+    WaitUntil(IsDead(), 8); // todo: make this a custom timer and its own rule so i can get rid of the 2 ugly switch cases
+    DestroyEffect(abilityEffect);
+    PlayEffect(player, PlayEffect.BaptisteBioticLauncherExplosionSound, Color.Team1, player, 50);
+    usingAbility = false;
+
+    switch (equippedAbility)
+    {
+        case Ability.Teleport: 
+            break;
+        case Ability.Mimic:
+            break;
+        case Ability.Foresight:
+            break;
+        case Ability.Fade:
+            break;
+        case Ability.Stimpack:
+            if (!mutatorEnabled[4])
+                delay /= 0.70;
+            else 
+                delay = 0.5;
+
+            bhopSpeedRate = S_BHOP_SPEED_RATE / 1.30;
+            bhopSpeedFloor /= 1.30;
+            bhopSpeedPercent = Max(bhopSpeedPercent / 1.30, S_MOVE_SPEED);
+            bhopRewardFactor /= 1.30;
+            dodgeForce /= 1.30;
+
+            SetMoveSpeed(player, bhopSpeedPercent);
+            break;
+        case Ability.Lock:
+            break;
+    }
 }

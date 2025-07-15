@@ -7,10 +7,10 @@ if (mutatorEnabled[4])
 {
     infDodges = true;
     infAmmo = true;
-    delay = 0.6;
+    delay = 0.5;
 
-    defaultBhopSpeedPercent = 175;
-    bhopSpeedRate = S_BHOP_SPEED_RATE * 1.75;
-    moveSpeedPercent += 75;
-    SetMoveSpeed(player, moveSpeedPercent);
+    bhopSpeedFloor *= 2;
+    bhopSpeedRate = S_BHOP_SPEED_RATE * 2.00;
+    bhopSpeedPercent *= 2;
+    SetMoveSpeed(player, bhopSpeedPercent);
 }
