@@ -45,7 +45,7 @@ globalvar Number S_PICKUP_RAD; // minimum radius to collect a buff
 globalvar Number S_DELAY; // weapon fire delay
 globalvar Number S_MOVE_SPEED; // player move speed
 globalvar Number S_ABILITY_CHARGE_TIME; // ability charge time
-globalvar Boolean matchStarted; // has the match started
+globalvar Boolean matchStarted; // has the match started 
 globalvar Boolean initilized;
 playervar Boolean info; // information toggle
 playervar Boolean disablePrimaryFire; // disables primary fire (e.g. for owning volt or denial being in use)
@@ -91,9 +91,8 @@ rule: "[Main] :: Initial Global"
     // S_BEAM_PLAYER_KNOCKBACK_STRENGTH = WorkshopSettingReal("B. Knockback Beam", "Hit Player Knockback Strength (10)", 10, 1, 20, 2);
     // S_BEAM_USER_KNOCKBACK_STRENGTH = WorkshopSettingReal("B. Knockback Beam",   "User Knockback Strength (0.37)", 0.37, 0, 100, 3);
 
-    S_DODGE_ENABLED = WorkshopSettingToggle("C. Dodge",                         "Enable Dodge (On)", true, 1);
-    S_DODGE_FORCE = WorkshopSettingReal("C. Dodge",                             "Dodge Strength (14)", 14, 1, 100, 2);
-    S_DODGE_AMT = WorkshopSettingInteger("C. Dodge",                            "Dodge Amount (2)", 2, 1, 100, 3);
+    S_DODGE_ENABLED = WorkshopSettingToggle("D. Dodge",                         "Enable Dodge (On)", true, 1);
+    S_DODGE_FORCE = WorkshopSettingReal("D. Dodge",                             "Dodge Strength (14)", 14, 1, 100, 2);
 
     // S_ENABLE_SLIDE = WorkshopSettingToggle("D. Slide",                          "Enable Sliding (On)", true, 1);
     // S_SLIDE_JUMP_STRENGTH = WorkshopSettingReal("D. Slide",                     "Slide Jump Strength (4)", 4, 1, 100, 3);
@@ -119,7 +118,7 @@ rule: "[Main] :: Initial Global"
 
     S_SPAWN_BUFF[Buff.Buckshot] = WorkshopSettingToggle("I. Spread Buff",                 "Spawn Spread (On)", true, 1);
     S_BUFF_CD[Buff.Buckshot] = WorkshopSettingInteger("I. Spread Buff",                   "Spread Spawn Time (210)", 210, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Buckshot] = WorkshopSettingInteger("I. Spread Buff",                 "Spread Ammo (30)", 30, 1, 1000, 3);
+    S_BUFF_AMMO[Buff.Buckshot] = WorkshopSettingInteger("I. Spread Buff",                 "Spread Ammo (24)", 24, 1, 1000, 3);
     S_BUCKSHOT_CHARGE_AMT = WorkshopSettingInteger("I. Spread Buff",          "Spread Charge Amount (5)", 5, 1, 10, 4);
     S_BUCKSHOT_CHARGE_SPD = WorkshopSettingReal("I. Spread Buff",             "Spread Charge Speed (0.4)", 0.4, 0.3, 5, 5);
     S_BUCKSHOT_SPREAD = WorkshopSettingReal("I. Spread Buff",                 "Spread Radius (Lower is Tighter) (1.2)", 1.2, 0.1, 20, 6);
@@ -149,7 +148,7 @@ rule: "[Main] :: Initial Global"
     S_SPRK_PRIMARY_EXPLOSION_RADIUS = WorkshopSettingReal("M. Spark Buff",                      "Spark Primary Explosion Size (3)", 3, 1, 10, 5);
     S_SPRK_PROJ_SPEED = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Speed (20)", 20, 1, 500, 4);
     S_SPRK_PROJ_EXPLOSION_SIZE = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Explosion Size (8)", 8, 1, 100, 5);
-    S_SPRK_HITBOX_RADIUS = WorkshopSettingReal("M. Spark Buff",                   "Spark Projectile Hitbox Size (0.85)", 0.85, 0.1, 10, 7);
+    S_SPRK_HITBOX_RADIUS = WorkshopSettingReal("M. Spark Buff",                   "Spark Projectile Hitbox Size (0.3)", 0.3, 0.1, 10, 7);
 
     S_SPAWN_BUFF[Buff.Arc] = WorkshopSettingToggle("N. Arc Buff",                      "Spawn Arc (On)", true, 1);
     S_BUFF_CD[Buff.Arc] = WorkshopSettingInteger("N. Arc Buff",                        "Arc Spawn Time (195)", 195, 5, 600, 2);
@@ -186,14 +185,14 @@ rule: "[Main] :: Initial Global"
 
     if (!S_ENABLE_BUFFS)
     {
-        for (Number i = 0; i < S_SPAWN_BUFF.Length; i++)
+        for (Number i! = 0; i < S_SPAWN_BUFF.Length; i++)
             S_SPAWN_BUFF[i] = false;
     }
 
     if (S_ENABLE_MUTATORS)
     {
         mutatorIndex = [];
-        for (Number i = 0; i < S_SPAWN_MUTATOR.Length; i++)
+        for (Number i! = 0; i < S_SPAWN_MUTATOR.Length; i++)
         {
             if (S_SPAWN_MUTATOR[i])
                 mutatorIndex = Append(mutatorIndex, i); // populate m_in with the indices of the mutators that are enabled
@@ -217,7 +216,7 @@ if (AllLiving().Length >= 1)
     {
         if (S_ENABLE_BUFFS)
         {
-            for (Number i = 0; i < S_BUFF_CD.Length; i++)
+            for (Number i! = 0; i < S_BUFF_CD.Length; i++)
             {
                 buffIn = i;
                 BuffCooldown();

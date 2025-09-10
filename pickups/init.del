@@ -539,7 +539,7 @@ rule: "[Main] :: Pickup Init"
         Number buffLen = BUFF_LOCATIONS.Length;
         if (S_ENABLE_BUFFS)
         {
-            for (Number i = 0; i < buffLen; i++)
+            for (Number i! = 0; i < buffLen; i++)
             {
                 Vector chosenBuffPos;
 

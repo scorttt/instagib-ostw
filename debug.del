@@ -23,7 +23,7 @@ rule: "Global Debug"
     infiniteAmmoDbg = WorkshopSettingToggle(". Debug",                           "Infinite Ammo", false, -0.9);
 
     if (S_FAST_PICKUP_SPAWN[0])
-        for (Number i = 0; i < S_BUFF_CD.Length; i++)
+        for (Number i! = 0; i < S_BUFF_CD.Length; i++)
             S_BUFF_CD[i] = 2;
 
     if (S_FAST_PICKUP_SPAWN[1])
@@ -54,7 +54,7 @@ rule: "Global Debug"
     // WaitUntil(validMap, 10);
 
     // buff world information
-    // for (Number i = 0; i < buffPos.Length; i++)
+    // for (Number i! = 0; i < buffPos.Length; i++)
     // {
     //     CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
     //     Once(i), buffNames[Once(i)],
@@ -97,7 +97,7 @@ Event.OnPlayerJoin
     //         DistanceBetween(EyePos(), Curr()) <= 0.9999)),
     //         null, Location.Right, 0.3);
 
-    for (Number i = 0; i < spawnWithBuff.Length; i++)
+    for (Number i! = 0; i < spawnWithBuff.Length; i++)
     {
         if (spawnWithBuff[i])
         {
@@ -183,7 +183,7 @@ if (IsButtonHeld(host, Button.Crouch) && IsButtonHeld(host, Button.Interact))
 // rule: "Show OW Spawn Points"
 // if (match_started)
 // {
-//     for (Number i = 0; i < SpawnPoints(Team.All).Length; i++)
+//     for (Number i! = 0; i < SpawnPoints(Team.All).Length; i++)
 //     {
 //         CreateEffect(All(), Effect.Sphere, Color.White, RayCastHitPosition(SpawnPoints(Team.All)[i], SpawnPoints(Team.All)[i] + Down(), null, null), 0.5, EffectRev.None);
 //     }

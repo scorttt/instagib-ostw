@@ -27,7 +27,7 @@ if (IsAlive())
         AddOverTime(hydSpread, 0.2, 0, 5, 0.016);
 
         // playerClosestToReticle = PlayerClosestToReticle(player);
-        playerClosestToReticle = SortedArray(EnemyPlayers(), AngleBetweenVectors(Facing(), PositionOf(Curr()) + Up() - EyePos())).First;
+        playerClosestToReticle = SortedArray(RemoveFromArray(EnemyPlayers(), player), AngleBetweenVectors(Facing(), PositionOf(Curr()) + Up() - EyePos())).First;
 
         // todo: fix weirdness with dead players
         target = IsInViewAngle(player, playerClosestToReticle, 30) && IsAlive(playerClosestToReticle) && IsInLineOfSight(EyePos(), playerClosestToReticle)
@@ -54,7 +54,7 @@ if (IsAlive())
                 HomingStrength: 1
             );
 
-        for (Number i = 1; i <= 8; i++)
+        for (Number i! = 1; i <= 8; i++)
         {
             Vector angle: SpreadAngleDirection(player, hydSpread, (i * 90) + hydOffset);
 
@@ -86,7 +86,9 @@ if (IsAlive())
                 hydOffset += 2; // spread rotation offset (degrees)
             }
 
-            heldBuffAmmo[Buff.Needle] -= 3;
+            if (!infAmmo)
+                heldBuffAmmo[Buff.Needle] -= 3;
+
             MinWait();
         }
     }

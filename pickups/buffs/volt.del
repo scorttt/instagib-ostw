@@ -157,7 +157,7 @@ if (!IsPrimaryHeld() || overheated)
 // if (newPlayers.Length > 1)
 // {
 //     // dunno why if this is in the main chain reaction rule it just fucking breaks im just gonna blame blizzard and call it a day tbh
-//     for (Number i = 0; i < newPlayers.Length; i++)
+//     for (Number i! = 0; i < newPlayers.Length; i++)
 //     {
 //         CreateBeamEffect(player, BeamType.BadBeam, prevPlayer, newPlayers[i], buffColors[Buff.Volt], EffectRev.None);
 //         PlayEffect(All(), PlayEffect.BadExplosion, buffColors[Buff.Volt], newPlayers[i], 1);

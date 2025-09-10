@@ -70,6 +70,8 @@ if (IsAlive())
     sparkEffect[0] = LastCreatedEntity();
     CreateEffect(All(), Effect.GoodAura, BUFF_COLORS[Buff.Spark], sparkPos, S_SPRK_HITBOX_RADIUS + 0.1);
     sparkEffect[1] = LastCreatedEntity();
+    CreateEffect(player, Effect.Ring, BUFF_COLORS[Buff.Spark], RayHit(sparkPos, sparkPos + Down() * 100), S_SPRK_HITBOX_RADIUS);
+    sparkEffect[2] = LastCreatedEntity();
 
     Wait(0.1);
     ChaseVariableAtRate(sparkPos, Update(RayHit(sparkRayHitStart, sparkRayHitEnd, AllLiving(), player)), S_SPRK_PROJ_SPEED, RateChaseReevaluation.DestinationAndRate);

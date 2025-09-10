@@ -35,7 +35,7 @@ if (IsFiringPrimary())
     CreateBeamEffect(All(), BeamType.BadBeam, gunPos, center, BUFF_COLORS[currentBuffIn], EffectRev.VisibleToPositionRadiusAndColor); // center beam
     balEffect = LastCreatedEntity();
 
-    for (Number i = 1; i < 200; i++)
+    for (Number i! = 1; i < 200; i++)
     {
         Vector pos = eyePos + facing * (i * S_BAL_SIZE);
 
@@ -47,7 +47,7 @@ if (IsFiringPrimary())
         DistanceBetween(PosOf(Curr()) + Vector(0, 0.5, 0), pos) <= S_BAL_SIZE ||
         DistanceBetween(PosOf(Curr()),                     pos) <= S_BAL_SIZE);
 
-        for (Number j = 0; j < players.Length; j++)
+        for (Number j! = 0; j < players.Length; j++)
             Kill(players[j], player);
 
         if (i % 4 == 0)

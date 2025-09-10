@@ -61,6 +61,8 @@ if (IsAlive())
     effect[1] = LastCreatedEntity();
     CreateEffect(All(), Effect.OrisaHaltTendrilSound, Color.White, projPos, 45);
     effect[2] = LastCreatedEntity();
+    CreateEffect(All(), Effect.Ring, BUFF_COLORS[Buff.Electro], RayHit(projPos, projPos + Down() * 100), PROJ_SIZE);
+    effect[3] = LastCreatedEntity();
 
     Vector[] normals = [];
     Vector[] hitPos = [];
@@ -85,7 +87,7 @@ if (IsAlive())
         if (projDistCheck <= PROJ_SIZE && S_ELECTRO_PROJ_DELAY > 0) // surface hit
         {
             // i < arbitrary amount of vectors to store, in an ideal world this wouldnt matter if the math was for constant contact with one surface
-            for (Number i = 0; i < 12 && projDistCheck <= PROJ_SIZE; i++) // another check
+            for (Number i! = 0; i < 12 && projDistCheck <= PROJ_SIZE; i++) // another check
             {
                 # https://math.stackexchange.com/questions/13261/how-to-get-a-reflectionion-vector/3340378#3340378
                 if (i > 0)

@@ -27,7 +27,7 @@ if (IsFiringPrimary())
 
     if (DistanceBetween(eyePos, firstHp) < 300)
     {
-        for (Number i = 0; i < S_NUM_RICOCHETS; i++)
+        for (Number i! = 0; i < S_NUM_RICOCHETS; i++)
         {
             if (i > 0)
             {

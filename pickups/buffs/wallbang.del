@@ -25,7 +25,7 @@ if (Update(firstHp != null))
 
     if (DistanceBetween(prevHp, firstHp) < 300)
     {
-        for (Number i = 0; i < S_NUM_PIERCES + 1; i++)
+        for (Number i! = 0; i < S_NUM_PIERCES + 1; i++)
         {
             if (i > 0)
                 prevHp = hp[i - 1];

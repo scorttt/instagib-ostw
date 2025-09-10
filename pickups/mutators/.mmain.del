@@ -75,7 +75,7 @@ void RemoveMutator() playervar "[Mutator] :: Remove Mutator"
     PlayEffect(All(), PlayEffect.BadPickupEffect, mutatorColors[0], player, 1);
     playerHasMutator = false;
 
-    for (Number i = 0; i < 9; i++) // brute force (and ugly) way to remove the mutator
+    for (Number i! = 0; i < 9; i++) // brute force (and ugly) way to remove the mutator
     {
         if (mutatorEnabled[i])
         {
@@ -96,10 +96,10 @@ void RemoveMutator() playervar "[Mutator] :: Remove Mutator"
                 case (4):
                     infAmmo = false;
 
-                    infDodges = false;
-                    maxDodges = S_DODGE_AMT;
-                    if (dodges > S_DODGE_AMT)
-                        dodges = maxDodges;
+                    // infDodges = false;
+                    // maxDodges = S_DODGE_AMT;
+                    // if (dodges > S_DODGE_AMT)
+                    //     dodges = maxDodges;
 
                     if (usingAbility && equippedAbility == Ability.Stimpack)
                         delay = S_DELAY * 0.70;

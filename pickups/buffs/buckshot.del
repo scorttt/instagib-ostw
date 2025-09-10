@@ -83,7 +83,7 @@ if (IsFiringPrimary())
     Number offset! = 0;
     groupDeg = 360 / S_BUCKSHOT_GROUP_AMT;
 
-    for (Number i = 1; i <= buckshotProjAmt; i++)
+    for (Number i! = 1; i <= buckshotProjAmt; i++)
     {
         Vector direction = SpreadAngleDirection(player, spread, (i * groupDeg) + offset) * 300;
         buckshotHitPos[i] = RayHit(eyePos, eyePos + direction, AllLiving(), player);

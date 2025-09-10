@@ -142,7 +142,7 @@ Event.OngoingPlayer
 if (playerHasBuff)
 if (IsTrueForAll(heldBuffAmmo, Curr() <= 0))
 {
-    for (Number i = 0; i < buffEnabled.Length; i++)
+    for (Number i! = 0; i < buffEnabled.Length; i++)
         buffEnabled[i] = false;
 
     SmallMessage(player, <"  <0> ammo depleted", heldBuffStr>);
@@ -165,7 +165,7 @@ if (matchStarted)
 if (validMap)
 if (IsTrueForAny(buffCooldown, Curr() != 0))
 {
-    for (Number i = 0; i < BUFF_NAMES.Length; i++)
+    for (Number i! = 0; i < BUFF_NAMES.Length; i++)
     {
         if (S_SPAWN_BUFF[i] && buffTimerRunning[i])
         {
