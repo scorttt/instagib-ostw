@@ -32,8 +32,23 @@ Color speedColor:
 
         255);
 
+Number flashStartTime: local.fuelFlashStartTime;
+Number timeSinceFlash: Time() - flashStartTime;
+Number flashDuration: 0.5;
+Number fadeAmount: timeSinceFlash < flashDuration 
+                        ? timeSinceFlash / flashDuration
+                        : 1;
+Color fuelGreenFlash: CustomColor(
+    fadeAmount * 255,
+    255,
+    fadeAmount * 255,
+    255);
+
 rule: "[Main] :: General HUD Text"
 {
+    // left spacer 
+    CreateHudText(All(), null, null, " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", Location.Left, 0.1);
+
     // time
     CreateHudText(All(), null, <"<0>:<1><2>", Floor(MatchTime() / 60 % 60), 
                                 MatchTime() % 60 < 10 ? "0" : "", 
@@ -43,6 +58,27 @@ rule: "[Main] :: General HUD Text"
     // speedometer
     CreateHudText(local, null, <"<0>", HorizontalSpeedOf(local) + 0.001>,
     null, Location.Top, 0.2, Color.White, speedColor, Color.White, HudTextRev.VisibleToSortOrderStringAndColor);
+
+    // if (S_JETPACK_ENABLED)
+    {
+        // jetpack fuel, not a hud text since i would have to adjust ammo text spacing which frequently changes in gameplay
+        // this will not show correctly on 21:9 monitors
+        CreateProgressBarInWorldText(IsAlive(local) ? local : null, local.fuel * 100, 
+        null,
+        FacingTextLocation(-2.6, -1.35), 
+        0, Clipping.DoNotClip, 
+        local.isFlying
+            ? CustomColor(255, PingPong(1500, 255), PingPong(1500, 255), 255)
+            : local.fuel >= 1
+                ? fuelGreenFlash
+                : Color.White,
+        Color.White,
+        ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);
+
+        CreateInWorldText(IsAlive(local) ? local : null, "Fuel", FacingTextLocation(-2.97, -1.1), 0.75, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, Color.White);
+
+        CreateInWorldText(IsAlive(local) ? local : null, IconString(Icon.Fire), FacingTextLocation(-3.08, -1.13), 1.5, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, Color.White);
+    }
 }
 
 Color CanPlayerPickupBuffColor(Number index): 

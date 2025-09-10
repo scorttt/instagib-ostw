@@ -1,0 +1,92 @@
+import "../main.del";
+
+globalvar Boolean S_JETPACK_ENABLED; // setting: jetpack enabled
+playervar Boolean canFly; // whether the player pressed space again in mid air
+playervar Boolean isFlying; // if the player is using jetpack
+
+disabled rule: "---------------- Jetpack ----------------"{}
+
+// super hacky but it works, since jump is already being used by auto hopping this is the only solution i can think of, may need to figure something else out
+rule: "[Jetpack] :: Jump In Mid Air Detection"
+Event.OngoingPlayer
+if (Update(IsInAir()))
+{
+    canFly = false;
+    WaitUntil(Update(!IsJumpHeld()), 99999);
+    canFly = true;
+}
+
+void StartJetpack() playervar "[Jetpack] :: Start Sub"
+{   
+    if (!infFuel)
+        fuel = Max(fuel - 0.02, 0); // remove fuel when called
+
+    isFlying = true;
+
+    StartAccelerating(
+    player,
+    Normalize(ThrottleOf()) 
+    * Min(1, MagnitudeOf(ThrottleOf())) * Clamp(1 - Dot(Normalize(WorldVectorOf(ThrottleOf(), player, LocalVector.Rotation)), VelocityOf()) / (bhopSpeedPercent / 9.09), 0, 0.6) + Up()
+    * (1 - Min(1, MagnitudeOf(ThrottleOf())) * Clamp(1 - Dot(Normalize(WorldVectorOf(ThrottleOf(), player, LocalVector.Rotation)), VelocityOf()) / (bhopSpeedPercent / 9.09), 0, 0.6)),
+    37.28,
+    10000,
+    Relative.ToPlayer,
+    AccelerateRev.DirectionRateAndMaxSpeed);
+
+    // for tribes 2 esque gravity
+    // 17.5 -> 26.9 m/s^2 gravity = 153.714
+    SetGravity(player, 137);
+
+    while (isFlying)
+    {
+        if (!infFuel)
+            SubtractOverTime(fuel, S_FUEL_DEP, 0, 1, 0.016);
+        
+        PlayEffect(All(), PlayEffect.BadExplosion, Color.Orange, PositionOf(), 0.1);
+
+        if (fuel == 0)
+            break;
+
+        MinWait();
+    }
+}
+
+rule: "[Jetpack] :: General Jetpack Start"
+Event.OngoingPlayer
+if (S_JETPACK_ENABLED)
+if (canFly)
+if (fuel > 0)
+if (Update(IsJumpHeld()))
+if (IsAlive())
+{
+    StopJetpack();
+    StartJetpack();
+}
+
+rule: "[Jetpack] :: Stop"
+Event.OngoingPlayer
+if (Update(!IsJumpHeld() || AltitudeOf() == 0 || fuel == 0))
+if (isFlying)
+{
+    StopJetpack();
+}
+
+rule: "[Jetpack] :: Stop Jetpack if Fuel Depletes"
+Event.OngoingPlayer
+if (IsInAir())
+if (IsJumpHeld())
+if (fuel == 0)
+{
+    StopJetpack();
+}
+
+void StopJetpack() playervar "[Jetpack] :: Stop Sub"
+{
+    if (IsOnGround())
+        canFly = false;
+
+    isFlying = false;
+    StopAccelerating();
+    SetGravity(player, 100);
+    StopForcingThrottle();
+}

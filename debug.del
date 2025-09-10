@@ -122,14 +122,14 @@ Event.OnPlayerJoin
         infAmmo = true;
 
     // player information
-    // CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\nbhopping: <4>, bhSpeedFloor: <5>, bhSpeedPercent: <6>, HSpeed: <7>\ndodges: <8>\n<9>\nhas mutator: <10>", 
-    // player, PositionOf(), Facing(), ThrottleOf(),
-    // bhopping, bhopSpeedFloor, bhopSpeedPercent, HorizontalSpeedOf(), 
-    // dodges,
-    // playerHasBuff ? <"current buff: <0>", heldBuffStr> : <"recent buff: <0>", heldBuffStr>,
-    // playerHasMutator
+    CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\nbhopping: <4>, bhSpeedFloor: <5>, bhSpeedPercent: <6>, HSpeed: <7>\nisdodging: <8> ground: <9>\n<10>\nhas mutator: <11>", 
+    player, PositionOf(), Facing(), ThrottleOf(),
+    bhopping, bhopSpeedFloor, bhopSpeedPercent, HorizontalSpeedOf(), 
+    isDodging, IsOnGround(),
+    playerHasBuff ? <"current buff: <0>", heldBuffStr> : <"recent buff: <0>", heldBuffStr>,
+    playerHasMutator
 
-    // >, null, Location.Right, 0.5);
+    >, null, Location.Right, 0.5);
 }
 
 rule: "Event Damage"

@@ -7,11 +7,13 @@ import "debug.del";
 
 import "hudtext.del";
 
+import "movement/fuel.del";
 import "movement/bhop.del";
 // import "movement/beam.del";
 import "movement/blaster.del";
 import "movement/dodge.del";
 // import "movement/slide.del";
+import "movement/jetpack.del";
 
 import "pickups/init.del";
 
@@ -85,6 +87,10 @@ rule: "[Main] :: Initial Global"
     S_SEC_PSPEED = WorkshopSettingReal("B. Blaster (Secondary Fire)",           "Blaster Projectile Speed (60)", 60, 1, 500, 3);
     S_SEC_RADIUS = WorkshopSettingReal("B. Blaster (Secondary Fire)",           "Blaster Explosion Radius (2.5)", 2.5, 1, 20, 4);
     S_SEC_STRENGTH = WorkshopSettingReal("B. Blaster (Secondary Fire)",         "Blaster Explosion Strength (15)", 15, 1, 100, 5); 
+
+    S_JETPACK_ENABLED = WorkshopSettingToggle("C. Jetpack",                     "Enable Jetpack (On)", true, 1);
+    S_FUEL_DEP = WorkshopSettingReal("C. Jetpack",                              "Jetpack Fuel Full Depletion Time (1)", 1, 0.1, 1000, 2);
+    S_FUEL_REF = WorkshopSettingReal("C. Jetpack",                              "Jetpack Fuel Total Time For Full Replenish (1)", 1, 0.1, 1000, 3);   
 
     // S_ENABLE_BEAM = WorkshopSettingToggle("B. Knockback Beam",                  "Enable Beam (On)", true, 1);
     // S_BEAM_DMG = WorkshopSettingReal("B. Knockback Beam",                       "Beam Damage Per Tick (1)", 1, 0, 10) / 25;
@@ -241,6 +247,11 @@ Event.OnPlayerJoin
         CreateEffect(IsAlive() && playerHasMutator ? All() : null, Effect.BadAura, mutatorColors[1], player, 0.5, EffectRev.VisibleToPositionRadiusAndColor);
     }
 
+    if (S_JETPACK_ENABLED)
+    {
+        CreateEffect(IsAlive() && isFlying ? All() : null, Effect.EchoFocusingBeamSound, Color.White, PositionOf(), 100);
+    }
+
     DisableGameModeHud();
     DisallowButton(player, Button.PrimaryFire);
     DisallowButton(player, Button.Ultimate);
@@ -278,7 +289,7 @@ rule: "[Main] :: Player Alive"
 Event.OngoingPlayer
 if (IsAlive())
 {
-    dodges = maxDodges;
+    fuel = 1;
 
     // check seer users and apply outlines to the new player
     if (mutatorUser.mutatorEnabled[0])
@@ -376,8 +387,8 @@ if (UltimateChargePercent() != 100)
 if (!usingAbility)
 {
     // workshop doesnt like floats for some reason so this is set to 1 per 0.6 seconds for the desired 60 seconds to ult
-    SetUltimateCharge(player, UltimateChargePercent() + 1); 
-    // SetUltimateCharge(player, 100); 
+    // SetUltimateCharge(player, UltimateChargePercent() + 1); 
+    SetUltimateCharge(player, 100); 
     Wait(S_ABILITY_CHARGE_TIME);
     LoopIfConditionIsTrue();
 }

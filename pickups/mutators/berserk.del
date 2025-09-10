@@ -5,7 +5,7 @@ rule: "[Mutator] :: Berserk : Set Status"
 Event.OngoingPlayer
 if (mutatorEnabled[4])
 {
-    infDodges = true;
+    infFuel = true;
     infAmmo = true;
     delay = 0.5;
 
