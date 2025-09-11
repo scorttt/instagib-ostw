@@ -34,7 +34,7 @@ Color speedColor:
 
 Number flashStartTime: local.fuelFlashStartTime;
 Number timeSinceFlash: Time() - flashStartTime;
-Number flashDuration: 0.5;
+Number flashDuration: 1;
 Number fadeAmount: timeSinceFlash < flashDuration 
                         ? timeSinceFlash / flashDuration
                         : 1;
