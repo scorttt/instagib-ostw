@@ -28,9 +28,12 @@ if (Update(IsOnGround() || AltitudeOf() < 0.01))
         MinWait();
     }
 
-    if (fuel >= 0.98)
+    if (fuel >= 0.95)
     {
         fuelFlashStartTime = Time();
         fuelFlashTriggered = true;
     }
+
+    if (fuel > 1)
+        fuel = 1;
 }

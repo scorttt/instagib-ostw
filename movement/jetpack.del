@@ -23,19 +23,27 @@ void StartJetpack() playervar "[Jetpack] :: Start Sub"
 
     isFlying = true;
 
+    // StartAccelerating(
+    // player,
+    // Normalize(ThrottleOf()) 
+    // * Min(1, MagnitudeOf(ThrottleOf())) * Clamp(1 - Dot(Normalize(WorldVectorOf(ThrottleOf(), player, LocalVector.Rotation)), VelocityOf()) / (bhopSpeedPercent / 9.09), 0, 0.6) + Up()
+    // * (1 - Min(1, MagnitudeOf(ThrottleOf())) * Clamp(1 - Dot(Normalize(WorldVectorOf(ThrottleOf(), player, LocalVector.Rotation)), VelocityOf()) / (bhopSpeedPercent / 9.09), 0, 0.6)),
+    // 37.28,
+    // 10000,
+    // Relative.ToPlayer,
+    // AccelerateRev.DirectionRateAndMaxSpeed);
+
     StartAccelerating(
     player,
-    Normalize(ThrottleOf()) 
-    * Min(1, MagnitudeOf(ThrottleOf())) * Clamp(1 - Dot(Normalize(WorldVectorOf(ThrottleOf(), player, LocalVector.Rotation)), VelocityOf()) / (bhopSpeedPercent / 9.09), 0, 0.6) + Up()
-    * (1 - Min(1, MagnitudeOf(ThrottleOf())) * Clamp(1 - Dot(Normalize(WorldVectorOf(ThrottleOf(), player, LocalVector.Rotation)), VelocityOf()) / (bhopSpeedPercent / 9.09), 0, 0.6)),
-    37.28,
+    Up(),
+    7,
     10000,
     Relative.ToPlayer,
     AccelerateRev.DirectionRateAndMaxSpeed);
 
-    // for tribes 2 esque gravity
-    // 17.5 -> 26.9 m/s^2 gravity = 153.714
-    SetGravity(player, 137);
+    // SetGravity(player, 137);
+    SetGravity(player, 0);
+    // ForceThrottle(player, 0, 0, 0, 0, 0, 0);
 
     while (isFlying)
     {
@@ -55,7 +63,7 @@ rule: "[Jetpack] :: General Jetpack Start"
 Event.OngoingPlayer
 if (S_JETPACK_ENABLED)
 if (canFly)
-if (fuel > 0)
+if (fuel > 0.1)
 if (Update(IsJumpHeld()))
 if (IsAlive())
 {
@@ -88,5 +96,5 @@ void StopJetpack() playervar "[Jetpack] :: Stop Sub"
     isFlying = false;
     StopAccelerating();
     SetGravity(player, 100);
-    StopForcingThrottle();
+    // StopForcingThrottle();
 }
