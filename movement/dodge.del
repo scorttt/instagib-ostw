@@ -31,14 +31,22 @@ if (IsButtonHeld(player, Button.Ability1))
     // hacky fix for controller users
     throttle = Vector(Near(ThrottleOf().X), y, Near(ThrottleOf().Z));
 
-    if (throttle == Vector(0, y, 0))
-        throttle = Vector(0, y, 1);
+    if (throttle != Vector(0, y, 0))
+    {
+        dodgeForce = S_DODGE_FORCE;
+    }
+    else
+    {
+        throttle = Vector(0, y, 0);
+        dodgeForce = S_DODGE_FORCE / 1.667;
+    }
 
     ApplyImpulse(player, throttle, dodgeForce, Relative.ToPlayer, ContraryMotion.Cancel);
 
     PlayEffect(All(), PlayEffect.BadExplosion, Color.Orange, PositionOf(), 1);
     PlayEffect(All(), PlayEffect.RingExplosion, Color.Orange, PositionOf(), 2);
     PlayEffect(All(), PlayEffect.DvaMicroMissilesExplosionSound, Color.White, PositionOf(), 100);
+    Wait(0.15); // small cooldown
 }
 
 rule: "[Dodge] :: Is Not Dodging"
