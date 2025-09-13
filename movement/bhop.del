@@ -41,13 +41,20 @@ if (IsOnGround())
 if (!IsButtonHeld(player, Button.Crouch))
 if (IsJumpHeld())
 {
-    autoBhop = true;
     DisallowButton(player, Button.Jump);
     MinWait();
     AllowButton(player, Button.Jump);
 
-    if (!IsJumping())
+    if (IsJumping())
+    {
+        autoBhop = true;
+    }
+    else
+    {
         autoBhop = false;
+        Wait(0.064);
+        LoopIfConditionIsTrue();
+    }
 }
 
 rule: "[Bhop] :: Gain Speed Chase"
