@@ -64,7 +64,6 @@ playervar Number hoverMinY;
 rule: "[Hover] :: Start Hover"
 Event.OngoingPlayer
 if (IsInAir())
-if (ThrottleOf() != Vector(0,0,0))
 if (isDodging)
 if (fuel > 0.1)
 if (IsAbility1Held())
@@ -74,7 +73,7 @@ if (IsAbility1Held())
     if (throttle != Vector(0, y, 0))
         hoverDir = throttle - Vector(0, y, 0);
     else
-        hoverDir = Vector(0, 0, 0);
+        hoverDir = Vector(0, 0, 1);
 
     hoverMaxY = PositionOf().Y + 0.1;
     hoverMinY = PositionOf().Y - 0.1;
@@ -88,6 +87,7 @@ rule: "[Hover] :: Stop Hover"
 Event.OngoingPlayer
 if (fuel <= 0 || 
     !bhopping ||
+    HorizontalSpeedOf() < MIN_SPEED ||
     !IsAbility1Held() ||
     !IsInRange(PositionOf().Y, hoverMinY, hoverMaxY))
 {

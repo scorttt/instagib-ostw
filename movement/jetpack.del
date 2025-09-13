@@ -74,7 +74,7 @@ void StartJetpack() playervar "[Jetpack] :: Start Sub"
             if (!isHovering)
                 SubtractOverTime(fuel, S_FUEL_DEP, 0, 1, 0.016);
             else 
-                SubtractOverTime(fuel, S_FUEL_DEP * 1.75, 0, 1, 0.016); // hovering uses less fuel
+                SubtractOverTime(fuel, S_FUEL_DEP * 1.5, 0, 1, 0.016); // hovering uses less fuel
         }
 
         
