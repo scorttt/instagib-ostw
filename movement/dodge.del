@@ -14,38 +14,39 @@ Event.OnPlayerJoin
     dodgeForce = S_DODGE_FORCE;
 }
 
+Number y: 0.6;
 rule: "[Dodge] :: Action"
 Event.OngoingPlayer
 if (S_DODGE_ENABLED)
-if (fuel > 0.35)
+if (fuel > 0.26)
 if (IsAlive())
 if (IsButtonHeld(player, Button.Ability1))
 {
     isDodging = true;
 
     if (!infFuel)
-        fuel -= 0.35;
-
-    Number y: 0.6;
+        fuel -= 0.26;
 
     // hacky fix for controller users
     throttle = Vector(Near(ThrottleOf().X), y, Near(ThrottleOf().Z));
 
-    if (throttle != Vector(0, y, 0))
-    {
-        dodgeForce = S_DODGE_FORCE;
-    }
-    else
+    if (throttle == Vector(0, y, 0))
     {
         throttle = Vector(0, y, 0);
-        dodgeForce = S_DODGE_FORCE / 1.667;
+        dodgeForce /= 2;
     }
 
     ApplyImpulse(player, throttle, dodgeForce, Relative.ToPlayer, ContraryMotion.Cancel);
 
+    if (equippedAbility != Ability.Stimpack || !usingAbility)
+        dodgeForce = S_DODGE_FORCE;
+    else
+        dodgeForce = S_DODGE_FORCE * 1.3;
+
     PlayEffect(All(), PlayEffect.BadExplosion, Color.Orange, PositionOf(), 1);
     PlayEffect(All(), PlayEffect.RingExplosion, Color.Orange, PositionOf(), 2);
     PlayEffect(All(), PlayEffect.DvaMicroMissilesExplosionSound, Color.White, PositionOf(), 100);
+
     Wait(0.15); // small cooldown
 }
 
@@ -54,4 +55,41 @@ Event.OngoingPlayer
 if (Update(IsOnGround() || AltitudeOf() < 0.01))
 {
     isDodging = false;
+}
+
+playervar Boolean isHovering;
+playervar Vector hoverDir;
+playervar Number hoverMaxY;
+playervar Number hoverMinY;
+rule: "[Hover] :: Start Hover"
+Event.OngoingPlayer
+if (IsInAir())
+if (ThrottleOf() != Vector(0,0,0))
+if (isDodging)
+if (fuel > 0.1)
+if (IsAbility1Held())
+{
+    WaitIfTrue(0.5);
+
+    if (throttle != Vector(0, y, 0))
+        hoverDir = throttle - Vector(0, y, 0);
+    else
+        hoverDir = Vector(0, 0, 0);
+
+    hoverMaxY = PositionOf().Y + 0.1;
+    hoverMinY = PositionOf().Y - 0.1;
+
+    isHovering = true;
+
+    StartJetpack();
+}
+
+rule: "[Hover] :: Stop Hover"
+Event.OngoingPlayer
+if (fuel <= 0 || 
+    !bhopping ||
+    !IsAbility1Held() ||
+    !IsInRange(PositionOf().Y, hoverMinY, hoverMaxY))
+{
+    StopJetpack();
 }
