@@ -44,6 +44,12 @@ Color fuelGreenFlash: CustomColor(
     fadeAmount * 255,
     255);
 
+Color fuelRedFlash: CustomColor(
+    255,
+    fadeAmount * 255,
+    fadeAmount * 255,
+    255);
+
 rule: "[Main] :: General HUD Text"
 {
     // left spacer 
@@ -56,8 +62,11 @@ rule: "[Main] :: General HUD Text"
     " \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", Location.Top, 0.1);
 
     // speedometer
-    CreateHudText(local, null, <"<0>", HorizontalSpeedOf(local) + 0.001>,
-    null, Location.Top, 0.2, Color.White, speedColor, Color.White, HudTextRev.VisibleToSortOrderStringAndColor);
+    // CreateHudText(local, null, <"<0>", HorizontalSpeedOf(local) + 0.001>,
+    // null, Location.Top, 0.2, Color.White, speedColor, Color.White, HudTextRev.VisibleToSortOrderStringAndColor);
+
+    CreateInWorldText(local, <"<0>", HorizontalSpeedOf(local) + 0.001>,
+    FacingTextLocation(0, -0.09), 1.2, Clipping.DoNotClip, InworldTextRev.VisibleToPositionStringAndColor, speedColor);
 
     // if (S_JETPACK_ENABLED)
     {
@@ -69,7 +78,7 @@ rule: "[Main] :: General HUD Text"
         0, Clipping.DoNotClip, 
         local.isFlying
             ? CustomColor(255, PingPong(1500, 255), PingPong(1500, 255), 255)
-            : local.fuel >= 1
+            : local.fuel >= 0.95
                 ? fuelGreenFlash
                 : Color.White,
         Color.White,
@@ -77,7 +86,7 @@ rule: "[Main] :: General HUD Text"
 
         CreateInWorldText(IsAlive(local) ? local : null, "Fuel", FacingTextLocation(-2.97, -1.1), 0.75, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, Color.White);
 
-        CreateInWorldText(IsAlive(local) ? local : null, IconString(Icon.Fire), FacingTextLocation(-3.08, -1.13), 1.5, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, Color.White);
+        CreateInWorldText(IsAlive(local) ? local : null, AbilityIconString(Hero.Torbjorn, Button.Ultimate), FacingTextLocation(-3.08, -1.13), 1.5, Clipping.DoNotClip, InworldTextRev.VisibleToAndPosition, Color.White);
     }
 }
 

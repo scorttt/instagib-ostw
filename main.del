@@ -144,7 +144,7 @@ rule: "[Main] :: Initial Global"
     S_BUFF_CD[Buff.Electro] = WorkshopSettingInteger("L. Electro Buff",                    "Electro Spawn Time (100)", 100, 5, 600, 2);
     S_BUFF_AMMO[Buff.Electro] = WorkshopSettingInteger("L. Electro Buff",                  "Electro Ammo (20)", 20, 1, 1000, 3);
     S_ELECTRO_PROJ_DELAY = WorkshopSettingReal("L. Electro Buff",               "Electro Grenade Delay After Hitting a surface (0.35)", 0.35, 0, 2, 4);
-    S_ELECTRO_PROJ_EXPLOSION_RADIUS = WorkshopSettingReal("L. Electro Buff",                     "Electro Grenade Explosion Radius (8)", 8, 1, 20, 5);
+    S_ELECTRO_PROJ_EXPLOSION_RADIUS = WorkshopSettingReal("L. Electro Buff",                     "Electro Grenade Explosion Radius (5)", 5, 1, 20, 5);
     S_ELECTRO_PROJ_SPEED = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Speed (25)", 25, 1, 50, 6);
     S_ELECTRO_PROJ_GRAV = WorkshopSettingReal("L. Electro Buff",                    "Electro Grenade Projecitile Gravity (-15)", -15, -100, 100, 7);
     S_ELECTRO_PDELTA = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Delta (Vertical Offset) (0.1)", 0.1, -1, 1, 8);
@@ -152,9 +152,9 @@ rule: "[Main] :: Initial Global"
     S_SPAWN_BUFF[Buff.Spark] = WorkshopSettingToggle("M. Spark Buff",                    "Spawn Spark (On)", true, 1);
     S_BUFF_CD[Buff.Spark] = WorkshopSettingInteger("M. Spark Buff",                      "Spark Spawn Time (125)", 125, 5, 600, 2);
     S_BUFF_AMMO[Buff.Spark] = WorkshopSettingInteger("M. Spark Buff",                    "Spark Ammo (20)", 20, 1, 1000, 3);
-    S_SPRK_PRIMARY_EXPLOSION_RADIUS = WorkshopSettingReal("M. Spark Buff",                      "Spark Primary Explosion Size (3)", 3, 1, 10, 5);
+    S_SPRK_PRIMARY_EXPLOSION_RADIUS = WorkshopSettingReal("M. Spark Buff",                      "Spark Primary Explosion Size (2)", 2, 1, 10, 5);
     S_SPRK_PROJ_SPEED = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Speed (20)", 20, 1, 500, 4);
-    S_SPRK_PROJ_EXPLOSION_SIZE = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Explosion Size (8)", 8, 1, 100, 5);
+    S_SPRK_PROJ_EXPLOSION_SIZE = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Explosion Size (5)", 5, 1, 100, 5);
     S_SPRK_HITBOX_RADIUS = WorkshopSettingReal("M. Spark Buff",                   "Spark Projectile Hitbox Size (0.3)", 0.3, 0.1, 10, 7);
 
     S_SPAWN_BUFF[Buff.Arc] = WorkshopSettingToggle("N. Arc Buff",                      "Spawn Arc (On)", true, 1);

@@ -95,6 +95,7 @@ void RemoveMutator() playervar "[Mutator] :: Remove Mutator"
                     break;
                 case (4):
                     infAmmo = false;
+                    infFuel = false;
 
                     // infDodges = false;
                     // maxDodges = S_DODGE_AMT;

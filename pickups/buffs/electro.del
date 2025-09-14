@@ -109,6 +109,7 @@ if (IsAlive())
             PlayEffect(All(), PlayEffect.EchoStickyBombExplosionSound, Color.White, projPos, 45);
             projHitSurface = true;
             projGravVec = projGravVec * -1; // flip gravity vector after each hit
+            airtime -= 0.10; // give a bit of a delay before detonation after each hit
         }
 
         MinWait();
