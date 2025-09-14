@@ -99,6 +99,9 @@ rule: "[Main] :: Pickup HUD Text and Effects : Welcome to hell"
 if (validMap)
 if (S_ENABLE_BUFFS)
 {
+    // todo: ADD CULLING for inworld effects
+    // client performance is AWFUL with all the effects reevaluting and i have no idea if blizzard does their own culling or not, ill have to unrender effects that are out of view and/or too far away
+    // i can only imagine how badly this runs on a steam deck or lower end pc
     for (Number i! = 0; i < BUFF_NAMES.Length; i++)
     {
         if (S_SPAWN_BUFF[i])
