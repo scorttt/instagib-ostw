@@ -2,6 +2,8 @@ import "../main.del";
 
 globalvar Number S_DODGE_FORCE;
 globalvar Boolean S_DODGE_ENABLED;
+globalvar Number S_DODGE_FUEL_COST;
+playervar Number dodgeFuelCost;
 playervar Boolean isDodging;
 playervar Vector throttle;
 playervar Number dodgeForce;
@@ -12,20 +14,21 @@ rule: "[Dodge] :: Init"
 Event.OnPlayerJoin
 {
     dodgeForce = S_DODGE_FORCE;
+    dodgeFuelCost = S_DODGE_FUEL_COST;
 }
 
 Number y: 0.6;
 rule: "[Dodge] :: Action"
 Event.OngoingPlayer
 if (S_DODGE_ENABLED)
-if (fuel > 0.26)
+if (fuel >= dodgeFuelCost)
 if (IsAlive())
 if (IsButtonHeld(player, Button.Ability1))
 {
     isDodging = true;
 
     if (!infFuel)
-        fuel -= 0.3;
+        fuel -= dodgeFuelCost;
 
     // hacky fix for controller users
     throttle = Vector(Near(ThrottleOf().X), y, Near(ThrottleOf().Z));

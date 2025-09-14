@@ -12,7 +12,6 @@ import "movement/bhop.del";
 // import "movement/beam.del";
 import "movement/blaster.del";
 import "movement/dodge.del";
-// import "movement/slide.del";
 import "movement/jetpack.del";
 import "movement/hover.del";
 
@@ -100,10 +99,7 @@ rule: "[Main] :: Initial Global"
 
     S_DODGE_ENABLED = WorkshopSettingToggle("D. Dodge",                         "Enable Dodge (On)", true, 1);
     S_DODGE_FORCE = WorkshopSettingReal("D. Dodge",                             "Dodge Strength (14)", 14, 1, 100, 2);
-
-    // S_ENABLE_SLIDE = WorkshopSettingToggle("D. Slide",                          "Enable Sliding (On)", true, 1);
-    // S_SLIDE_JUMP_STRENGTH = WorkshopSettingReal("D. Slide",                     "Slide Jump Strength (4)", 4, 1, 100, 3);
-    // S_SLIDE_SPEED = WorkshopSettingReal("D. Slide",                             "Slide Speed (10)", 10, 1, 100, 3);
+    S_DODGE_FUEL_COST = WorkshopSettingReal("D. Dodge",                         "Dodge Fuel Cost (30%)", 30, 0, 100, 3) / 100;
 
     S_BHOP_ENABLED = WorkshopSettingToggle("E. Bunny Hopping",                  "Enable Bunny Hopping (On)", true, 1);
     S_BHOP_MAX_SPEED = WorkshopSettingInteger("E. Bunny Hopping",               "Maximum Speed Multiplier From Bunny Hopping (100000)", 100000, 200, 100000, 2);
