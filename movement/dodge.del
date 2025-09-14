@@ -86,8 +86,7 @@ if (IsAbility1Held())
 
 rule: "[Hover] :: Stop Hover"
 Event.OngoingPlayer
-if (fuel <= 0 || 
-    !bhopping ||
+if (fuel <= 0 ||
     HorizontalSpeedOf() < MIN_SPEED ||
     !IsAbility1Held() ||
     !IsInRange(PositionOf().Y, hoverMinY, hoverMaxY))
