@@ -80,8 +80,11 @@ void StartJetpack() playervar "[Jetpack] :: Start Sub"
         
         PlayEffect(All(), PlayEffect.BadExplosion, Color.Orange, PositionOf(), 0.1);
 
-        if (fuel == 0)
+        if (fuel <= 0)
+        {
+            StopJetpack();
             break;
+        }
 
         MinWait();
     }
@@ -101,7 +104,7 @@ if (IsAlive())
 
 rule: "[Jetpack] :: Stop"
 Event.OngoingPlayer
-if (Update(!IsJumpHeld() || /* AltitudeOf() == 0 || */ fuel == 0))
+if (Update(!IsJumpHeld() || /* AltitudeOf() == 0 || */ fuel <= 0))
 if (isFlying && !isHovering)
 {
     StopJetpack();
@@ -111,7 +114,7 @@ rule: "[Jetpack] :: Stop Jetpack if Fuel Depletes"
 Event.OngoingPlayer
 if (IsInAir())
 if (IsJumpHeld())
-if (fuel == 0)
+if (fuel <= 0)
 {
     StopJetpack();
 }

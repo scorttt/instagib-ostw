@@ -25,7 +25,7 @@ if (IsButtonHeld(player, Button.Ability1))
     isDodging = true;
 
     if (!infFuel)
-        fuel -= 0.26;
+        fuel -= 0.3;
 
     // hacky fix for controller users
     throttle = Vector(Near(ThrottleOf().X), y, Near(ThrottleOf().Z));
@@ -65,15 +65,16 @@ rule: "[Hover] :: Start Hover"
 Event.OngoingPlayer
 if (IsInAir())
 if (isDodging)
-if (fuel > 0.1)
+if (!isHovering)
+if (fuel > 0)
 if (IsAbility1Held())
 {
-    WaitIfTrue(0.5);
+    WaitIfTrue(0.4);
 
     if (throttle != Vector(0, y, 0))
         hoverDir = throttle - Vector(0, y, 0);
     else
-        hoverDir = Vector(0, 0, 1);
+        hoverDir = Vector(0, 0, 1); 
 
     hoverMaxY = PositionOf().Y + 0.1;
     hoverMinY = PositionOf().Y - 0.1;
