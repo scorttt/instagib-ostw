@@ -73,7 +73,7 @@ rule: "[Main] :: General HUD Text"
         // jetpack fuel, not a hud text since i would have to adjust ammo text spacing which frequently changes in gameplay
         // this will not show correctly on 21:9 monitors
         CreateProgressBarInWorldText(IsAlive(local) ? local : null, local.fuel * 100, 
-        null,
+        <String>Near(local.fuel * 100),
         FacingTextLocation(-2.6, -1.35), 
         0, Clipping.DoNotClip, 
         local.isFlying
