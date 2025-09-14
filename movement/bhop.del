@@ -4,7 +4,7 @@ globalvar Number S_BHOP_MAX_SPEED;
 globalvar Number S_BHOP_SPEED_RATE;
 globalvar Boolean S_BHOP_ENABLED;
 
-playervar Boolean bhopping; // is the player bhopping
+playervar Boolean gainingMoveSpeed; // is the player gaining move speed, usually by bhopping or being in mid air
 playervar Boolean autoBhop; // is the player auto bhopping
 playervar Number bhopSpeedPercent; // movement speed multiplier
 playervar Number bhopSpeedRate; // bhop speed rate
@@ -17,7 +17,7 @@ disabled rule: "---------------- Bhop ----------------"{}
 void ResetSpeed() playervar "[Bhop] :: Reset Speed"
 {
     StopChasingVariable(bhopSpeedPercent);
-    bhopping = false;
+    gainingMoveSpeed = false;
     expectedSpeed = 0;
     lastSlowDown = 0;
     bhopSpeedPercent = bhopSpeedFloor;
@@ -64,12 +64,12 @@ if (IsInAir())
 if (HorizontalSpeedOf() > MIN_SPEED/*  || isSliding */)
 {
     ChaseVariableAtRate(bhopSpeedPercent, S_BHOP_MAX_SPEED, bhopSpeedRate, RateChaseReevaluation.DestinationAndRate);
-    bhopping = true;
+    gainingMoveSpeed = true;
 }
 
 rule: "[Bhop] :: Too Slow"
 Event.OngoingPlayer
-if (bhopping) 
+if (gainingMoveSpeed) 
 if (HorizontalSpeedOf() < MIN_SPEED)
 {
     ResetSpeed();
@@ -84,7 +84,7 @@ playervar Number bhopRewardFactor;
 
 rule: "[Bhop] :: Speed Adjustment Loop"
 Event.OngoingPlayer
-if (bhopping)
+if (gainingMoveSpeed)
 if (HorizontalSpeedOf() > MIN_SPEED)
 if (!isHovering)
 {
