@@ -86,6 +86,7 @@ rule: "[Bhop] :: Speed Adjustment Loop"
 Event.OngoingPlayer
 if (bhopping)
 if (HorizontalSpeedOf() > MIN_SPEED)
+if (!isHovering)
 {
     horizontalSpeed = HorizontalSpeedOf();
     // 5.5 is the expected speed with no movement speed modifiers (usually every character's forwards speed besides genji/tracer) 0.1 buffer to account for minor speed variations in movement
