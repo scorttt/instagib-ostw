@@ -14,6 +14,7 @@ import "movement/blaster.del";
 import "movement/dodge.del";
 // import "movement/slide.del";
 import "movement/jetpack.del";
+import "movement/hover.del";
 
 import "pickups/init.del";
 

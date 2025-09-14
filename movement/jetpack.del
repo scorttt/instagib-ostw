@@ -23,6 +23,8 @@ void StartJetpack() playervar "[Jetpack] :: Start Sub"
 
     if (!isHovering)
     {
+        isDodging = false;
+
         if (!infFuel)
             fuel = Max(fuel - 0.02, 0); // remove fuel when called
         // StartAccelerating(
@@ -95,6 +97,7 @@ Event.OngoingPlayer
 if (S_JETPACK_ENABLED)
 if (canFly)
 if (fuel > 0.1)
+if (!isHovering)
 if (Update(IsJumpHeld()))
 if (IsAlive())
 {
