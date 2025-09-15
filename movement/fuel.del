@@ -4,8 +4,11 @@ globalvar Number S_FUEL_DEP; // setting: fuel depletion rate
 globalvar Number S_FUEL_REF; // setting: fuel refill rate
 playervar Number fuel; // amount of fuel remaining
 playervar Boolean infFuel; // if the player has infinite fuel
-playervar Number fuelFlashStartTime;
-playervar Boolean fuelFlashTriggered;
+playervar Number fuelReplenishFlashStartTime;
+playervar Number fuelReplenishFlashTriggered;
+
+playervar Boolean fuelDepletionFlashStartTime;
+playervar Boolean fuelDepletionFlashTriggered;
 
 rule: "[Fuel] :: Replenish Fuel When Not In Use"
 Event.OngoingPlayer
@@ -16,9 +19,10 @@ if (Update(IsOnGround() || AltitudeOf() < 0.01))
         fuel = 0;
 
     WaitIfTrue(0.048);
-    fuelFlashStartTime = 0;
+    fuelReplenishFlashStartTime = 0;
     isDodging = false;
-    fuelFlashTriggered = false;
+    fuelDepletionFlashTriggered = false;
+    fuelReplenishFlashTriggered = false;
 
     while (fuel < 1)
     {
@@ -33,8 +37,8 @@ if (Update(IsOnGround() || AltitudeOf() < 0.01))
 
     if (fuel == 1)
     {
-        fuelFlashStartTime = Time() - 1;
-        fuelFlashTriggered = true;
+        fuelReplenishFlashStartTime = Time() - 1;
+        fuelReplenishFlashTriggered = true;
     }
 }
 
