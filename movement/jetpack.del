@@ -18,7 +18,6 @@ if (IsInAir())
 
 void StartJetpack() playervar "[Jetpack] :: Start Sub"
 {   
-
     isFlying = true;
 
     if (!isHovering)
@@ -38,7 +37,7 @@ void StartJetpack() playervar "[Jetpack] :: Start Sub"
 
         SetGravity(player, 0);
     }
-    else 
+    else if (IsAbility1Held())
     {
         StartAccelerating(
             player, 
@@ -71,7 +70,7 @@ void StartJetpack() playervar "[Jetpack] :: Start Sub"
         
         PlayEffect(All(), PlayEffect.BadExplosion, Color.Orange, PositionOf(), 0.1);
 
-        if (fuel <= 0)
+        if (fuel == 0 || (!IsAbility1Held() && isHovering))
         {
             StopJetpack();
             break;
@@ -97,7 +96,8 @@ if (IsAlive())
 rule: "[Jetpack] :: Stop"
 Event.OngoingPlayer
 if (Update(!IsJumpHeld() || fuel <= 0))
-if (isFlying && !isHovering)
+if (isFlying)
+if (!isHovering)
 {
     StopJetpack();
 }

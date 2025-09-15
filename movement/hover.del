@@ -29,9 +29,10 @@ if (IsAbility1Held())
 
 rule: "[Hover] :: Stop Hover"
 Event.OngoingPlayer
-if (fuel <= 0 ||
-    HorizontalSpeedOf() < MIN_SPEED ||
+if (fuel == 0 ||
     !IsAbility1Held() ||
+    IsJumpHeld() ||
+    HorizontalSpeedOf() < MIN_SPEED ||
     !IsInRange(PositionOf().Y, hoverMinY, hoverMaxY))
 {
     StopJetpack();

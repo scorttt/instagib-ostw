@@ -33,21 +33,23 @@ Color speedColor:
         255);
 
 
-Number flashStartTime: local.fuelFlashStartTime;
-Number timeSinceFlash: Time() - flashStartTime;
-Number flashDuration: 1;
-
-Number fadeAmount: timeSinceFlash / flashDuration;
+Number replenishFlashStartTime: local.fuelReplenishFlashStartTime;
+Number timeSinceReplenishFlash: Time() - replenishFlashStartTime;
+Number replenishFadeAmount: timeSinceReplenishFlash / 1;
 Color fuelGreenFlash: CustomColor(
-    fadeAmount * 255,
+    replenishFadeAmount * 255,
     255,
-    fadeAmount * 255,
+    replenishFadeAmount * 255,
     255);
+
+Number depletionFlashStartTime: local.fuelDepletionFlashStartTime;
+Number timeSinceDepletionFlash: Time() - depletionFlashStartTime;
+Number depletionFadeAmount: timeSinceDepletionFlash / 1;
 
 Color fuelRedFlash: CustomColor(
     255,
-    fadeAmount * 255,
-    fadeAmount * 255,
+    depletionFadeAmount * 255,
+    depletionFadeAmount * 255,
     255);
 
 rule: "[Main] :: General HUD Text"
@@ -78,8 +80,10 @@ rule: "[Main] :: General HUD Text"
         0, Clipping.DoNotClip, 
         local.isFlying
             ? CustomColor(255, PingPong(1500, 255), PingPong(1500, 255), 255)
-            : local.fuel >= 0.95
+            : local.fuel == 1
                 ? fuelGreenFlash
+                : local.fuelDepletionFlashTriggered
+                    ? fuelRedFlash
                 : Color.White,
         Color.White,
         ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);

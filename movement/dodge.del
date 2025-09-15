@@ -27,6 +27,9 @@ if (IsButtonHeld(player, Button.Ability1))
 {
     isDodging = true;
 
+    fuelDepletionFlashStartTime = Time() - 1.5;
+    fuelDepletionFlashTriggered = true;
+
     if (!infFuel)
         fuel -= dodgeFuelCost;
 
@@ -58,4 +61,5 @@ Event.OngoingPlayer
 if (Update(IsOnGround() || AltitudeOf() < 0.01))
 {
     isDodging = false;
+    fuelDepletionFlashTriggered = false;
 }
