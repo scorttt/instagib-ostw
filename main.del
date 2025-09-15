@@ -89,7 +89,7 @@ rule: "[Main] :: Initial Global"
     S_SEC_STRENGTH = WorkshopSettingReal("B. Blaster (Secondary Fire)",         "Blaster Explosion Strength (15)", 15, 1, 100, 5); 
 
     S_JETPACK_ENABLED = WorkshopSettingToggle("C. Jetpack",                     "Enable Jetpack (On)", true, 1);
-    S_FUEL_DEP = WorkshopSettingReal("C. Jetpack",                              "Jetpack Fuel Full Depletion Time (1)", 1, 0.1, 1000, 2);
+    S_FUEL_DEP = WorkshopSettingReal("C. Jetpack",                              "Jetpack Fuel Full Depletion Time (1.3)", 1.3, 0.1, 1000, 2);
     S_FUEL_REF = WorkshopSettingReal("C. Jetpack",                              "Jetpack Fuel Total Time For Full Replenish (1)", 1, 0.1, 1000, 3);   
 
     // S_ENABLE_BEAM = WorkshopSettingToggle("B. Knockback Beam",                  "Enable Beam (On)", true, 1);
