@@ -37,7 +37,7 @@ if (Update(IsOnGround() || AltitudeOf() < 0.01))
 
     if (fuel == 1)
     {
-        fuelReplenishFlashStartTime = Time() - 1;
+        fuelReplenishFlashStartTime = Time();
         fuelReplenishFlashTriggered = true;
     }
 }

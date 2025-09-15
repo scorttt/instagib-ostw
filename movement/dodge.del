@@ -27,7 +27,7 @@ if (IsButtonHeld(player, Button.Ability1))
 {
     isDodging = true;
 
-    fuelDepletionFlashStartTime = Time() - 1.5;
+    fuelDepletionFlashStartTime = Time();
     fuelDepletionFlashTriggered = true;
 
     if (!infFuel)
