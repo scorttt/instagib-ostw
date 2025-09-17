@@ -33,7 +33,7 @@ Color speedColor:
         255);
 
 
-Number replenishFlashStartTime: local.fuelReplenishFlashStartTime - 1;
+Number replenishFlashStartTime: local.fuelReplenishFlashStartTime;
 Number timeSinceReplenishFlash: Time() - replenishFlashStartTime;
 Number replenishFadeAmount: timeSinceReplenishFlash / 1;
 Color fuelGreenFlash: CustomColor(
@@ -42,7 +42,7 @@ Color fuelGreenFlash: CustomColor(
     replenishFadeAmount * 255,
     255);
 
-Number depletionFlashStartTime: local.fuelDepletionFlashStartTime - 1.4;
+Number depletionFlashStartTime: local.fuelDepletionFlashStartTime;
 Number timeSinceDepletionFlash: Time() - depletionFlashStartTime;
 Number depletionFadeAmount: timeSinceDepletionFlash / 1;
 
