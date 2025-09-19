@@ -8,11 +8,15 @@ Update(EyePosition(local) + 100 *
           - 0.200) * DirectionFromAngles(HorizontalAngleFromDirection(Facing(local)), VerticalAngleFromDirection(Facing(local)) - 90) +
           3 * Facing(local)));
 
+// Boolean VisibilityCheck(Number buffIndex): 
+//     IsInLineOfSight(EyePos(local), buffPos[Once(buffIndex)]) &&
+//     IsInViewAngle(local, buffPos[Once(buffIndex)], 62) && 
+//     DistanceBetween(EyePos(local), buffPos[Once(buffIndex)]) < 50;
+
 Number orangeThreshold: (20 - MIN_SPEED) / (27 - MIN_SPEED);
 Number redThreshold: (22.5 - MIN_SPEED) / (27 - MIN_SPEED);
 Number purpleThreshold: (27 - MIN_SPEED) / (27 - MIN_SPEED);
 Number threshold: Max(0, Min(1, (HorizontalSpeedOf(local) - MIN_SPEED) / (27 - MIN_SPEED)));
-
 Color speedColor: 
     CustomColor(
         // r
@@ -103,9 +107,6 @@ rule: "[Main] :: Pickup HUD Text and Effects : Welcome to hell"
 if (validMap)
 if (S_ENABLE_BUFFS)
 {
-    // todo: ADD CULLING for inworld effects
-    // client performance is AWFUL with all the effects reevaluting and i have no idea if blizzard does their own culling or not, ill have to unrender effects that are out of view and/or too far away
-    // i can only imagine how badly this runs on a steam deck or lower end pc
     for (Number i! = 0; i < BUFF_NAMES.Length; i++)
     {
         if (S_SPAWN_BUFF[i])
@@ -130,7 +131,7 @@ if (S_ENABLE_BUFFS)
 
             // complete orb effect
             CreateEffect(
-                VisibleTo:        buffCooldown[Once(i)] == 0 ? All() : null, 
+                VisibleTo:        buffCooldown[Once(i)] == 0 ? local : null, 
                 Type:             Effect.BadAura, 
                 Color:            CanPlayerPickupBuffColor(i), 
                 Position:         buffPos[Once(i)], 
@@ -139,7 +140,7 @@ if (S_ENABLE_BUFFS)
 
             // complete text
             CreateInWorldText(
-                VisibleTo:        buffCooldown[Once(i)] == 0 ? All() : null, 
+                VisibleTo:        buffCooldown[Once(i)] == 0 ? local : null, 
                 Header:           " \n\n\n" + BUFF_ICONS[Once(i)], 
                 Position:         buffPos[Once(i)] + Vector(0, 0.085, 0),
                 Scale:            2.1, 
@@ -148,7 +149,7 @@ if (S_ENABLE_BUFFS)
 
             // completed/in-progress good aura effect
             CreateEffect(
-                VisibleTo:        All(), 
+                VisibleTo:        local, 
                 Type:             Effect.GoodAura, 
                 Color:            CanPlayerPickupBuffColor(i),
                 Position:         buffPos[Once(i)], 
@@ -158,7 +159,7 @@ if (S_ENABLE_BUFFS)
 
             // completed/in-progress sparkle effect
             CreateEffect(
-                VisibleTo:        All(), 
+                VisibleTo:        local, 
                 Type:             Effect.Sparkles, 
                 Color:            CanPlayerPickupBuffColor(i),
                 Position:         buffPos[Once(i)], 
@@ -168,7 +169,7 @@ if (S_ENABLE_BUFFS)
 
             // in progress sphere effect
             CreateEffect(
-                VisibleTo:        buffCooldown[Once(i)] != 0 ? All() : null, 
+                VisibleTo:        buffCooldown[Once(i)] != 0 ? local : null, 
                 Type:             Effect.Sphere, 
                 Color:            CanPlayerPickupBuffColor(i), 
                 Position:         buffPos[Once(i)], 
@@ -177,16 +178,33 @@ if (S_ENABLE_BUFFS)
                 Reevaluation:     EffectRev.VisibleToPositionRadiusAndColor);
     
             // in progress progress bar
-            CreateProgressBarInWorldText(
-                VisibleTo:        buffCooldown[Once(i)] != 0 ? All() : null, 
-                Value:            buffPickupEffectSize[Once(i)], 
-                Text:             null, 
-                Position:         buffPos[Once(i)] + Vector(0, buffPickupEffectSize[Once(i)] * 0.0045, 0),
-                Scale:            0, 
+            // CreateProgressBarInWorldText(
+            //     VisibleTo:        buffCooldown[Once(i)] != 0 ? local : null, 
+            //     Value:            buffPickupEffectSize[Once(i)], 
+            //     Text:             null, 
+            //     Position:         buffPos[Once(i)] + Vector(0, buffPickupEffectSize[Once(i)] * 0.0045, 0),
+            //     Scale:            0, 
+            //     Clipping:         Clipping.ClipAgainstSurfaces, 
+            //     ProgressBarColor: BUFF_COLORS[Once(i)], 
+            //     TextColor:        Color.White, 
+            //     Reevaluation:     ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);
+
+            // in progress timer text
+            CreateInWorldText(
+                VisibleTo:        buffCooldown[Once(i)] != 0 ? local : null, 
+                Header:           buffCooldown[Once(i)] >= 60 
+                                        ? <"<0>:<1><2>", 
+                                            Floor(buffCooldown[Once(i)] / 60 % 60), 
+                                            buffCooldown[Once(i)] % 60 < 10 
+                                                ? "0" 
+                                                : "", 
+                                            Floor(buffCooldown[Once(i)] % 60)> 
+                                        : Floor(buffCooldown[Once(i)]), 
+                Position:         buffPos[Once(i)],
+                Scale:            1.5, 
                 Clipping:         Clipping.ClipAgainstSurfaces, 
-                ProgressBarColor: BUFF_COLORS[Once(i)], 
                 TextColor:        Color.White, 
-                Reevaluation:     ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);
+                Reevaluation:     InworldTextRev.VisibleToPositionStringAndColor);
         }
     }
 
@@ -309,13 +327,13 @@ if (S_ENABLE_BUFFS)
         mutatorColors[0]);
 
         // mutator spawning
-        CreateProgressBarInWorldText(isMutatorInWorld && mutatorProgressBar != 100 ? All() : null, mutatorProgressBar, null, mutatorPos + Vector(0, mutatorProgressBar * 0.0045, 0), 0, Clipping.DoNotClip, mutatorColors[0], null, ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);
+        CreateProgressBarInWorldText(isMutatorInWorld && mutatorProgressBar != 100 ? local : null, mutatorProgressBar, null, mutatorPos + Vector(0, mutatorProgressBar * 0.0045, 0), 0, Clipping.DoNotClip, mutatorColors[0], null, ProgressBarWorldEvaluation.VisibleToPositionValuesAndColor);
         CreateIcon(isMutatorInWorld && !IsInViewAngle(local, mutatorPos, 52) ? local : null, mutatorPos - Vector(0, 1.5, 0), Icon.ExclamationMark, IconRev.VisibleToPositionAndColor, mutatorColors[0], true);
-        CreateEffect(isMutatorInWorld ? All() : null, Effect.BadAura, mutatorColors[1], mutatorPos, mutatorProgressBar * 0.0045, EffectRev.VisibleToPositionRadiusAndColor);
-        CreateEffect(isMutatorInWorld ? All() : null, Effect.GoodAura, mutatorColors[0], mutatorPos, mutatorProgressBar * 0.0045, EffectRev.VisibleToPositionRadiusAndColor);
-        CreateEffect(isMutatorInWorld ? All() : null, Effect.Sparkles, mutatorColors[0], mutatorPos, mutatorProgressBar * 0.0045, EffectRev.VisibleToPositionRadiusAndColor);
+        CreateEffect(isMutatorInWorld ? local : null, Effect.BadAura, mutatorColors[1], mutatorPos, mutatorProgressBar * 0.0045, EffectRev.VisibleToPositionRadiusAndColor);
+        CreateEffect(isMutatorInWorld ? local : null, Effect.GoodAura, mutatorColors[0], mutatorPos, mutatorProgressBar * 0.0045, EffectRev.VisibleToPositionRadiusAndColor);
+        CreateEffect(isMutatorInWorld ? local : null, Effect.Sparkles, mutatorColors[0], mutatorPos, mutatorProgressBar * 0.0045, EffectRev.VisibleToPositionRadiusAndColor);
 
         // mutator spawned
-        CreateInWorldText(isMutatorInWorld && mutatorProgressBar == 100 ? All() : null, " \n\n\n" + mutatorIcon, mutatorPos + Vector(0, 0.085, 0), 2.1, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString);
+        CreateInWorldText(isMutatorInWorld && mutatorProgressBar == 100 ? local : null, " \n\n\n" + mutatorIcon, mutatorPos + Vector(0, 0.085, 0), 2.1, Clipping.DoNotClip, InworldTextRev.VisibleToPositionAndString);
     }
 }
