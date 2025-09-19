@@ -86,6 +86,7 @@ if (S_JETPACK_ENABLED)
 if (canFly)
 if (fuel > 0)
 if (!isHovering)
+if (AltitudeOf() > 1)
 if (Update(IsJumpHeld()))
 if (IsAlive())
 {
@@ -106,7 +107,7 @@ rule: "[Jetpack] :: Stop Jetpack if Fuel Depletes"
 Event.OngoingPlayer
 if (IsInAir())
 if (IsJumpHeld())
-if (fuel <= 0)
+if (fuel == 0)
 {
     StopJetpack();
 }
