@@ -86,7 +86,6 @@ if (S_JETPACK_ENABLED)
 if (canFly)
 if (fuel > 0)
 if (!isHovering)
-if (AltitudeOf() > 1)
 if (Update(IsJumpHeld()))
 if (IsAlive())
 {
