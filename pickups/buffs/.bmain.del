@@ -59,7 +59,7 @@ void CollectBuff() playervar "[Buff] :: Buff Collection"
 {
     buffTimestamps[buffIn] = TotalTimeElapsed();
 
-    if (buffIn == Buff.Arc)
+    if (buffIn == Buff.Arc || buffIn == Buff.Needle)
     {
         disablePrimaryFire = true;
         showAmmoAsPercentage = true;
@@ -72,12 +72,7 @@ void CollectBuff() playervar "[Buff] :: Buff Collection"
         voltTemp = 0;
         voltDist = S_MAX_VLT_DIST;
     }
-    else if (buffIn == Buff.Needle)
-    {
-        disablePrimaryFire = true;
-        showAmmoAsPercentage = true;
-    }
-    else 
+    else
     {
         showAmmoAsPercentage = false;
     }
@@ -97,14 +92,12 @@ void CollectBuff() playervar "[Buff] :: Buff Collection"
         LogToInspector(<"<0> given to <1>", heldBuffStr[HeldStr.Name], player>);
         SmallMessage(player, <"  <0>  <1>", heldBuffStr[HeldStr.Icon], heldBuffStr[HeldStr.Name]>);
     }
-    else 
+    else
     {
         SmallMessage(player, <"  <0>  <1> ammo replenished", heldBuffStr[HeldStr.Icon], heldBuffStr[HeldStr.Name]>);
     }
 
-    if (heldBuffAmmo[buffIn] < 0)
-        heldBuffAmmo[buffIn] = 0;
-
+    heldBuffAmmo[buffIn] = Max(0, heldBuffAmmo[buffIn]);
     heldBuffAmmo[buffIn] += S_BUFF_AMMO[buffIn];
 
     // pickup effects
@@ -170,10 +163,10 @@ if (IsTrueForAny(buffCooldown, Curr() != 0))
         if (S_SPAWN_BUFF[i] && buffTimerRunning[i])
         {
             // decrement buff cooldown
-            SubtractOverTime(buffCooldown[i], S_BUFF_CD[i], 0, S_BUFF_CD[i], 0.032);
+            SubtractOverTime(buffCooldown[i], S_BUFF_CD[i], 0, S_BUFF_CD[i], 0.064);
 
             // change buff pickup effect sizes
-            buffPickupEffectSize[i] = ((S_BUFF_CD[i] - buffCooldown[i]) / S_BUFF_CD[i]) * 100;
+            buffPickupEffectSize[i] = Min((((TotalTimeElapsed() - buffTimestamps[i]) / S_BUFF_CD[i]) * 100) * 0.0045, 0.45);
 
             // create buff
             if (buffCooldown[i] == 0)
@@ -184,7 +177,7 @@ if (IsTrueForAny(buffCooldown, Curr() != 0))
         }
     }
 
-    Wait(0.032);
+    Wait(0.064);
     LoopIfConditionIsTrue();
 }
 
@@ -202,7 +195,9 @@ if (IsTrueForAny(buffPos, DistanceBetween(Curr(), PositionOf() + Up()) < S_PICKU
        (canPickupBuff[buffIn]) &&
        (IsAlive()) && 
        (Update(!IsFiringPrimary()) && Update(!IsFiringSecondary())))
+    {
         CollectBuff();
+    }
 
     Wait(1);
     LoopIfConditionIsTrue();

@@ -153,8 +153,7 @@ if (S_ENABLE_BUFFS)
                 Type:             Effect.GoodAura, 
                 Color:            CanPlayerPickupBuffColor(i),
                 Position:         buffPos[Once(i)], 
-                // Radius:           buffPickupEffectSize[Once(i)] * 0.0045,
-                Radius:           Min((((TotalTimeElapsed() - buffTimestamps[Once(i)]) / S_BUFF_CD[Once(i)]) * 100) * 0.0045, 0.45),
+                Radius:           buffPickupEffectSize[Once(i)],
                 Reevaluation:     EffectRev.VisibleToPositionRadiusAndColor);
 
             // completed/in-progress sparkle effect
@@ -163,8 +162,7 @@ if (S_ENABLE_BUFFS)
                 Type:             Effect.Sparkles, 
                 Color:            CanPlayerPickupBuffColor(i),
                 Position:         buffPos[Once(i)], 
-                // Radius:           buffPickupEffectSize[Once(i)] * 0.0045,
-                Radius:           Min((((TotalTimeElapsed() - buffTimestamps[Once(i)]) / S_BUFF_CD[Once(i)]) * 100) * 0.0045, 0.45),
+                Radius:           buffPickupEffectSize[Once(i)],
                 Reevaluation:     EffectRev.VisibleToPositionRadiusAndColor);
 
             // in progress sphere effect
@@ -173,8 +171,7 @@ if (S_ENABLE_BUFFS)
                 Type:             Effect.Sphere, 
                 Color:            CanPlayerPickupBuffColor(i), 
                 Position:         buffPos[Once(i)], 
-                // Radius:           buffPickupEffectSize[Once(i)] * 0.0045,
-                Radius:           Min((((TotalTimeElapsed() - buffTimestamps[Once(i)]) / S_BUFF_CD[Once(i)]) * 100) * 0.0045, 0.45),
+                Radius:           buffPickupEffectSize[Once(i)],
                 Reevaluation:     EffectRev.VisibleToPositionRadiusAndColor);
     
             // in progress progress bar
@@ -204,7 +201,7 @@ if (S_ENABLE_BUFFS)
                 Scale:            1.5, 
                 Clipping:         Clipping.ClipAgainstSurfaces, 
                 TextColor:        Color.White, 
-                Reevaluation:     InworldTextRev.VisibleToPositionStringAndColor);
+                Reevaluation:     InworldTextRev.VisibleToPositionAndString);
         }
     }
 
