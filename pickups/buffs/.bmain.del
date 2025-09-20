@@ -24,8 +24,8 @@ globalvar Number[] buffCooldown; // array of current buff cooldowns
 globalvar Vector[] buffPos; // array of set buff positions
 playervar Number[] heldBuffAmmo; // array of buff indices ammo
 playervar Boolean playerHasBuff; // whether the player owns any buff
-playervar Number currentBuffIn; // currently held buff index
-globalvar Number buffIn; // index of the buff for the player to pick up (this probably shouldnt be a globalvar but it seems to be working fine, what could possibly go wrong)
+playervar Number currentBuffIdx; // currently held buff index
+globalvar Number buffIdx; // index of the buff for the player to pick up (this probably shouldnt be a globalvar but it seems to be working fine, what could possibly go wrong)
 playervar String[] heldBuffStr; // string of the held buff
 globalvar Any buffTrail; // beam effect for firing weapon with a buff
 playervar Color buffColor; // the given buff color to the player
@@ -57,14 +57,14 @@ enum HeldStr
 
 void CollectBuff() playervar "[Buff] :: Buff Collection"
 {
-    buffTimestamps[buffIn] = TotalTimeElapsed();
+    buffTimestamps[buffIdx] = TotalTimeElapsed();
 
-    if (buffIn == Buff.Arc || buffIn == Buff.Needle)
+    if (buffIdx == Buff.Arc || buffIdx == Buff.Needle)
     {
         disablePrimaryFire = true;
         showAmmoAsPercentage = true;
     }
-    else if (buffIn == Buff.Volt)
+    else if (buffIdx == Buff.Volt)
     {
         disablePrimaryFire = true;
         overheated = false;
@@ -78,16 +78,16 @@ void CollectBuff() playervar "[Buff] :: Buff Collection"
     }
 
     // dont know why this is necessary but pickup strings are broken without it so whatever
-    heldBuffStr[HeldStr.Name] = BUFF_NAMES[buffIn];
-    heldBuffStr[HeldStr.Icon] = BUFF_ICONS[buffIn];
+    heldBuffStr[HeldStr.Name] = BUFF_NAMES[buffIdx];
+    heldBuffStr[HeldStr.Icon] = BUFF_ICONS[buffIdx];
 
-    currentBuffIn = buffIn;
-    canPickupBuff[buffIn] = false;
-    buffColor = BUFF_COLORS[buffIn];
+    currentBuffIdx = buffIdx;
+    canPickupBuff[buffIdx] = false;
+    buffColor = BUFF_COLORS[buffIdx];
 
     if (!playerHasBuff)
     {
-        buffEnabled[buffIn] = true;
+        buffEnabled[buffIdx] = true;
         playerHasBuff = true;
         LogToInspector(<"<0> given to <1>", heldBuffStr[HeldStr.Name], player>);
         SmallMessage(player, <"  <0>  <1>", heldBuffStr[HeldStr.Icon], heldBuffStr[HeldStr.Name]>);
@@ -97,37 +97,37 @@ void CollectBuff() playervar "[Buff] :: Buff Collection"
         SmallMessage(player, <"  <0>  <1> ammo replenished", heldBuffStr[HeldStr.Icon], heldBuffStr[HeldStr.Name]>);
     }
 
-    heldBuffAmmo[buffIn] = Max(0, heldBuffAmmo[buffIn]);
-    heldBuffAmmo[buffIn] += S_BUFF_AMMO[buffIn];
+    heldBuffAmmo[buffIdx] = Max(0, heldBuffAmmo[buffIdx]);
+    heldBuffAmmo[buffIdx] += S_BUFF_AMMO[buffIdx];
 
     // pickup effects
-    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColor, buffPos[buffIn], 1);
-    PlayEffect(All(), PlayEffect.BuffExplosionSound, null, buffPos[buffIn], 200);
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, buffColor, buffPos[buffIdx], 1);
+    PlayEffect(All(), PlayEffect.BuffExplosionSound, null, buffPos[buffIdx], 200);
 
-    buffCooldown[buffIn] = S_BUFF_CD[buffIn];
+    buffCooldown[buffIdx] = S_BUFF_CD[buffIdx];
     BuffCooldown();
 
-    buffIn = -1;
+    buffIdx = -1;
 }
 
 void BuffCooldown() "[Buff] :: Start Buff Timer"
 {
-    if (S_SPAWN_BUFF[buffIn] && buffCooldown[buffIn] == S_BUFF_CD[buffIn])
+    if (S_SPAWN_BUFF[buffIdx] && buffCooldown[buffIdx] == S_BUFF_CD[buffIdx])
     {
-        LogToInspector(<"<0> cooldown started", BUFF_NAMES[buffIn]>);
-        buffTimerRunning[buffIn] = true; // start timer
+        LogToInspector(<"<0> cooldown started", BUFF_NAMES[buffIdx]>);
+        buffTimerRunning[buffIdx] = true; // start timer
     }
 }
 
 void CreateOrb() "[Buff] :: Create Orb"
 {
-    canPickupBuff[buffIn] = true;
-    buffTimerRunning[buffIn] = false;
+    canPickupBuff[buffIdx] = true;
+    buffTimerRunning[buffIdx] = false;
 
-    LogToInspector(<"<0> created", BUFF_NAMES[buffIn]>);
-    PlayEffect(All(), PlayEffect.GoodPickupEffect, BUFF_COLORS[buffIn], buffPos[buffIn], 1);
-    PlayEffect(All(), PlayEffect.RingExplosion, BUFF_COLORS[buffIn], buffPos[buffIn], 3);
-    PlayEffect(All(), PlayEffect.RingExplosion, BUFF_COLORS[buffIn], buffPos[buffIn] + Vector(0, -0.5, 0), 2);
+    LogToInspector(<"<0> created", BUFF_NAMES[buffIdx]>);
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, BUFF_COLORS[buffIdx], buffPos[buffIdx], 1);
+    PlayEffect(All(), PlayEffect.RingExplosion, BUFF_COLORS[buffIdx], buffPos[buffIdx], 3);
+    PlayEffect(All(), PlayEffect.RingExplosion, BUFF_COLORS[buffIdx], buffPos[buffIdx] + Vector(0, -0.5, 0), 2);
 }
 
 rule: "[Buff] :: Remove Buff"
@@ -169,9 +169,10 @@ if (IsTrueForAny(buffCooldown, Curr() != 0))
             buffPickupEffectSize[i] = Min((((TotalTimeElapsed() - buffTimestamps[i]) / S_BUFF_CD[i]) * 100) * 0.0045, 0.45);
 
             // create buff
-            if (buffCooldown[i] == 0)
+            if (Floor(buffCooldown[i]) == 0) // rounding is just for player clarity for spawns
             {
-                buffIn = i;
+                buffCooldown[i] = 0; // make sure the cooldown is actually 0 since it technically spawns early
+                buffIdx = i;
                 CreateOrb();
             }
         }
@@ -187,12 +188,12 @@ if (HasSpawned())
 if (IsAlive())
 if (IsTrueForAny(buffPos, DistanceBetween(Curr(), PositionOf() + Up()) < S_PICKUP_RAD))
 {
-    buffIn = -1;
-    buffIn = IndexOfArrayValue(buffPos, SortedArray(buffPos, DistanceBetween(Curr(), player)).First); // idk if theres a better way to write this
+    buffIdx = -1;
+    buffIdx = IndexOfArrayValue(buffPos, SortedArray(buffPos, DistanceBetween(Curr(), player)).First); // idk if theres a better way to write this
 
     // if (TotalTimeElapsed() > buffTimestamps[buffIn] + S_BUFF_CD[buffIn] &&
-    if ((!playerHasBuff || (buffEnabled[buffIn] && !infAmmo) || (!playerHasBuff && infAmmo)) &&
-       (canPickupBuff[buffIn]) &&
+    if ((!playerHasBuff || (buffEnabled[buffIdx] && !infAmmo) || (!playerHasBuff && infAmmo)) &&
+       (canPickupBuff[buffIdx]) &&
        (IsAlive()) && 
        (Update(!IsFiringPrimary()) && Update(!IsFiringSecondary())))
     {

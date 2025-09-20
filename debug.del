@@ -8,7 +8,7 @@ rule: "Global Debug"
 {
     EnableInspectorRecording();
 
-    S_FAST_PICKUP_SPAWN[0] = WorkshopSettingToggle(". Debug",                 "Fast Buff Spawn", true, -12);
+    S_FAST_PICKUP_SPAWN[0] = WorkshopSettingToggle(". Debug",                 "Fast Buff Spawn", false, -12);
     S_FAST_PICKUP_SPAWN[1] = WorkshopSettingToggle(". Debug",                 "Fast Mutator Spawn", false, -11);
     spawnWithBuff[Buff.Pierce] = WorkshopSettingToggle(". Debug",                      "Spawn With Pierce", false, -10);
     spawnWithBuff[Buff.Ricochet] = WorkshopSettingToggle(". Debug",                      "Spawn With Ricochet", false, -9);
@@ -106,7 +106,7 @@ Event.OnPlayerJoin
             heldBuffAmmo[i] = S_BUFF_AMMO[i];
             heldBuffStr[HeldStr.Name] = BUFF_NAMES[i];
             heldBuffStr[HeldStr.Icon] = BUFF_ICONS[i];
-            currentBuffIn = i;
+            currentBuffIdx = i;
             buffColor = BUFF_COLORS[i];
 
             if (i == 9 || i == 7 || i == 8)
@@ -122,14 +122,14 @@ Event.OnPlayerJoin
         infAmmo = true;
 
     // player information
-    CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\nbhopping: <4>, bhSpeedFloor: <5>, bhSpeedPercent: <6>, HSpeed: <7>\nisdodging: <8> ground: <9>\n<10>\nhas mutator: <11>", 
-    player, PositionOf(), Facing(), ThrottleOf(),
-    bhopping, bhopSpeedFloor, bhopSpeedPercent, HorizontalSpeedOf(), 
-    isDodging, IsOnGround(),
-    playerHasBuff ? <"current buff: <0>", heldBuffStr> : <"recent buff: <0>", heldBuffStr>,
-    playerHasMutator
+    // CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\ngainingMoveSpeed: <4>, bhSpeedFloor: <5>, bhSpeedPercent: <6>, HSpeed: <7>\nisdodging: <8>, isflying: <9>, isHovering: <10>\n<11>\nhas mutator: <12>", 
+    // player, PositionOf(), Facing(), ThrottleOf(),
+    // gainingMoveSpeed, bhopSpeedFloor, bhopSpeedPercent, HorizontalSpeedOf(), 
+    // isDodging, isFlying, isHovering,
+    // playerHasBuff ? <"current buff: <0>", heldBuffStr> : <"recent buff: <0>", heldBuffStr>,
+    // playerHasMutator
 
-    >, null, Location.Right, 0.5);
+    // >, null, Location.Right, 0.5);
 }
 
 rule: "Event Damage"
@@ -148,12 +148,12 @@ if (playerHasBuff)
 
     disablePrimaryFire = false;
     AllowButton(player, Button.PrimaryFire);
-    heldBuffAmmo[currentBuffIn] = 0;
-    buffEnabled[currentBuffIn] = false;
+    heldBuffAmmo[currentBuffIdx] = 0;
+    buffEnabled[currentBuffIdx] = false;
     buffColor = null;
 
     playerHasBuff = false;
-    currentBuffIn = -1;
+    currentBuffIdx = -1;
 }
 
 // rule: "Kill"

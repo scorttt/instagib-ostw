@@ -100,7 +100,7 @@ rule: "[Main] :: General HUD Text"
 
 Color CanPlayerPickupBuffColor(Number index): 
     local.playerHasBuff && 
-        (local.currentBuffIn != Once(index) || local.infAmmo)
+        (local.currentBuffIdx != Once(index) || local.infAmmo)
         ? Color.Gray : BUFF_COLORS[Once(index)];
 
 rule: "[Main] :: Pickup HUD Text and Effects : Welcome to hell"

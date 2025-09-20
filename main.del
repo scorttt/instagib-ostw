@@ -221,7 +221,7 @@ if (AllLiving().Length >= 1)
         {
             for (Number i! = 0; i < S_BUFF_CD.Length; i++)
             {
-                buffIn = i;
+                buffIdx = i;
                 BuffCooldown();
             }
         }
@@ -333,9 +333,9 @@ if (firingPrimary)
     // }
 
     if (DistanceBetween(EyePos(), firstHp) < 300)
-        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[currentBuffIn], firstHp, 0.3);
+        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[currentBuffIdx], firstHp, 0.3);
 
-    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, firstHp, BUFF_COLORS[currentBuffIn], EffectRev.None);
+    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, firstHp, BUFF_COLORS[currentBuffIdx], EffectRev.None);
     buffTrail = LastCreatedEntity();
 
     Wait(0.25);
