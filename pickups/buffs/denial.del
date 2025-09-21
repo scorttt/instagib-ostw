@@ -1,32 +1,32 @@
 import "../../main.del";
-import ".mmain.del";
-playervar Any[] denialMutatorEffect;
+import ".buffMain.del";
+playervar Any[] denialBuffEffect;
 
-rule: "[Mutator] :: Denial : Set Status"
+rule: "[Buff] :: Denial : Set Status"
 Event.OngoingPlayer
-if (mutatorEnabled[6])
+if (buffEnabled[6])
 {
-    LogToInspector(<"Denial given to <0>", mutatorUser>);
+    LogToInspector(<"Denial given to <0>", buffUser>);
     SetStatus(player, null, Status.Unkillable, 999999999);
     CreateEffect(All(), Effect.EchoCloningEffect, Color.White, player);
-    denialMutatorEffect[0] = LastCreatedEntity();
+    denialBuffEffect[0] = LastCreatedEntity();
     CreateEffect(player, Effect.BaptisteImmortalityFieldProtectedSound, Color.White, player, 100);
-    denialMutatorEffect[1] = LastCreatedEntity();
+    denialBuffEffect[1] = LastCreatedEntity();
 }
 
-rule : "[Mutator] :: Denial : Player has 1 HP Remove Status"
+rule : "[Buff] :: Denial : Player has 1 HP Remove Status"
 Event.OnDamageTaken
-if (mutatorEnabled[6])
+if (buffEnabled[6])
 if (Ceil(Health()) == 1)
 {
-    LogToInspector(<"Denial removed from <0>", mutatorUser>);
+    LogToInspector(<"Denial removed from <0>", buffUser>);
 
-    // force the player to have 0 time left to call the mutator position/timer functions 
-    StopChasingVariable(mutatorNormalTimeLeft);
-    mutatorNormalTimeLeft = 0; 
+    // force the player to have 0 time left to call the buff position/timer functions 
+    StopChasingVariable(buffNormalTimeLeft);
+    buffNormalTimeLeft = 0; 
 
-    RemoveMutator();
-    mutatorIndex -= chosenMutator; // remove the chosen mutator from the array
+    RemoveBuff();
+    buffIndex -= chosenBuff; // remove the chosen buff from the array
 
     ApplyImpulse(player, DirectionTowards(Attacker(), player) + Vector(0, 0.3, 0), 25, Relative.ToWorld, ContraryMotion.Cancel);
 
@@ -35,8 +35,8 @@ if (Ceil(Health()) == 1)
 
     MinWait();
 
-    SetMutatorPosition();
-    StartMutatorTimer();
+    SetBuffPosition();
+    StartBuffTimer();
 
     ClearStatus(player, Status.Unkillable);
 

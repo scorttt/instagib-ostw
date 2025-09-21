@@ -1,0 +1,12 @@
+import "../../main.del";
+import ".buffMain.del";
+
+rule: "[Buff] :: Seer : Set Status"
+Event.OngoingPlayer
+if (buffEnabled[0])
+{
+    LogToInspector(<"Seer given to <0>", buffUser>);
+
+    StopForcingPlayerOutlines(All(), player);
+    StartForcingPlayerOutlines(All(), player, true, buffColors[1], OutlineType.Always);
+}

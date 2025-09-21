@@ -8,7 +8,7 @@ playervar Boolean gainingMoveSpeed; // is the player gaining move speed, usually
 playervar Boolean autoBhop; // is the player auto bhopping
 playervar Number bhopSpeedPercent; // movement speed multiplier
 playervar Number bhopSpeedRate; // bhop speed rate
-playervar Number bhopSpeedFloor; // default movement speed multiplier (modified by mutators like berkserk or stimpack ability)
+playervar Number bhopSpeedFloor; // default movement speed multiplier (modified by buffs like berkserk or stimpack ability)
 
 globalvar Number MIN_SPEED; // minimum bhop speed
 

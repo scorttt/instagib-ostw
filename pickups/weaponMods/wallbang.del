@@ -1,5 +1,5 @@
 import "../../main.del";
-import ".bmain.del";
+import ".modMain.del";
 
 globalvar Number S_NUM_PIERCES;
 globalvar Number S_MAX_THICKNESS;
@@ -7,14 +7,14 @@ globalvar Number S_MAX_THICKNESS;
 disabled rule: "---------------- Pierce ----------------"{}
 
 
-rule: "[Buff] :: Pierce : Action"
+rule: "[Mod] :: Pierce : Action"
 Event.OngoingPlayer
-if (buffEnabled[Buff.Pierce])
-if (heldBuffAmmo[Buff.Pierce] > 0)
+if (modEnabled[Mod.Pierce])
+if (heldModAmmo[Mod.Pierce] > 0)
 if (Update(firstHp != null))
 {
     if (!infAmmo)
-        heldBuffAmmo[Buff.Pierce]--;
+        heldModAmmo[Mod.Pierce]--;
 
     Any[] wbEff;
     Vector prevHp = EyePos();
@@ -37,12 +37,12 @@ if (Update(firstHp != null))
             if (i > 0)
             {
                 exitHp[i] = RayHit(hp[i], hp[i] + DirectionTowards(hp[i], prevHp) * DistanceBetween(hp[i], prevHp), null, null);
-                PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Pierce], exitHp[i], 0.3);
+                PlayEffect(All(), PlayEffect.GoodExplosion, MOD_COLORS[Mod.Pierce], exitHp[i], 0.3);
 
-                CreateBeamEffect(All(), BeamType.BadBeam, exitHp[i], hp[i], BUFF_COLORS[Buff.Pierce], EffectRev.None);
+                CreateBeamEffect(All(), BeamType.BadBeam, exitHp[i], hp[i], MOD_COLORS[Mod.Pierce], EffectRev.None);
                 wbEff[i] = LastCreatedEntity();
 
-                PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Pierce], hp[i], 0.3);
+                PlayEffect(All(), PlayEffect.GoodExplosion, MOD_COLORS[Mod.Pierce], hp[i], 0.3);
 
                 // CreateEffect(All(), Effect.Sphere, Color.Yellow, hp[Once(i)] + offset, 0.3);
                 // CreateEffect(All(), Effect.Sphere, Color.Yellow, exitHp[Once(i)] + offset, 0.3);

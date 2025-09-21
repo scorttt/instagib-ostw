@@ -1,12 +1,12 @@
 import "../../main.del";
-import ".bmain.del";
+import ".modMain.del";
 
 
 disabled rule: "---------------- Prism ----------------"{}
 
-rule: "[Buff] :: Prism : Fire Action"
+rule: "[Mod] :: Prism : Fire Action"
 Event.OngoingPlayer
-if (buffEnabled[Buff.Prism])
+if (modEnabled[Mod.Prism])
 if (IsFiringPrimary())
 {
     

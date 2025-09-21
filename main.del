@@ -17,21 +17,21 @@ import "movement/hover.del";
 
 import "pickups/init.del";
 
-import "pickups/buffs/.bmain.del";
-import "pickups/buffs/wallbang.del";
-import "pickups/buffs/ricochet.del";
-import "pickups/buffs/buckshot.del";
-import "pickups/buffs/prism.del";
-import "pickups/buffs/ballista.del";
-import "pickups/buffs/electro.del";
-import "pickups/buffs/spark.del";
-import "pickups/buffs/arc.del";
-import "pickups/buffs/hydrangea.del";
+import "pickups/weaponMods/.modMain.del";
+import "pickups/weaponMods/wallbang.del";
+import "pickups/weaponMods/ricochet.del";
+import "pickups/weaponMods/buckshot.del";
+import "pickups/weaponMods/prism.del";
+import "pickups/weaponMods/ballista.del";
+import "pickups/weaponMods/electro.del";
+import "pickups/weaponMods/spark.del";
+import "pickups/weaponMods/arc.del";
+import "pickups/weaponMods/needle.del";
 
-import "pickups/mutators/.mmain.del";
-import "pickups/mutators/denial.del";
-import "pickups/mutators/seer.del";
-import "pickups/mutators/berserk.del";
+import "pickups/buffs/.buffMain.del";
+import "pickups/buffs/denial.del";
+import "pickups/buffs/seer.del";
+import "pickups/buffs/berserk.del";
 
 import "pickups/collectables/.cmain.del";
 import "pickups/collectables/timer.del";
@@ -42,7 +42,7 @@ globalvar String txCharacter;
 String TXString(String value): "{0}TX {1}>".Format([txCharacter, value]);
 
 globalvar Number S_MATCH_TIME_LIMIT; // maximum match time
-globalvar Number S_PICKUP_RAD; // minimum radius to collect a buff
+globalvar Number S_PICKUP_RAD; // minimum radius to collect a mod
 // globalvar Number S_GAMEMODE; // chosen gamemode
 globalvar Number S_DELAY; // weapon fire delay
 globalvar Number S_MOVE_SPEED; // player move speed
@@ -105,104 +105,104 @@ rule: "[Main] :: Initial Global"
     S_BHOP_MAX_SPEED = WorkshopSettingInteger("E. Bunny Hopping",               "Maximum Speed Multiplier From Bunny Hopping (100000)", 100000, 200, 100000, 2);
     S_BHOP_SPEED_RATE = WorkshopSettingReal("E. Bunny Hopping",                 "Speed gain rate (9.8)", 9.8, 1, 100, 3);
 
-    S_ENABLE_BUFFS = WorkshopSettingToggle("F. Buffs",                          "Enable Buffs (On)", true, 1);
-    S_RANDOMIZE_BUFF_POS = WorkshopSettingToggle("F. Buffs",                    "Randomize Buff Locations (On)", true, 2);
+    S_ENABLE_MODS = WorkshopSettingToggle("F. Mods",                          "Enable Mods (On)", true, 1);
+    S_RANDOMIZE_MOD_POS = WorkshopSettingToggle("F. Mods",                    "Randomize Mod Locations (On)", true, 2);
 
-    S_SPAWN_BUFF[Buff.Pierce] = WorkshopSettingToggle("G. Pierce Buff",                   "Spawn Pierce (On)", true, 1);
-    S_BUFF_CD[Buff.Pierce] = WorkshopSettingInteger("G. Pierce Buff",                     "Pierce Spawn Time (75)", 75, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Pierce] = WorkshopSettingInteger("G. Pierce Buff",                   "Pierce Ammo (20)", 20, 1, 1000, 3);
-    S_NUM_PIERCES = WorkshopSettingInteger("G. Pierce Buff",                  "Amount Of Surfaces to Pierce (3)", 3, 1, 16, 4);
-    S_MAX_THICKNESS = WorkshopSettingInteger("G. Pierce Buff",                  "Maximum Surface Thickness to Pierce (0 disables check)", 0, 0, 100, 4);
+    S_SPAWN_MOD[Mod.Pierce] = WorkshopSettingToggle("G. Pierce Mod",                   "Spawn Pierce (On)", true, 1);
+    S_MOD_CD[Mod.Pierce] = WorkshopSettingInteger("G. Pierce Mod",                     "Pierce Spawn Time (75)", 75, 5, 600, 2);
+    S_MOD_AMMO[Mod.Pierce] = WorkshopSettingInteger("G. Pierce Mod",                   "Pierce Ammo (20)", 20, 1, 1000, 3);
+    S_NUM_PIERCES = WorkshopSettingInteger("G. Pierce Mod",                  "Amount Of Surfaces to Pierce (3)", 3, 1, 16, 4);
+    S_MAX_THICKNESS = WorkshopSettingInteger("G. Pierce Mod",                  "Maximum Surface Thickness to Pierce (0 disables check)", 0, 0, 100, 4);
 
-    S_SPAWN_BUFF[Buff.Ricochet] = WorkshopSettingToggle("H. Ricochet Buff",                 "Spawn Ricochet (On)", true, 1);
-    S_BUFF_CD[Buff.Ricochet] = WorkshopSettingInteger("H. Ricochet Buff",                   "Ricochet Spawn Time (80)", 80, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Ricochet] = WorkshopSettingInteger("H. Ricochet Buff",                 "Ricochet Ammo (15)", 15, 1, 1000, 3);
-    S_NUM_RICOCHETS = WorkshopSettingInteger("H. Ricochet Buff",                "Ricochet Maximum Bounces (5)", 5, 1, 24, 4);
+    S_SPAWN_MOD[Mod.Ricochet] = WorkshopSettingToggle("H. Ricochet Mod",                 "Spawn Ricochet (On)", true, 1);
+    S_MOD_CD[Mod.Ricochet] = WorkshopSettingInteger("H. Ricochet Mod",                   "Ricochet Spawn Time (80)", 80, 5, 600, 2);
+    S_MOD_AMMO[Mod.Ricochet] = WorkshopSettingInteger("H. Ricochet Mod",                 "Ricochet Ammo (15)", 15, 1, 1000, 3);
+    S_NUM_RICOCHETS = WorkshopSettingInteger("H. Ricochet Mod",                "Ricochet Maximum Bounces (5)", 5, 1, 24, 4);
 
-    S_SPAWN_BUFF[Buff.Buckshot] = WorkshopSettingToggle("I. Spread Buff",                 "Spawn Spread (On)", true, 1);
-    S_BUFF_CD[Buff.Buckshot] = WorkshopSettingInteger("I. Spread Buff",                   "Spread Spawn Time (210)", 210, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Buckshot] = WorkshopSettingInteger("I. Spread Buff",                 "Spread Ammo (24)", 24, 1, 1000, 3);
-    S_BUCKSHOT_CHARGE_AMT = WorkshopSettingInteger("I. Spread Buff",          "Spread Charge Amount (5)", 5, 1, 10, 4);
-    S_BUCKSHOT_CHARGE_SPD = WorkshopSettingReal("I. Spread Buff",             "Spread Charge Speed (0.4)", 0.4, 0.3, 5, 5);
-    S_BUCKSHOT_SPREAD = WorkshopSettingReal("I. Spread Buff",                 "Spread Radius (Lower is Tighter) (1.2)", 1.2, 0.1, 20, 6);
-    S_BUCKSHOT_GROUP_AMT = WorkshopSettingInteger("I. Spread Buff",           "Spread Bullets Per Group (8)", 8, 3, 12, 7);
+    S_SPAWN_MOD[Mod.Buckshot] = WorkshopSettingToggle("I. Spread Mod",                 "Spawn Spread (On)", true, 1);
+    S_MOD_CD[Mod.Buckshot] = WorkshopSettingInteger("I. Spread Mod",                   "Spread Spawn Time (210)", 210, 5, 600, 2);
+    S_MOD_AMMO[Mod.Buckshot] = WorkshopSettingInteger("I. Spread Mod",                 "Spread Ammo (24)", 24, 1, 1000, 3);
+    S_BUCKSHOT_CHARGE_AMT = WorkshopSettingInteger("I. Spread Mod",          "Spread Charge Amount (5)", 5, 1, 10, 4);
+    S_BUCKSHOT_CHARGE_SPD = WorkshopSettingReal("I. Spread Mod",             "Spread Charge Speed (0.4)", 0.4, 0.3, 5, 5);
+    S_BUCKSHOT_SPREAD = WorkshopSettingReal("I. Spread Mod",                 "Spread Radius (Lower is Tighter) (1.2)", 1.2, 0.1, 20, 6);
+    S_BUCKSHOT_GROUP_AMT = WorkshopSettingInteger("I. Spread Mod",           "Spread Bullets Per Group (8)", 8, 3, 12, 7);
 
-    S_SPAWN_BUFF[Buff.Prism] = WorkshopSettingToggle("J. Prism Buff",                    "Spawn Prism (On)", true, 1);
-    S_BUFF_CD[Buff.Prism] = WorkshopSettingInteger("J. Prism Buff",                      "Prism Spawn Time (195)", 195, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Prism] = WorkshopSettingInteger("J. Prism Buff",                    "Prism Ammo (10)", 10, 1, 1000, 3);
+    S_SPAWN_MOD[Mod.Prism] = WorkshopSettingToggle("J. Prism Mod",                    "Spawn Prism (On)", true, 1);
+    S_MOD_CD[Mod.Prism] = WorkshopSettingInteger("J. Prism Mod",                      "Prism Spawn Time (195)", 195, 5, 600, 2);
+    S_MOD_AMMO[Mod.Prism] = WorkshopSettingInteger("J. Prism Mod",                    "Prism Ammo (10)", 10, 1, 1000, 3);
 
-    S_SPAWN_BUFF[Buff.Ballista] = WorkshopSettingToggle("K. Ballista Buff",                 "Spawn Ballista (On)", true, 1);
-    S_BUFF_CD[Buff.Ballista] = WorkshopSettingInteger("K. Ballista Buff",                   "Ballista Spawn Time (240)", 240, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Ballista] = WorkshopSettingInteger("K. Ballista Buff",                 "Ballista Ammo (1)", 1, 1, 1000, 3);
-    S_BAL_SIZE = WorkshopSettingReal("K. Ballista Buff",                        "Ballista Explosion Size (3)", 3, 0.5, 20, 4);
+    S_SPAWN_MOD[Mod.Ballista] = WorkshopSettingToggle("K. Ballista Mod",                 "Spawn Ballista (On)", true, 1);
+    S_MOD_CD[Mod.Ballista] = WorkshopSettingInteger("K. Ballista Mod",                   "Ballista Spawn Time (240)", 240, 5, 600, 2);
+    S_MOD_AMMO[Mod.Ballista] = WorkshopSettingInteger("K. Ballista Mod",                 "Ballista Ammo (1)", 1, 1, 1000, 3);
+    S_BAL_SIZE = WorkshopSettingReal("K. Ballista Mod",                        "Ballista Explosion Size (3)", 3, 0.5, 20, 4);
 
-    S_SPAWN_BUFF[Buff.Electro] = WorkshopSettingToggle("L. Electro Buff",                  "Spawn Electro (On)", true, 1);
-    S_BUFF_CD[Buff.Electro] = WorkshopSettingInteger("L. Electro Buff",                    "Electro Spawn Time (100)", 100, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Electro] = WorkshopSettingInteger("L. Electro Buff",                  "Electro Ammo (20)", 20, 1, 1000, 3);
-    S_ELECTRO_PROJ_DELAY = WorkshopSettingReal("L. Electro Buff",               "Electro Grenade Delay After Hitting a surface (0.35)", 0.35, 0, 2, 4);
-    S_ELECTRO_PROJ_EXPLOSION_RADIUS = WorkshopSettingReal("L. Electro Buff",                     "Electro Grenade Explosion Radius (5)", 5, 1, 20, 5);
-    S_ELECTRO_PROJ_SPEED = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Speed (25)", 25, 1, 50, 6);
-    S_ELECTRO_PROJ_GRAV = WorkshopSettingReal("L. Electro Buff",                    "Electro Grenade Projecitile Gravity (-15)", -15, -100, 100, 7);
-    S_ELECTRO_PDELTA = WorkshopSettingReal("L. Electro Buff",                   "Electro Grenade Projectile Delta (Vertical Offset) (0.1)", 0.1, -1, 1, 8);
+    S_SPAWN_MOD[Mod.Electro] = WorkshopSettingToggle("L. Electro Mod",                  "Spawn Electro (On)", true, 1);
+    S_MOD_CD[Mod.Electro] = WorkshopSettingInteger("L. Electro Mod",                    "Electro Spawn Time (100)", 100, 5, 600, 2);
+    S_MOD_AMMO[Mod.Electro] = WorkshopSettingInteger("L. Electro Mod",                  "Electro Ammo (20)", 20, 1, 1000, 3);
+    S_ELECTRO_PROJ_DELAY = WorkshopSettingReal("L. Electro Mod",               "Electro Grenade Delay After Hitting a surface (0.35)", 0.35, 0, 2, 4);
+    S_ELECTRO_PROJ_EXPLOSION_RADIUS = WorkshopSettingReal("L. Electro Mod",                     "Electro Grenade Explosion Radius (5)", 5, 1, 20, 5);
+    S_ELECTRO_PROJ_SPEED = WorkshopSettingReal("L. Electro Mod",                   "Electro Grenade Projectile Speed (25)", 25, 1, 50, 6);
+    S_ELECTRO_PROJ_GRAV = WorkshopSettingReal("L. Electro Mod",                    "Electro Grenade Projecitile Gravity (-15)", -15, -100, 100, 7);
+    S_ELECTRO_PDELTA = WorkshopSettingReal("L. Electro Mod",                   "Electro Grenade Projectile Delta (Vertical Offset) (0.1)", 0.1, -1, 1, 8);
  
-    S_SPAWN_BUFF[Buff.Spark] = WorkshopSettingToggle("M. Spark Buff",                    "Spawn Spark (On)", true, 1);
-    S_BUFF_CD[Buff.Spark] = WorkshopSettingInteger("M. Spark Buff",                      "Spark Spawn Time (125)", 125, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Spark] = WorkshopSettingInteger("M. Spark Buff",                    "Spark Ammo (20)", 20, 1, 1000, 3);
-    S_SPRK_PRIMARY_EXPLOSION_RADIUS = WorkshopSettingReal("M. Spark Buff",                      "Spark Primary Explosion Size (2)", 2, 1, 10, 5);
-    S_SPRK_PROJ_SPEED = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Speed (20)", 20, 1, 500, 4);
-    S_SPRK_PROJ_EXPLOSION_SIZE = WorkshopSettingReal("M. Spark Buff",                        "Spark Projectile Explosion Size (5)", 5, 1, 100, 5);
-    S_SPRK_HITBOX_RADIUS = WorkshopSettingReal("M. Spark Buff",                   "Spark Projectile Hitbox Size (0.3)", 0.3, 0.1, 10, 7);
+    S_SPAWN_MOD[Mod.Spark] = WorkshopSettingToggle("M. Spark Mod",                    "Spawn Spark (On)", true, 1);
+    S_MOD_CD[Mod.Spark] = WorkshopSettingInteger("M. Spark Mod",                      "Spark Spawn Time (125)", 125, 5, 600, 2);
+    S_MOD_AMMO[Mod.Spark] = WorkshopSettingInteger("M. Spark Mod",                    "Spark Ammo (20)", 20, 1, 1000, 3);
+    S_SPRK_PRIMARY_EXPLOSION_RADIUS = WorkshopSettingReal("M. Spark Mod",                      "Spark Primary Explosion Size (2)", 2, 1, 10, 5);
+    S_SPRK_PROJ_SPEED = WorkshopSettingReal("M. Spark Mod",                        "Spark Projectile Speed (20)", 20, 1, 500, 4);
+    S_SPRK_PROJ_EXPLOSION_SIZE = WorkshopSettingReal("M. Spark Mod",                        "Spark Projectile Explosion Size (5)", 5, 1, 100, 5);
+    S_SPRK_HITBOX_RADIUS = WorkshopSettingReal("M. Spark Mod",                   "Spark Projectile Hitbox Size (0.3)", 0.3, 0.1, 10, 7);
 
-    S_SPAWN_BUFF[Buff.Arc] = WorkshopSettingToggle("N. Arc Buff",                      "Spawn Arc (On)", true, 1);
-    S_BUFF_CD[Buff.Arc] = WorkshopSettingInteger("N. Arc Buff",                        "Arc Spawn Time (195)", 195, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Arc] = WorkshopSettingInteger("N. Arc Buff",                      "Arc Ammo (540)", 540, 1, 10000, 3);
-    S_ARC_BOUNCES = WorkshopSettingInteger("N. Arc Buff",                       "Arc Maximum Bounces (4)", 4, 1, 24, 5) + 1; // unsure why i have to add 1 here and not on ricochet
+    S_SPAWN_MOD[Mod.Arc] = WorkshopSettingToggle("N. Arc Mod",                      "Spawn Arc (On)", true, 1);
+    S_MOD_CD[Mod.Arc] = WorkshopSettingInteger("N. Arc Mod",                        "Arc Spawn Time (195)", 195, 5, 600, 2);
+    S_MOD_AMMO[Mod.Arc] = WorkshopSettingInteger("N. Arc Mod",                      "Arc Ammo (540)", 540, 1, 10000, 3);
+    S_ARC_BOUNCES = WorkshopSettingInteger("N. Arc Mod",                       "Arc Maximum Bounces (4)", 4, 1, 24, 5) + 1; // unsure why i have to add 1 here and not on ricochet
 
-    S_SPAWN_BUFF[Buff.Needle] = WorkshopSettingToggle("O. Needle Buff",                "Spawn Needle Buff (On)", true, 1);
-    S_BUFF_CD[Buff.Needle] = WorkshopSettingInteger("O. Needle Buff",                  "Needle Spawn Time (195)", 195, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Needle] = WorkshopSettingInteger("O. Needle Buff",                "Needle Ammo (1000)", 1000, 1, 100000, 3);
+    S_SPAWN_MOD[Mod.Needle] = WorkshopSettingToggle("O. Needle Mod",                "Spawn Needle Mod (On)", true, 1);
+    S_MOD_CD[Mod.Needle] = WorkshopSettingInteger("O. Needle Mod",                  "Needle Spawn Time (195)", 195, 5, 600, 2);
+    S_MOD_AMMO[Mod.Needle] = WorkshopSettingInteger("O. Needle Mod",                "Needle Ammo (1000)", 1000, 1, 100000, 3);
 
-    S_SPAWN_BUFF[Buff.Volt] = WorkshopSettingToggle("P. Volt Buff",                     "Spawn Volt (On)", true, 1);
-    S_BUFF_CD[Buff.Volt] = WorkshopSettingInteger("P. Volt Buff",                       "Volt Spawn Time (165)", 165, 5, 600, 2);
-    S_BUFF_AMMO[Buff.Volt] = WorkshopSettingReal("P. Volt Buff",                        "Volt Ammo (150)", 150, 1, 10000, 3);
-    S_VLT_DMG = WorkshopSettingReal("P. Volt Buff",                             "Volt Damage (15)", 10, 0.04, 300, 4) / 25;
-    S_MAX_VLT_SPREAD = WorkshopSettingReal("P. Volt Buff",                      "Volt Maximum Spread (Lower is Tighter) (17)", 17, 0, 100, 5);
-    S_MAX_VLT_DIST = WorkshopSettingReal("P. Volt Buff",                        "Volt Maximum Distance (100)", 100, 1, 300, 6);
-    S_MIN_VLT_DIST = WorkshopSettingReal("P. Volt Buff",                        "Volt Minimum Distance (2)", 2, 1, 300, 7);
-    S_VLT_TIME = WorkshopSettingReal("P. Volt Buff",                            "Volt Overheat Time (3)", 3, 0.1, 10, 8);
+    S_SPAWN_MOD[Mod.Volt] = WorkshopSettingToggle("P. Volt Mod",                     "Spawn Volt (On)", true, 1);
+    S_MOD_CD[Mod.Volt] = WorkshopSettingInteger("P. Volt Mod",                       "Volt Spawn Time (165)", 165, 5, 600, 2);
+    S_MOD_AMMO[Mod.Volt] = WorkshopSettingReal("P. Volt Mod",                        "Volt Ammo (150)", 150, 1, 10000, 3);
+    S_VLT_DMG = WorkshopSettingReal("P. Volt Mod",                             "Volt Damage (15)", 10, 0.04, 300, 4) / 25;
+    S_MAX_VLT_SPREAD = WorkshopSettingReal("P. Volt Mod",                      "Volt Maximum Spread (Lower is Tighter) (17)", 17, 0, 100, 5);
+    S_MAX_VLT_DIST = WorkshopSettingReal("P. Volt Mod",                        "Volt Maximum Distance (100)", 100, 1, 300, 6);
+    S_MIN_VLT_DIST = WorkshopSettingReal("P. Volt Mod",                        "Volt Minimum Distance (2)", 2, 1, 300, 7);
+    S_VLT_TIME = WorkshopSettingReal("P. Volt Mod",                            "Volt Overheat Time (3)", 3, 0.1, 10, 8);
 
-    S_ENABLE_MUTATORS = WorkshopSettingToggle("Q. Mutators",                    "Enable Mutators (On)", true, 1);
-    S_RANDOM_MUTATOR_COOLDOWN = WorkshopSettingToggle("Q. Mutators",            "Randomize Relative Spawn Time (On)", true, 2);
-    S_M_CD = WorkshopSettingInteger("Q. Mutators",                              "Mutator Spawn Time (180)", 180, 5, 600, 3);
-    S_M_CREATION = WorkshopSettingInteger("Q. Mutators",                        "Mutator Creation Time (15)", 15, 1, 600, 4);
-    S_M_DURATION = WorkshopSettingInteger("Q. Mutators",                        "Mutator Duration (40)", 40, 5, 600, 5);
+    S_ENABLE_BUFFS = WorkshopSettingToggle("Q. Buffs",                    "Enable Buffs (On)", true, 1);
+    S_RANDOM_BUFF_COOLDOWN = WorkshopSettingToggle("Q. Buffs",            "Randomize Relative Spawn Time (On)", true, 2);
+    S_BUFF_CD = WorkshopSettingInteger("Q. Buffs",                              "Buff Spawn Time (180)", 180, 5, 600, 3);
+    S_BUFF_CREATION = WorkshopSettingInteger("Q. Buffs",                        "Buff Creation Time (15)", 15, 1, 600, 4);
+    S_BUFF_DURATION = WorkshopSettingInteger("Q. Buffs",                        "Buff Duration (40)", 40, 5, 600, 5);
 
-    S_SPAWN_MUTATOR[0] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Seer (On)", true, 0);
-    S_SPAWN_MUTATOR[1] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Dummy NYI (On)", false, 1);
-    S_SPAWN_MUTATOR[2] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn NYI (On)", false, 2);
-    S_SPAWN_MUTATOR[3] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Poison NYI (On)", false, 3);
-    S_SPAWN_MUTATOR[4] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Berserk (On)", true, 4);
-    S_SPAWN_MUTATOR[5] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Replicate NYI (On)", false, 5);
-    S_SPAWN_MUTATOR[6] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Denial (On)", true, 6);
-    S_SPAWN_MUTATOR[7] = WorkshopSettingToggle("R. Mutator Spawning",               "Spawn Mirage NYI (On)", false, 7);
+    S_SPAWN_BUFF[0] = WorkshopSettingToggle("R. Buff Spawning",               "Spawn Seer (On)", true, 0);
+    S_SPAWN_BUFF[1] = WorkshopSettingToggle("R. Buff Spawning",               "Spawn Dummy NYI (On)", false, 1);
+    S_SPAWN_BUFF[2] = WorkshopSettingToggle("R. Buff Spawning",               "Spawn NYI (On)", false, 2);
+    S_SPAWN_BUFF[3] = WorkshopSettingToggle("R. Buff Spawning",               "Spawn Poison NYI (On)", false, 3);
+    S_SPAWN_BUFF[4] = WorkshopSettingToggle("R. Buff Spawning",               "Spawn Berserk (On)", true, 4);
+    S_SPAWN_BUFF[5] = WorkshopSettingToggle("R. Buff Spawning",               "Spawn Replicate NYI (On)", false, 5);
+    S_SPAWN_BUFF[6] = WorkshopSettingToggle("R. Buff Spawning",               "Spawn Denial (On)", true, 6);
+    S_SPAWN_BUFF[7] = WorkshopSettingToggle("R. Buff Spawning",               "Spawn Mirage NYI (On)", false, 7);
 
-    if (!S_ENABLE_BUFFS)
+    if (!S_ENABLE_MODS)
     {
-        for (Number i! = 0; i < S_SPAWN_BUFF.Length; i++)
-            S_SPAWN_BUFF[i] = false;
+        for (Number i! = 0; i < S_SPAWN_MOD.Length; i++)
+            S_SPAWN_MOD[i] = false;
     }
 
-    if (S_ENABLE_MUTATORS)
+    if (S_ENABLE_BUFFS)
     {
-        mutatorIndex = [];
-        for (Number i! = 0; i < S_SPAWN_MUTATOR.Length; i++)
+        buffIndex = [];
+        for (Number i! = 0; i < S_SPAWN_BUFF.Length; i++)
         {
-            if (S_SPAWN_MUTATOR[i])
-                mutatorIndex = Append(mutatorIndex, i); // populate m_in with the indices of the mutators that are enabled
+            if (S_SPAWN_BUFF[i])
+                buffIndex = Append(buffIndex, i); // populate m_in with the indices of the buffs that are enabled
         }
     }
 
-    MIN_SPEED = 5.5 * (S_MOVE_SPEED / 100) * 0.91; // account for backwards speed, seems to be 10% slower than moving forward with some buffer just in case
+    MIN_SPEED = 5.5 * (S_MOVE_SPEED / 100) * 0.91; // account for backwards speed, seems to be 10% slower than moving forward with some moder just in case
     initilized = true;
 }
 
@@ -217,19 +217,19 @@ if (AllLiving().Length >= 1)
 
     if (validMap)
     {
-        if (S_ENABLE_BUFFS)
+        if (S_ENABLE_MODS)
         {
-            for (Number i! = 0; i < S_BUFF_CD.Length; i++)
+            for (Number i! = 0; i < S_MOD_CD.Length; i++)
             {
-                buffIdx = i;
-                BuffCooldown();
+                modIdx = i;
+                ModCooldown();
             }
         }
 
-        if (S_ENABLE_MUTATORS)
+        if (S_ENABLE_BUFFS)
         {
-            SetMutatorPosition();
-            StartMutatorTimer(); 
+            SetBuffPosition();
+            StartBuffTimer(); 
         }
     }
 }
@@ -240,8 +240,8 @@ Event.OnPlayerJoin
     WaitUntil(initilized, 3);
     if (validMap)
     {
-        CreateEffect(IsAlive() && playerHasBuff && !HasStatus(player, Status.PhasedOut) ? All() : null, Effect.GoodAura, buffColor, player, 0.5, EffectRev.VisibleToPositionRadiusAndColor);
-        CreateEffect(IsAlive() && playerHasMutator ? All() : null, Effect.BadAura, mutatorColors[1], player, 0.5, EffectRev.VisibleToPositionRadiusAndColor);
+        CreateEffect(IsAlive() && playerHasMod && !HasStatus(player, Status.PhasedOut) ? All() : null, Effect.GoodAura, modColor, player, 0.5, EffectRev.VisibleToPositionRadiusAndColor);
+        CreateEffect(IsAlive() && playerHasBuff ? All() : null, Effect.BadAura, buffColors[1], player, 0.5, EffectRev.VisibleToPositionRadiusAndColor);
     }
 
     if (S_JETPACK_ENABLED)
@@ -258,8 +258,8 @@ Event.OnPlayerJoin
     equippedAbility = Ability.Stimpack; 
 
     delay = S_DELAY;
+    playerHasMod = false;
     playerHasBuff = false;
-    playerHasMutator = false;
 }
 
 rule: "[Main] :: Player Dead"
@@ -289,11 +289,11 @@ if (IsAlive())
     fuel = 1;
 
     // check seer users and apply outlines to the new player
-    if (mutatorUser.mutatorEnabled[0])
-        StartForcingPlayerOutlines(player, mutatorUser, true, mutatorColors[1], OutlineType.Always);
+    if (buffUser.buffEnabled[0])
+        StartForcingPlayerOutlines(player, buffUser, true, buffColors[1], OutlineType.Always);
 
     Wait(1);
-    canPickupMutator = true;
+    canPickupBuff = true;
     SetMaxHealth(player, (100 / MaxHealth()) * 100);
     SetMoveSpeed(player, S_MOVE_SPEED);
 }
@@ -321,26 +321,26 @@ if (IsPrimaryHeld())
 
 rule: "[Main] :: Bullet Trail"
 Event.OngoingPlayer
-if (playerHasBuff)
+if (playerHasMod)
 if (firingPrimary)
 {
     Wait(0.064); // this shit is so ass !!! stupid wait for the beam to better align with illari firing, will still be unaligned during mouse movement no matter what
 
-    // if (playerHasBuff)
+    // if (playerHasMod)
     // {
         gunPos = WeaponMuzzle(EyePos(), Facing());
         firstHp = RayHit(EyePos(), EyePos() + Facing() * 300, AllLiving(), player);
     // }
 
     if (DistanceBetween(EyePos(), firstHp) < 300)
-        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[currentBuffIdx], firstHp, 0.3);
+        PlayEffect(All(), PlayEffect.GoodExplosion, MOD_COLORS[currentModIdx], firstHp, 0.3);
 
-    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, firstHp, BUFF_COLORS[currentBuffIdx], EffectRev.None);
-    buffTrail = LastCreatedEntity();
+    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, firstHp, MOD_COLORS[currentModIdx], EffectRev.None);
+    modTrail = LastCreatedEntity();
 
     Wait(0.25);
     firstHp = null;
-    DestroyEffect(buffTrail);
+    DestroyEffect(modTrail);
 }
 
 rule: "[Main] :: Automatically Force Hero"
@@ -431,7 +431,7 @@ if (usingAbility)
             CreateEffect(player, Effect.WinstonTeslaCannonTargetSound, Color.Team1, player, 30, EffectRev.VisibleToPositionRadiusAndColor);
             abilityEffect[2] = LastCreatedEntity();
 
-            if (!mutatorEnabled[4])
+            if (!buffEnabled[4])
                 delay *= 0.70;
 
             bhopSpeedRate = S_BHOP_SPEED_RATE * 1.30;
@@ -461,7 +461,7 @@ if (usingAbility)
         case Ability.Fade:
             break;
         case Ability.Stimpack:
-            if (!mutatorEnabled[4])
+            if (!buffEnabled[4])
                 delay /= 0.70;
             else 
                 delay = 0.5;

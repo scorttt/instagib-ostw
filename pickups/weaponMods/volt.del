@@ -1,5 +1,5 @@
 import "../../main.del";
-import ".bmain.del";
+import ".modMain.del";
 
 globalvar Number S_VLT_TIME;
 globalvar Number S_MAX_VLT_SPREAD;
@@ -16,16 +16,16 @@ playervar Boolean overheated; // if vlt_temp hit 1
 
 disabled rule: "---------------- Volt ----------------"{}
 
-rule: "[Buff] :: Volt : Init"
+rule: "[Mod] :: Volt : Init"
 Event.OnPlayerJoin
 {
     overheated = false;
     voltDist = S_MAX_VLT_DIST;
 }
 
-rule: "[Buff] :: Volt : Action - Fire"
+rule: "[Mod] :: Volt : Action - Fire"
 Event.OngoingPlayer
-if (buffEnabled[Buff.Volt])
+if (modEnabled[Mod.Volt])
 if (!overheated)
 if (IsPrimaryHeld())
 if (!IsFiringSecondary())
@@ -38,12 +38,12 @@ if (IsAlive())
 
     WaitIfTrue(0.05); // brief hold
     if (!infAmmo)
-        heldBuffAmmo[Buff.Volt] -= 5;
+        heldModAmmo[Mod.Volt] -= 5;
 
     Vector voltHitPos = RayCastHitPosition(EyePosition(), EyePosition() + Facing() * voltDist, AllLivingPlayers(), player);
     MinWait();
 
-    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), voltHitPos, BUFF_COLORS[Buff.Volt], EffectRev.VisibleToPositionRadiusAndColor);
+    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), voltHitPos, MOD_COLORS[Mod.Volt], EffectRev.VisibleToPositionRadiusAndColor);
     voltEffects[0] = LastCreatedEntity();
     CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, null, player, 100);
     voltEffects[1] = LastCreatedEntity();
@@ -52,14 +52,14 @@ if (IsAlive())
     CreateEffect(hit ? All() : null, Effect.WinstonTeslaCannonSound, null, voltHitPos, 100);
     voltEffects[3] = LastCreatedEntity();
 
-    while (buffEnabled[Buff.Volt] && !overheated && IsPrimaryHeld() && IsAlive())
+    while (modEnabled[Mod.Volt] && !overheated && IsPrimaryHeld() && IsAlive())
     {
         AddOverTime(voltTemp, S_VLT_TIME, 0, 1, 0.016);
         SubtractOverTime(voltDist, S_VLT_TIME, S_MIN_VLT_DIST, S_MAX_VLT_DIST, 0.016);
 
         // slow the rate of ammo depletion the longer fire is held
         if (!infAmmo)
-            heldBuffAmmo[Buff.Volt] -= (1 - voltTemp) * 0.645;
+            heldModAmmo[Mod.Volt] -= (1 - voltTemp) * 0.645;
 
         voltDir = SpreadAngleDirection(player, RandomReal(-voltTemp * S_MAX_VLT_SPREAD, voltTemp * S_MAX_VLT_SPREAD), RandomReal(0, 360));
 
@@ -69,7 +69,7 @@ if (IsAlive())
         if (DistanceBetween(EyePos(), voltHitPos) < voltDist - 1)
         {
             hit = true;
-            PlayEffect(All(), PlayEffect.BadExplosion, BUFF_COLORS[Buff.Volt], voltHitPos, 0.5);
+            PlayEffect(All(), PlayEffect.BadExplosion, MOD_COLORS[Mod.Volt], voltHitPos, 0.5);
         }
         else 
         {
@@ -109,7 +109,7 @@ if (IsAlive())
     }
 }
 
-rule: "[Buff] :: Volt : Action - Decrease Temp"
+rule: "[Mod] :: Volt : Action - Decrease Temp"
 Event.OngoingPlayer
 if (voltTemp > 0)
 if (!IsPrimaryHeld() || overheated)
@@ -123,11 +123,11 @@ if (!IsPrimaryHeld() || overheated)
         AddOverTime(voltDist, S_VLT_TIME, S_MIN_VLT_DIST, S_MAX_VLT_DIST, 0.032);
         Wait(0.032);
 
-        if (voltTemp == 0 && buffEnabled[Buff.Volt])
+        if (voltTemp == 0 && modEnabled[Mod.Volt])
         {
             overheated = false;
             disablePrimaryFire = true;
-            heldBuffAmmo[Buff.Volt] = Ceil(heldBuffAmmo[Buff.Volt]);
+            heldModAmmo[Mod.Volt] = Ceil(heldModAmmo[Mod.Volt]);
             break;
         }
     }
@@ -136,9 +136,9 @@ if (!IsPrimaryHeld() || overheated)
 // playervar Any[] chainEffects;
 // playervar Player prevPlayer;
 // playervar Player[] newPlayers;
-// rule: "[Buff] :: Volt : Action - Chain Reaction"
+// rule: "[Mod] :: Volt : Action - Chain Reaction"
 // Event.OnDamageDealt
-// if (buffEnabled[Buff.Volt])
+// if (modEnabled[Mod.Volt])
 // if (EventWasWorkshop())
 // if (!overheated)
 // {
@@ -151,16 +151,16 @@ if (!IsPrimaryHeld() || overheated)
 //     MinWait();
 // }
 
-// rule: "[Buff] :: Volt : Action - Chain Reaction Effects"
+// rule: "[Mod] :: Volt : Action - Chain Reaction Effects"
 // Event.OnDeath
-// if (buffEnabled[Buff.Volt])
+// if (modEnabled[Mod.Volt])
 // if (newPlayers.Length > 1)
 // {
 //     // dunno why if this is in the main chain reaction rule it just fucking breaks im just gonna blame blizzard and call it a day tbh
 //     for (Number i! = 0; i < newPlayers.Length; i++)
 //     {
-//         CreateBeamEffect(player, BeamType.BadBeam, prevPlayer, newPlayers[i], buffColors[Buff.Volt], EffectRev.None);
-//         PlayEffect(All(), PlayEffect.BadExplosion, buffColors[Buff.Volt], newPlayers[i], 1);
+//         CreateBeamEffect(player, BeamType.BadBeam, prevPlayer, newPlayers[i], modColors[Mod.Volt], EffectRev.None);
+//         PlayEffect(All(), PlayEffect.BadExplosion, modColors[Mod.Volt], newPlayers[i], 1);
 //         chainEffects[i] = LastCreatedEntity();
 //     }
 

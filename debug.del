@@ -1,36 +1,36 @@
 import "main.del";
 
-globalvar Boolean[] S_FAST_PICKUP_SPAWN; // collectable fast spawning. [0] = buff, [1] = mutator
-globalvar Boolean[] spawnWithBuff; // array of buffs to give
+globalvar Boolean[] S_FAST_PICKUP_SPAWN; // collectable fast spawning. [0] = mod, [1] = buff
+globalvar Boolean[] spawnWithMod; // array of mods to give
 globalvar Boolean infiniteAmmoDbg; // infinite ammo bool
 
 rule: "Global Debug"
 {
     EnableInspectorRecording();
 
-    S_FAST_PICKUP_SPAWN[0] = WorkshopSettingToggle(". Debug",                 "Fast Buff Spawn", false, -12);
-    S_FAST_PICKUP_SPAWN[1] = WorkshopSettingToggle(". Debug",                 "Fast Mutator Spawn", false, -11);
-    spawnWithBuff[Buff.Pierce] = WorkshopSettingToggle(". Debug",                      "Spawn With Pierce", false, -10);
-    spawnWithBuff[Buff.Ricochet] = WorkshopSettingToggle(". Debug",                      "Spawn With Ricochet", false, -9);
-    spawnWithBuff[Buff.Buckshot] = WorkshopSettingToggle(". Debug",                      "Spawn With Buckshot", false, -8);
-    spawnWithBuff[Buff.Prism] = WorkshopSettingToggle(". Debug",                      "Spawn With Prism", false, -7);
-    spawnWithBuff[Buff.Ballista] = WorkshopSettingToggle(". Debug",                      "Spawn With Ballista", false, -6);
-    spawnWithBuff[Buff.Electro] = WorkshopSettingToggle(". Debug",                      "Spawn With Electro", false, -5);
-    spawnWithBuff[Buff.Spark] = WorkshopSettingToggle(". Debug",                      "Spawn With Spark", false, -4);
-    spawnWithBuff[Buff.Arc] = WorkshopSettingToggle(". Debug",                      "Spawn With Arc", false, -3);
-    spawnWithBuff[Buff.Needle] = WorkshopSettingToggle(". Debug",                      "Spawn With Needle", false, -2);
-    spawnWithBuff[Buff.Volt] = WorkshopSettingToggle(". Debug",                      "Spawn With Volt", false, -1);
+    S_FAST_PICKUP_SPAWN[0] = WorkshopSettingToggle(". Debug",                 "Fast Mod Spawn", false, -12);
+    S_FAST_PICKUP_SPAWN[1] = WorkshopSettingToggle(". Debug",                 "Fast Buff Spawn", false, -11);
+    spawnWithMod[Mod.Pierce] = WorkshopSettingToggle(". Debug",                      "Spawn With Pierce", false, -10);
+    spawnWithMod[Mod.Ricochet] = WorkshopSettingToggle(". Debug",                      "Spawn With Ricochet", false, -9);
+    spawnWithMod[Mod.Buckshot] = WorkshopSettingToggle(". Debug",                      "Spawn With Buckshot", false, -8);
+    spawnWithMod[Mod.Prism] = WorkshopSettingToggle(". Debug",                      "Spawn With Prism", false, -7);
+    spawnWithMod[Mod.Ballista] = WorkshopSettingToggle(". Debug",                      "Spawn With Ballista", false, -6);
+    spawnWithMod[Mod.Electro] = WorkshopSettingToggle(". Debug",                      "Spawn With Electro", false, -5);
+    spawnWithMod[Mod.Spark] = WorkshopSettingToggle(". Debug",                      "Spawn With Spark", false, -4);
+    spawnWithMod[Mod.Arc] = WorkshopSettingToggle(". Debug",                      "Spawn With Arc", false, -3);
+    spawnWithMod[Mod.Needle] = WorkshopSettingToggle(". Debug",                      "Spawn With Needle", false, -2);
+    spawnWithMod[Mod.Volt] = WorkshopSettingToggle(". Debug",                      "Spawn With Volt", false, -1);
     infiniteAmmoDbg = WorkshopSettingToggle(". Debug",                           "Infinite Ammo", false, -0.9);
 
     if (S_FAST_PICKUP_SPAWN[0])
-        for (Number i! = 0; i < S_BUFF_CD.Length; i++)
-            S_BUFF_CD[i] = 2;
+        for (Number i! = 0; i < S_MOD_CD.Length; i++)
+            S_MOD_CD[i] = 2;
 
     if (S_FAST_PICKUP_SPAWN[1])
     {
-        S_RANDOM_MUTATOR_COOLDOWN = false;
-        S_M_CD = 2;
-        S_M_CREATION = 2;
+        S_RANDOM_BUFF_COOLDOWN = false;
+        S_BUFF_CD = 2;
+        S_BUFF_CREATION = 2;
     }
 
     // server load, entity, and text information
@@ -44,29 +44,29 @@ rule: "Global Debug"
 
     // world information
     // CreateHudText(host, null, 
-    // <"validMap: <0>\nmutatorCooldown: <1>, chosenMutator: <2> (<3>)\nfinal time: <4> + <5>, mut remaining: <6>", 
+    // <"validMap: <0>\nbuffCooldown: <1>, chosenBuff: <2> (<3>)\nfinal time: <4> + <5>, mut remaining: <6>", 
     // validMap,
-    // mutatorCooldown, chosenMutator, mutatorStr,
-    // S_M_CD, rand, mutatorIndex.Length
+    // buffCooldown, chosenBuff, buffStr,
+    // S_BUFF_CD, rand, buffIndex.Length
 
     // >, null, Location.Right, 0.3);
 
     // WaitUntil(validMap, 10);
 
-    // buff world information
-    // for (Number i! = 0; i < buffPos.Length; i++)
+    // mod world information
+    // for (Number i! = 0; i < modPos.Length; i++)
     // {
     //     CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
-    //     Once(i), buffNames[Once(i)],
-    //     buffCooldown[Once(i)],
-    //     Once(buffPos[i]),
-    //     DistanceBetween(PositionOf(host) + Up(), Once(buffPos[i]))>, 
-    //     Once(buffPos[i]), 
+    //     Once(i), modNames[Once(i)],
+    //     modCooldown[Once(i)],
+    //     Once(modPos[i]),
+    //     DistanceBetween(PositionOf(host) + Up(), Once(modPos[i]))>, 
+    //     Once(modPos[i]), 
 
     //     1, Clipping.DoNotClip);
     // }
 
-    // // mutator world information
+    // // buff world information
     // CreateInWorldText(host, <"<0> (<1>), <2>\n<3>\n<4>\n\n\n\n\n", 
     // chosen_mut, m_str, m_cd != 0 ? m_cd : m_pb,
     // m_pos, 
@@ -97,17 +97,17 @@ Event.OnPlayerJoin
     //         DistanceBetween(EyePos(), Curr()) <= 0.9999)),
     //         null, Location.Right, 0.3);
 
-    for (Number i! = 0; i < spawnWithBuff.Length; i++)
+    for (Number i! = 0; i < spawnWithMod.Length; i++)
     {
-        if (spawnWithBuff[i])
+        if (spawnWithMod[i])
         {
-            playerHasBuff = true;
-            buffEnabled[i] = true;
-            heldBuffAmmo[i] = S_BUFF_AMMO[i];
-            heldBuffStr[HeldStr.Name] = BUFF_NAMES[i];
-            heldBuffStr[HeldStr.Icon] = BUFF_ICONS[i];
-            currentBuffIdx = i;
-            buffColor = BUFF_COLORS[i];
+            playerHasMod = true;
+            modEnabled[i] = true;
+            heldModAmmo[i] = S_MOD_AMMO[i];
+            heldModStr[HeldStr.Name] = MOD_NAMES[i];
+            heldModStr[HeldStr.Icon] = MOD_ICONS[i];
+            currentModIdx = i;
+            modColor = MOD_COLORS[i];
 
             if (i == 9 || i == 7 || i == 8)
             {
@@ -122,12 +122,12 @@ Event.OnPlayerJoin
         infAmmo = true;
 
     // player information
-    // CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\ngainingMoveSpeed: <4>, bhSpeedFloor: <5>, bhSpeedPercent: <6>, HSpeed: <7>\nisdodging: <8>, isflying: <9>, isHovering: <10>\n<11>\nhas mutator: <12>", 
+    // CreateHudText(host, null, <" \n<0>: <1>, <2>, <3>\ngainingMoveSpeed: <4>, bhSpeedFloor: <5>, bhSpeedPercent: <6>, HSpeed: <7>\nisdodging: <8>, isflying: <9>, isHovering: <10>\n<11>\nhas buff: <12>", 
     // player, PositionOf(), Facing(), ThrottleOf(),
     // gainingMoveSpeed, bhopSpeedFloor, bhopSpeedPercent, HorizontalSpeedOf(), 
     // isDodging, isFlying, isHovering,
-    // playerHasBuff ? <"current buff: <0>", heldBuffStr> : <"recent buff: <0>", heldBuffStr>,
-    // playerHasMutator
+    // playerHasMod ? <"current mod: <0>", heldModStr> : <"recent mod: <0>", heldModStr>,
+    // playerHasBuff
 
     // >, null, Location.Right, 0.5);
 }
@@ -139,21 +139,21 @@ if (player == host)
     LogToInspector(<"<0> damage", EventDamage()>);
 }
 
-rule: "Remove Buff Hotkey"
+rule: "Remove Mod Hotkey"
 Event.OngoingPlayer
 if (IsInteractHeld())
-if (playerHasBuff)
+if (playerHasMod)
 {
     WaitIfTrue(1);
 
     disablePrimaryFire = false;
     AllowButton(player, Button.PrimaryFire);
-    heldBuffAmmo[currentBuffIdx] = 0;
-    buffEnabled[currentBuffIdx] = false;
-    buffColor = null;
+    heldModAmmo[currentModIdx] = 0;
+    modEnabled[currentModIdx] = false;
+    modColor = null;
 
-    playerHasBuff = false;
-    currentBuffIdx = -1;
+    playerHasMod = false;
+    currentModIdx = -1;
 }
 
 // rule: "Kill"

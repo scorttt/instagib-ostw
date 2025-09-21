@@ -1,0 +1,261 @@
+import "../../main.del";
+
+// everything buff related is a text book definition of spaghetti code. surely this wont bite me in the ass later :)
+globalvar Boolean S_ENABLE_BUFFS; // buff can spawn
+globalvar Boolean S_RANDOM_BUFF_COOLDOWN; // buff timer is randomized
+globalvar Boolean[] S_SPAWN_BUFF; // allowed buffs
+globalvar Number S_BUFF_CD; // constant for All() buffs
+globalvar Number S_BUFF_CREATION; // constant for the buff to spawn after m_cd runs low
+globalvar Number S_BUFF_DURATION; // constant for the buff duration
+globalvar Number chosenBuff; // chosen id of the buff
+globalvar Vector[] BUFF_LOCATIONS; // array of All() possible buff locations
+globalvar Color[] buffColors; // color of the currently spawned buff, 0: category color 1: buff color
+globalvar Vector buffPos; // final position of the buff
+globalvar Number buffProgressBar; // progress bar control var for S_BUFF_CREATION
+globalvar Boolean isBuffTimerRunning; // is the buff timer running
+globalvar Boolean isBuffInWorld; // is the buff currently in the world
+globalvar Number buffCooldown; // remaining time for the buff to spawn
+globalvar String buffIcon; // current buff icon string
+globalvar String buffStr; // current buff name string
+globalvar Player | String buffUser; // current player that owns the buff
+
+playervar Boolean canPickupBuff; // can the player pick up the buff
+playervar Boolean playerHasBuff; // does the player have the buff
+playervar Boolean[] buffEnabled; // which buff is enabled
+playervar Number buffNormalTimeLeft; // progress bar control var for the player owning a buff
+playervar Button abilityButton; // current ability button
+
+disabled rule: "---------------- Buff ----------------"{}
+
+rule: "[Buff] :: Create Collectable"
+if (matchStarted)
+if (validMap)
+if (S_ENABLE_BUFFS)
+if (buffCooldown <= 0)
+if (buffIndex.Length > 0)
+{
+    isBuffInWorld = true;
+
+    BigMessage(All(), <"<0> is spawning", buffStr>);
+
+    isBuffTimerRunning = false;
+    ChaseVariableOverTime(buffProgressBar, 100, S_BUFF_CREATION, TimeChaseReevaluation.DestinationAndDuration);
+    Wait(S_BUFF_CREATION);
+    StopChasingVariable(buffProgressBar);
+
+    PlayEffect(All(), PlayEffect.BadPickupEffect, buffColors[0], buffPos, 2);
+    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[1], buffPos, 4);
+    PlayEffect(All(), PlayEffect.RingExplosion, buffColors[1], buffPos + Vector(0, -0.5, 0), 3);
+}
+
+rule: "[Buff] :: Collect Buff"
+Event.OngoingPlayer
+if (HasSpawned())
+if (!playerHasBuff)
+if (buffProgressBar == 100)
+if (isBuffInWorld)
+if (canPickupBuff)
+if (DistanceBetween(buffPos, PositionOf() + Up()) < S_PICKUP_RAD)
+if (IsAlive())
+{
+    PlayEffect(All(), PlayEffect.BadPickupEffect, buffColors[0], buffPos, 1);
+    PlayEffect(All(), PlayEffect.BuffExplosionSound, null, buffPos, 200);
+    isBuffInWorld = false;
+    playerHasBuff = true;
+    buffUser = player;
+    buffEnabled[chosenBuff] = true;
+
+    // TODO: replace this with SubtractOverTime()
+    buffNormalTimeLeft = 100;
+    ChaseVariableOverTime(buffNormalTimeLeft, 0, S_BUFF_DURATION, TimeChaseReevaluation.None);
+}
+
+void RemoveBuff() playervar "[Buff] :: Remove Buff"
+{
+    PlayEffect(All(), PlayEffect.BadPickupEffect, buffColors[0], player, 1);
+    playerHasBuff = false;
+
+    for (Number i! = 0; i < 9; i++) // brute force (and ugly) way to remove the buff
+    {
+        if (buffEnabled[i])
+        {
+            LogToInspector(<"<0> removed from <1>", BUFF_NAMES[i], buffUser>);
+            buffEnabled[i] = false;
+
+            switch (i)
+            {
+                case (0):
+                    StopForcingPlayerOutlines(All(), player);
+                    break;
+                case (1):
+                    break;
+                case (2):
+                    break;
+                case (3):
+                    break;
+                case (4):
+                    infAmmo = false;
+                    infFuel = false;
+
+                    // infDodges = false;
+                    // maxDodges = S_DODGE_AMT;
+                    // if (dodges > S_DODGE_AMT)
+                    //     dodges = maxDodges;
+
+                    if (usingAbility && equippedAbility == Ability.Stimpack)
+                        delay = S_DELAY * 0.70;
+                    else 
+                        delay = S_DELAY;
+
+                    bhopSpeedFloor /= 2;
+                    bhopSpeedRate = S_BHOP_SPEED_RATE / 2;
+                    bhopSpeedPercent /= 2;
+                    SetMoveSpeed(player, bhopSpeedPercent);
+                    break;
+                case (5):
+                    break;
+                case (6):
+                    DestroyEffect(denialBuffEffect);
+                    break;
+                case (7):
+                    break;
+            }
+        }
+    }
+
+    buffUser = null;
+}
+
+rule: "[Buff] :: Time Ran out, Remove Buff"
+Event.OngoingPlayer
+if (buffNormalTimeLeft <= 0)
+if (playerHasBuff)
+{
+    SmallMessage(player, <"  <0> duration expired", buffStr>);
+    RemoveBuff();
+    buffIndex -= chosenBuff; // remove the chosen buff from the array
+
+    MinWait();
+
+    SetBuffPosition();
+    StartBuffTimer();
+}
+
+globalvar Vector newBuffPos;
+// TODO: timer that resets the m_pos over time if it hasn't been picked up
+// TODO: show remaining time on the buff icon
+rule: "[Buff] :: Player Died, Place Buff on Victims Body"
+Event.OnDeath
+if (playerHasBuff)
+if (!buffEnabled[6])
+{
+    SmallMessage(player, <"<0> dropped", buffStr>);
+    RemoveBuff();
+
+    if (!EventWasEnvironment())
+    {
+        newBuffPos = RayCastHitPosition(PositionOf(), PositionOf() + Down() * 100, null, All(), false) + Up();
+
+        if (newBuffPos.Y < LOWEST_MAP_Y)
+        {
+            newBuffPos = NearestWalkablePosition(Victim()) + Up();
+        }
+    }
+    else 
+        newBuffPos = NearestWalkablePosition(Victim()) + Up();
+
+    buffPos = newBuffPos;
+    canPickupBuff = false;
+    isBuffInWorld = true;
+}
+
+globalvar Number rand;
+void SetBuffPosition() "[Buff] :: Set new position and reset time"
+{
+    // get a random position from the buffLocations array in pickups/init.del
+    Vector chosenBuffPos = BUFF_LOCATIONS.Random(); 
+    buffPos = chosenBuffPos;
+
+    if (buffIndex.Length > 0)
+    {
+        // get a random buff from the array
+        chosenBuff = buffIndex.Random();
+        switch (chosenBuff)
+        {
+            case (0):
+                buffColors[0] = Color.SkyBlue;
+                buffColors[1] = Color.White;
+                buffIcon = AbilityIconString(Hero.Widowmaker, Button.Ultimate);
+                buffStr = BUFF_NAMES[0];
+                break;
+            case (1):
+                buffColors[0] = Color.SkyBlue;
+                buffColors[1] = Color.Blue;
+                buffIcon = AbilityIconString(Hero.Roadhog, Button.Ultimate);
+                buffStr = BUFF_NAMES[1];
+                break;
+            case (2):
+                buffColors[0] = Color.SkyBlue;
+                buffColors[1] = Color.Purple;
+                buffIcon = AbilityIconString(Hero.Sombra, Button.Ability1);
+                buffStr = BUFF_NAMES[2];
+                break;
+            case (3):
+                buffColors[0] = Color.Red;
+                buffColors[1] = Color.Black;
+                buffIcon = IconString(Icon.Poison);
+                buffStr = BUFF_NAMES[3];
+                break;
+            case (4):
+                buffColors[0] = Color.Red;
+                buffColors[1] = Color.Orange;
+                buffIcon = AbilityIconString(Hero.Reaper, Button.Ultimate);
+                buffStr = BUFF_NAMES[4];
+                break;
+            case (5):
+                buffColors[0] = Color.Red;
+                buffColors[1] = Color.Violet;
+                buffIcon = AbilityIconString(Hero.Moira, Button.SecondaryFire);
+                buffStr = BUFF_NAMES[5];
+                break;
+            case (6): // denial
+                buffColors[0] = Color.Purple;
+                buffColors[1] = Color.Violet;
+                buffIcon = AbilityIconString(Hero.Baptiste, Button.Ability2);
+                buffStr = BUFF_NAMES[6];
+                break;
+            case (7):
+                buffColors[0] = Color.Purple;
+                buffColors[1] = Color.SkyBlue;
+                buffIcon = AbilityIconString(Hero.Echo, Button.Ultimate);
+                buffStr = BUFF_NAMES[7];
+                break;
+        }
+    }
+}
+
+void StartBuffTimer() "[Buff] :: Reset timer"
+{
+    buffProgressBar = 0;
+
+    if (S_RANDOM_BUFF_COOLDOWN)
+    {
+        rand = RandomInteger(0, 120);
+        buffCooldown = S_BUFF_CD + rand;
+    }
+    else 
+    {
+        buffCooldown = S_BUFF_CD;
+    }
+
+    isBuffTimerRunning = true;
+}
+
+rule: "[Buff] :: Buff Internal Timer"
+if (isBuffTimerRunning)
+if (buffIndex.Length > 0)
+{
+    buffCooldown--;
+    Wait(1);
+    LoopIfConditionIsTrue();
+}

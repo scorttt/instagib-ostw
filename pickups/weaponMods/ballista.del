@@ -1,5 +1,5 @@
 import "../../main.del";
-import ".bmain.del";
+import ".modMain.del";
 
 globalvar Number S_BAL_SIZE;
 globalvar Number S_BAL_MIN_CHRG;
@@ -7,23 +7,23 @@ playervar Any[] balEffect;
 playervar Number balCanFire;
 disabled rule: "---------------- Ballista ----------------" {}
 
-rule: "[Buff] :: Ballista : Init"
+rule: "[Mod] :: Ballista : Init"
 Event.OnPlayerJoin
 {
     balCanFire = true;
 }
 
-rule: "[Buff] :: Ballista : Fire"
+rule: "[Mod] :: Ballista : Fire"
 Event.OngoingPlayer
-if (buffEnabled[Buff.Ballista])
+if (modEnabled[Mod.Ballista])
 if (balCanFire)
 if (IsAlive())
 if (IsFiringPrimary())
 {
     balCanFire = false;
 
-    if (!infAmmo || mutatorEnabled[Buff.Ballista])
-        heldBuffAmmo[Buff.Ballista]--;
+    if (!infAmmo || buffEnabled[4])
+        heldModAmmo[Mod.Ballista]--;
 
     ApplyImpulse(player, Vector(0, 0.5, 0) + Facing() * -1, 20, Relative.ToWorld, ContraryMotion.Cancel);
 
@@ -32,15 +32,15 @@ if (IsFiringPrimary())
 
     Any center = eyePos + facing * 300;
 
-    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, center, BUFF_COLORS[currentBuffIdx], EffectRev.VisibleToPositionRadiusAndColor); // center beam
+    CreateBeamEffect(All(), BeamType.BadBeam, gunPos, center, MOD_COLORS[currentModIdx], EffectRev.VisibleToPositionRadiusAndColor); // center beam
     balEffect = LastCreatedEntity();
 
     for (Number i! = 1; i < 200; i++)
     {
         Vector pos = eyePos + facing * (i * S_BAL_SIZE);
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Ballista], pos, S_BAL_SIZE);
-        PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, BUFF_COLORS[Buff.Ballista], pos, 100);
+        PlayEffect(All(), PlayEffect.GoodExplosion, MOD_COLORS[Mod.Ballista], pos, S_BAL_SIZE);
+        PlayEffect(All(), PlayEffect.BaptisteBioticLauncherExplosionSound, MOD_COLORS[Mod.Ballista], pos, 100);
 
         Player[] players = FilteredArray(RemoveFromArray(AllLiving(), player), 
         DistanceBetween(PosOf(Curr()) + Up(),              pos) <= S_BAL_SIZE || 

@@ -1,0 +1,212 @@
+import "../../main.del";
+
+import "wallbang.del";
+import "ricochet.del";
+import "buckshot.del";
+import "prism.del";
+import "ballista.del";
+import "electro.del";
+import "spark.del";
+import "arc.del";
+import "needle.del";
+import "volt.del";
+
+// array indices should be set the same as the mod id
+globalvar Number[] S_MOD_CD; // setting array of durations a mod spawns
+globalvar Number[] S_MOD_AMMO; // setting array of maximum mod ammo the player gets by default
+globalvar Boolean[] S_SPAWN_MOD; // setting array of mods allowed to spawn
+globalvar Boolean S_ENABLE_MODS; // setting whether mods are allowed
+globalvar Boolean S_RANDOMIZE_MOD_POS; // setting whether mods randomly spawn in different locations each round
+globalvar Boolean[] canPickupMod; // array of mod indices that can be collected
+playervar Boolean[] modEnabled; // array of the enabled mod index
+globalvar Boolean[] modTimerRunning; // array of whether a mod cooldown is running
+globalvar Number[] modCooldown; // array of current mod cooldowns
+globalvar Vector[] modPos; // array of set mod positions
+playervar Number[] heldModAmmo; // array of mod indices ammo
+playervar Boolean playerHasMod; // whether the player owns any mod
+playervar Number currentModIdx; // currently held mod index
+globalvar Number modIdx; // index of the mod for the player to pick up (this probably shouldnt be a globalvar but it seems to be working fine, what could possibly go wrong)
+playervar String[] heldModStr; // string of the held mod
+globalvar Any modTrail; // beam effect for firing weapon with a mod
+playervar Color modColor; // the given mod color to the player
+playervar Boolean infAmmo; // boolean if player has infinite ammo
+playervar Boolean showAmmoAsPercentage; // boolean if the mod is a laser
+
+
+enum Mod
+{
+    Pierce, // 0
+    Ricochet, // 1
+    Buckshot, // 2
+    Prism, // 3
+    Ballista, // 4
+    Electro, // 5
+    Spark, // 6
+    Arc, // 7
+    Needle, // 8
+    Volt // 9
+}
+
+disabled rule: "---------------- Mod ----------------"{}
+
+enum HeldStr
+{
+    Name,
+    Icon
+}
+
+void CollectMod() playervar "[Mod] :: Mod Collection"
+{
+    modTimestamps[modIdx] = TotalTimeElapsed();
+
+    if (modIdx == Mod.Arc || modIdx == Mod.Needle)
+    {
+        disablePrimaryFire = true;
+        showAmmoAsPercentage = true;
+    }
+    else if (modIdx == Mod.Volt)
+    {
+        disablePrimaryFire = true;
+        overheated = false;
+        showAmmoAsPercentage = true;
+        voltTemp = 0;
+        voltDist = S_MAX_VLT_DIST;
+    }
+    else
+    {
+        showAmmoAsPercentage = false;
+    }
+
+    // dont know why this is necessary but pickup strings are broken without it so whatever
+    heldModStr[HeldStr.Name] = MOD_NAMES[modIdx];
+    heldModStr[HeldStr.Icon] = MOD_ICONS[modIdx];
+
+    currentModIdx = modIdx;
+    canPickupMod[modIdx] = false;
+    modColor = MOD_COLORS[modIdx];
+
+    if (!playerHasMod)
+    {
+        modEnabled[modIdx] = true;
+        playerHasMod = true;
+        LogToInspector(<"<0> given to <1>", heldModStr[HeldStr.Name], player>);
+        SmallMessage(player, <"  <0>  <1>", heldModStr[HeldStr.Icon], heldModStr[HeldStr.Name]>);
+    }
+    else
+    {
+        SmallMessage(player, <"  <0>  <1> ammo replenished", heldModStr[HeldStr.Icon], heldModStr[HeldStr.Name]>);
+    }
+
+    heldModAmmo[modIdx] = Max(0, heldModAmmo[modIdx]);
+    heldModAmmo[modIdx] += S_MOD_AMMO[modIdx];
+
+    // pickup effects
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, modColor, modPos[modIdx], 1);
+    PlayEffect(All(), PlayEffect.BuffExplosionSound, null, modPos[modIdx], 200);
+
+    modCooldown[modIdx] = S_MOD_CD[modIdx];
+    ModCooldown();
+
+    modIdx = -1;
+}
+
+void ModCooldown() "[Mod] :: Start Mod Timer"
+{
+
+    if (S_SPAWN_MOD[modIdx] && modCooldown[modIdx] == S_MOD_CD[modIdx])
+    {
+        LogToInspector(<"<0> cooldown started", MOD_NAMES[modIdx]>);
+        modSpawned[modIdx] = false;
+        modTimerRunning[modIdx] = true; // start timer
+    }
+}
+
+void CreateOrb() "[Mod] :: Create Orb"
+{
+    canPickupMod[modIdx] = true;
+    modTimerRunning[modIdx] = false;
+
+    LogToInspector(<"<0> created", MOD_NAMES[modIdx]>);
+    PlayEffect(All(), PlayEffect.GoodPickupEffect, MOD_COLORS[modIdx], modPos[modIdx], 1);
+    PlayEffect(All(), PlayEffect.RingExplosion, MOD_COLORS[modIdx], modPos[modIdx], 3);
+    PlayEffect(All(), PlayEffect.RingExplosion, MOD_COLORS[modIdx], modPos[modIdx] + Vector(0, -0.5, 0), 2);
+}
+
+rule: "[Mod] :: Remove Mod"
+Event.OngoingPlayer
+if (playerHasMod)
+if (IsTrueForAll(heldModAmmo, Curr() <= 0))
+{
+    for (Number i! = 0; i < modEnabled.Length; i++)
+        modEnabled[i] = false;
+
+    SmallMessage(player, <"  <0> ammo depleted", heldModStr>);
+
+    playerHasMod = false;
+
+    if (disablePrimaryFire)
+    {
+        WaitUntil(!IsPrimaryHeld(), 999999);
+        disablePrimaryFire = false;
+    }
+}
+
+globalvar Number[] modPickupEffectSize;
+globalvar Number[] modTimestamps;
+globalvar Boolean[] modSpawned;
+
+rule: "[Mod] :: Mod Timer Handler"
+if (S_ENABLE_MODS)
+if (matchStarted)
+if (validMap)
+if (IsTrueForAny(modSpawned, !Curr()))
+{
+    for (Number i! = 0; i < MOD_NAMES.Length; i++)
+    {
+        if (modSpawned[i])
+            continue;
+
+        if (S_SPAWN_MOD[i] && modTimerRunning[i])
+        {
+            // decrement mod cooldown
+            SubtractOverTime(modCooldown[i], S_MOD_CD[i], 0, S_MOD_CD[i], 0.064);
+
+            // change mod pickup effect sizes
+            modPickupEffectSize[i] = Min((((TotalTimeElapsed() - modTimestamps[i]) / S_MOD_CD[i]) * 100) * 0.0045, 0.45);
+
+            // create mod
+            if (Floor(modCooldown[i]) == 0) // rounding is just player clarity for mod spawning
+            {
+                modSpawned[i] = true;
+                modCooldown[i] = 0; // make sure the cooldown is actually 0 since it technically spawns early
+                modIdx = i;
+                CreateOrb();
+            }
+        }
+    }
+
+    Wait(0.064);
+    LoopIfConditionIsTrue();
+}
+
+rule: "[Mod] :: Mod Collection"
+Event.OngoingPlayer
+if (HasSpawned())
+if (IsAlive())
+if (IsTrueForAny(modPos, DistanceBetween(Curr(), PositionOf() + Up()) < S_PICKUP_RAD))
+{
+    modIdx = -1;
+    modIdx = IndexOfArrayValue(modPos, SortedArray(modPos, DistanceBetween(Curr(), player)).First); // idk if theres a better way to write this
+
+    // if (TotalTimeElapsed() > modTimestamps[modIn] + S_MOD_CD[modIn] &&
+    if ((!playerHasMod || (modEnabled[modIdx] && !infAmmo) || (!playerHasMod && infAmmo)) &&
+       (canPickupMod[modIdx]) &&
+       (IsAlive()) && 
+       (Update(!IsFiringPrimary()) && Update(!IsFiringSecondary())))
+    {
+        CollectMod();
+    }
+
+    Wait(1);
+    LoopIfConditionIsTrue();
+}

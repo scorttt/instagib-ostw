@@ -1,9 +1,9 @@
 import "../../main.del";
-import ".mmain.del";
+import ".buffMain.del";
 
-rule: "[Mutator] :: Berserk : Set Status"
+rule: "[Buff] :: Berserk : Set Status"
 Event.OngoingPlayer
-if (mutatorEnabled[4])
+if (buffEnabled[4])
 {
     infFuel = true;
     infAmmo = true;

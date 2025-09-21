@@ -1,19 +1,19 @@
 import "../../main.del";
-import ".bmain.del";
+import ".modMain.del";
 
 disabled rule: "---------------- Needle ----------------"{}
 
 playervar Number hydOffset;
 playervar Number hydSpread = 1;
 
-// rule: "[Buff] :: Needle Init"
+// rule: "[Mod] :: Needle Init"
 // {
 //     hydInitSpread = 0; // spread size
 // }
 
-rule: "[Buff] :: Needle Fire Action"
+rule: "[Mod] :: Needle Fire Action"
 Event.OngoingPlayer
-if (buffEnabled[Buff.Needle])
+if (modEnabled[Mod.Needle])
 if (IsPrimaryHeld())
 if (!IsFiringSecondary())
 if (IsAlive())
@@ -22,7 +22,7 @@ if (IsAlive())
     Player playerClosestToReticle! = null;
     hydSpread = 1;
 
-    while (buffEnabled[Buff.Needle] && IsPrimaryHeld() && IsAlive())
+    while (modEnabled[Mod.Needle] && IsPrimaryHeld() && IsAlive())
     {
         AddOverTime(hydSpread, 0.2, 0, 5, 0.016);
 
@@ -87,7 +87,7 @@ if (IsAlive())
             }
 
             if (!infAmmo)
-                heldBuffAmmo[Buff.Needle] -= 3;
+                heldModAmmo[Mod.Needle] -= 3;
 
             MinWait();
         }
@@ -97,7 +97,7 @@ if (IsAlive())
     LoopIfConditionIsTrue();
 }
 
-// rule: "[Buff] :: Needle : Decrease Spread"
+// rule: "[Mod] :: Needle : Decrease Spread"
 // Event.OngoingPlayer
 // if (hydSpread > 1)
 // if (!IsPrimaryHeld())

@@ -1,5 +1,5 @@
 import "../../main.del";
-import ".bmain.del";
+import ".modMain.del";
 
 
 // logic
@@ -19,7 +19,7 @@ playervar Number totalProjAirtime; // total airtime, destroy the projectile afte
 
 disabled rule: "---------------- Electro ----------------"{}
 
-rule: "[Buff] :: Electro : Init"
+rule: "[Mod] :: Electro : Init"
 {
     WaitUntil(S_ELECTRO_PROJ_SPEED != 0, 1); // check to prevent projectile fuckery if i copy workshop code with this file focused
     projGravVec = Vector(0, S_ELECTRO_PROJ_GRAV, 0);
@@ -27,24 +27,24 @@ rule: "[Buff] :: Electro : Init"
     FINAL_PROJ_DELAY = Clamp(S_ELECTRO_PROJ_DELAY * 4, 2, 3);
 }
 
-rule: "[Buff] :: Electro : Action - Primary Fire"
+rule: "[Mod] :: Electro : Action - Primary Fire"
 Event.OngoingPlayer
-if (buffEnabled[Buff.Electro])
+if (modEnabled[Mod.Electro])
 {
     // i dont know what im going to do here yet
     // if (!infAmmo)
-    //     heldBuffAmmo[Buff.Electro] -= 1;
+    //     heldModAmmo[Mod.Electro] -= 1;
 }
 
 Number projDistCheck: DistanceBetween(projPos, Update(RayCastHitPosition(projPos, projPos + (vel * 0.016) * 100, AllLivingPlayers(), player)));
-rule: "[Buff] :: Electro : Action - Launch Grenade"
+rule: "[Mod] :: Electro : Action - Launch Grenade"
 Event.OngoingPlayer
-if (buffEnabled[Buff.Electro])
+if (modEnabled[Mod.Electro])
 if (IsButtonHeld(player, Button.Reload))
 if (IsAlive())
 {
     if (!infAmmo)
-        heldBuffAmmo[Buff.Electro] -= 2;
+        heldModAmmo[Mod.Electro] -= 2;
 
     Any effect;
     projHitSurface = false;
@@ -55,13 +55,13 @@ if (IsAlive())
 
     DestroyEffect(effect);
 
-    CreateEffect(All(), Effect.Orb, BUFF_COLORS[Buff.Electro], projPos, 1);
+    CreateEffect(All(), Effect.Orb, MOD_COLORS[Mod.Electro], projPos, 1);
     effect[0] = LastCreatedEntity();
     CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, Color.White, projPos, 45);
     effect[1] = LastCreatedEntity();
     CreateEffect(All(), Effect.OrisaHaltTendrilSound, Color.White, projPos, 45);
     effect[2] = LastCreatedEntity();
-    CreateEffect(All(), Effect.Ring, BUFF_COLORS[Buff.Electro], RayHit(projPos, projPos + Down() * 100), PROJ_SIZE);
+    CreateEffect(All(), Effect.Ring, MOD_COLORS[Mod.Electro], RayHit(projPos, projPos + Down() * 100), PROJ_SIZE);
     effect[3] = LastCreatedEntity();
 
     Vector[] normals = [];
@@ -81,7 +81,7 @@ if (IsAlive())
         if (projHitSurface)
             airtime += 0.016;
 
-        PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Electro], projPos, PROJ_SIZE);
+        PlayEffect(All(), PlayEffect.GoodExplosion, MOD_COLORS[Mod.Electro], projPos, PROJ_SIZE);
 
         // reflection loop (without this extra check the for below would fire twice for whatever reason)
         if (projDistCheck <= PROJ_SIZE && S_ELECTRO_PROJ_DELAY > 0) // surface hit
@@ -123,7 +123,7 @@ if (IsAlive())
 
     // effects
     PlayEffect(All(), PlayEffect.EchoStickyBombExplosionEffect, Color.Team1, projPos, 0);
-    PlayEffect(All(), PlayEffect.GoodExplosion, BUFF_COLORS[Buff.Electro], projPos, S_ELECTRO_PROJ_EXPLOSION_RADIUS);
+    PlayEffect(All(), PlayEffect.GoodExplosion, MOD_COLORS[Mod.Electro], projPos, S_ELECTRO_PROJ_EXPLOSION_RADIUS);
 
     PlayEffect(All(), PlayEffect.WinstonJumpPackLandingSound, Color.White, projPos, 45);
     PlayEffect(All(), PlayEffect.SigmaHypersphereImplosionSound, Color.White, projPos, 45);

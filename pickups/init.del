@@ -1,16 +1,16 @@
 import "../main.del";
-globalvar Color[] BUFF_COLORS; // global array of colors
+globalvar Color[] MOD_COLORS; // global array of colors
+globalvar String[] MOD_NAMES; // array of all mod names
 globalvar String[] BUFF_NAMES; // array of all buff names
-globalvar String[] MUTATOR_NAMES; // array of all mutator names
-globalvar String[] MUTATOR_DESCRIPTIONS; // array of all mutator descriptions
-globalvar Number[] mutatorIndex; // index of the available mutator
-globalvar String[] BUFF_ICONS; // buff icon array
+globalvar String[] BUFF_DESCRIPTIONS; // array of all buff descriptions
+globalvar Number[] buffIndex; // index of the available buff
+globalvar String[] MOD_ICONS; // mod icon array
 globalvar Boolean validMap; // whether pickups can spawn on a map
 globalvar Number LOWEST_MAP_Y; // lowest walkable y coordinate of the map (roughly)
 
 rule: "[Main] :: Pickup Init"
 {
-    BUFF_COLORS =[CustomColor(255, 255, 0,   255),  // 0
+    MOD_COLORS =[CustomColor(255, 255, 0,   255),  // 0
                 CustomColor(100, 50,  255, 255),  // 1
                 CustomColor(0,   255, 0,   255),  // 2
                 CustomColor(22,  96,  255, 255),  // 3
@@ -21,7 +21,7 @@ rule: "[Main] :: Pickup Init"
                 CustomColor(0,   230, 150, 255),  // 8
                 CustomColor(236, 153, 0,   255)]; // 9
 
-    BUFF_ICONS = [AbilityIconString(Hero.Baptiste,  Button.Ultimate),      // 0
+    MOD_ICONS = [AbilityIconString(Hero.Baptiste,  Button.Ultimate),      // 0
              AbilityIconString(Hero.Winston,   Button.Ability1),      // 1
              AbilityIconString(Hero.Ashe,      Button.Ability1),      // 2
              AbilityIconString(Hero.Moira,     Button.Ultimate),      // 3
@@ -32,7 +32,7 @@ rule: "[Main] :: Pickup Init"
              AbilityIconString(Hero.Hazard,    Button.Ultimate),      // 8
              IconString       (Icon.Bolt)                     ];      // 9
 
-    BUFF_NAMES =     ["Pierce", 
+    MOD_NAMES =     ["Pierce", 
                     "Ricochet", 
                     "Spread", 
                     "Prism", 
@@ -43,7 +43,7 @@ rule: "[Main] :: Pickup Init"
                     "Needle", 
                     "Volt"];
 
-    MUTATOR_NAMES = ["Seer", 
+    BUFF_NAMES = ["Seer", 
                     "Dummy", 
                     "TBD", 
                     "Poison", 
@@ -52,7 +52,7 @@ rule: "[Main] :: Pickup Init"
                     "Denial", 
                     "Mirage"];
 
-    MUTATOR_DESCRIPTIONS = ["See all players through walls",
+    BUFF_DESCRIPTIONS = ["See all players through walls",
                     "NYI",
                     "NYI",
                     "NYI",
@@ -62,13 +62,13 @@ rule: "[Main] :: Pickup Init"
                     "NYI"];
 
     // map pickup locations
-    Vector[] BUFF_LOCATIONS = [];
+    Vector[] MOD_LOCATIONS = [];
     switch (true)
     {
         case (IsMap(Map.Workshop_Chamber) || IsMap(Map.Workshop_Expanse) || IsMap(Map.Workshop_Expanse_Night) || IsMap(Map.Workshop_Island) || IsMap(Map.Workshop_Island_Night)):
             validMap = true;
             LOWEST_MAP_Y = 0;
-            BUFF_LOCATIONS = [Vector(-8, 1, 8),
+            MOD_LOCATIONS = [Vector(-8, 1, 8),
                     Vector(-8, 1, 4),
                     Vector(-8, 1, 0),
                     Vector(-8, 1, -4),
@@ -79,7 +79,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(8, 1, -4),
                     Vector(8, 1, -8)];
 
-            MUTATOR_LOCATIONS = [Vector(0, 1, 0), 
+            BUFF_LOCATIONS = [Vector(0, 1, 0), 
                     Vector(16, 1, -16),
                     Vector(-16, 1, 16),
                     Vector(16, 1, 16),
@@ -89,7 +89,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Black_Forest) || IsMap(Map.Black_Forest_Winter)):
             validMap = true;
             LOWEST_MAP_Y = 9;
-            BUFF_LOCATIONS = [Vector(16.79, 12.44, 29.48),
+            MOD_LOCATIONS = [Vector(16.79, 12.44, 29.48),
                     Vector(16.18, 12.36, -20.11),
                     Vector(-11.87, 14, 30.67),
                     Vector(-25.49, 13.09, 5.00),
@@ -100,7 +100,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(-12.43, 14.06, -21.13),
                     Vector(8.47, 13.50, 5.06)];
 
-            MUTATOR_LOCATIONS = [Vector(-7.41, 19.01, -9.59),
+            BUFF_LOCATIONS = [Vector(-7.41, 19.01, -9.59),
                     Vector(-7.07, 18.98, 19.11),
                     Vector(12.97, 17.55, 21.61),
                     Vector(12.25, 17.44, -11.50),
@@ -110,7 +110,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Blizzard_World_Winter)): // ffa only has the winter variant of blizz world allowed for SOME FUCKING REASON
             validMap = true;
             LOWEST_MAP_Y = -0.40;
-            BUFF_LOCATIONS = [Vector(-30.07, 1.00, 58.22),
+            MOD_LOCATIONS = [Vector(-30.07, 1.00, 58.22),
                     Vector(-77.28, 5.88, 66.15),
                     Vector(-54.50, 0.61, 110.20),
                     Vector(-67.55, 1.75, 138.74),
@@ -121,7 +121,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(-77.32, 7.58, 98.32),
                     Vector(-38.53, 0.79, 100.06)];
 
-            MUTATOR_LOCATIONS = [Vector(-69.32, 1.18, 73.91),
+            BUFF_LOCATIONS = [Vector(-69.32, 1.18, 73.91),
                     Vector(-70.90, 7.58, 109.59),
                     Vector(-24.82, 7, 94.42),
                     Vector(-62.86, 7.58, 80.30),
@@ -131,7 +131,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Castillo)):
             validMap = true;
             LOWEST_MAP_Y = 32;
-            BUFF_LOCATIONS = [Vector(-106.18, 40.56, 43.20),
+            MOD_LOCATIONS = [Vector(-106.18, 40.56, 43.20),
                     Vector(-100.35, 40.56, 73.75),
                     Vector(-115.85, 39.57, 60.92),
                     Vector(-74.82, 33.00, 52.93),
@@ -142,7 +142,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(-85.65, 39.64, 55.00),
                     Vector(-96.47, 34.33, 57.17)];
 
-            MUTATOR_LOCATIONS = [Vector(-117.96, 43.25, 48.69),
+            BUFF_LOCATIONS = [Vector(-117.96, 43.25, 48.69),
                     Vector(-113.17, 43.25, 73.03),
                     Vector(-91.69, 40.54, 72.29),
                     Vector(-97.86, 40.54, 39.97),
@@ -152,7 +152,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Chateau_Guillard) || IsMap(Map.Chateau_Guillard_Halloween)):
             validMap = true;
             LOWEST_MAP_Y = 0;
-            BUFF_LOCATIONS = [Vector(206.21, 10.03, 92.43),
+            MOD_LOCATIONS = [Vector(206.21, 10.03, 92.43),
                     Vector(196.33, 17.50, 47.12),
                     Vector(169.25, 6, 80.97),
                     Vector(206.19, 1, 77.96),
@@ -163,7 +163,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(229.25, 10, 78.85),
                     Vector(222.31, 9, 98.01)];
 
-            MUTATOR_LOCATIONS = [Vector(206.25, 10, 81.75),
+            BUFF_LOCATIONS = [Vector(206.25, 10, 81.75),
                     Vector(207.77, 10, 44.50),
                     Vector(193.22, 9, 102),
                     Vector(173.32, 8, 57.81),
@@ -173,7 +173,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Dorado)):
             validMap = true;
             LOWEST_MAP_Y = 7.02;
-            BUFF_LOCATIONS = [Vector(115.66, 8.73, -7.08),
+            MOD_LOCATIONS = [Vector(115.66, 8.73, -7.08),
                     Vector(85.30, 13.75, 29.84),
                     Vector(98.04, 19.01, 15.26),
                     Vector(131.27, 12.05, 26.12),
@@ -184,7 +184,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(110.58, 19, -0.95),
                     Vector(101.35, 12.04, 10.96)];
 
-            MUTATOR_LOCATIONS = [Vector(102.86, 9.77, -16.48),
+            BUFF_LOCATIONS = [Vector(102.86, 9.77, -16.48),
                     Vector(144.31, 11.01, -8.62),
                     Vector(153.84, 15.01, 18.90),
                     Vector(113.11, 12, 48.11),
@@ -194,7 +194,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Ecopoint_Antarctica)/*  || IsMap(Map.Ecopoint_Antarctica_Winter) */):
             validMap = true;
             LOWEST_MAP_Y = 3;
-            BUFF_LOCATIONS = [Vector(1.66, 12.63, -25.00),
+            MOD_LOCATIONS = [Vector(1.66, 12.63, -25.00),
                     Vector(1.66, 12.63, 25.00),
                     Vector(-19.50, 13.00, 0.00),
                     Vector(20.50, 10.00, 0.00),
@@ -205,7 +205,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(10.76, 5.13, 0),
                     Vector(-6.01, 13, 0)];
 
-            MUTATOR_LOCATIONS = [Vector(10.39, 9.01, -48.33),
+            BUFF_LOCATIONS = [Vector(10.39, 9.01, -48.33),
                     Vector(-30.99, 10, 0),
                     Vector(1, 13, 12),
                     Vector(1, 13, -12),
@@ -215,7 +215,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Eichenwalde) || IsMap(Map.Eichenwalde_Halloween)):
             validMap = true;
             LOWEST_MAP_Y = 4.72;
-            BUFF_LOCATIONS = [Vector(55.70, 22.00, -67.84),
+            MOD_LOCATIONS = [Vector(55.70, 22.00, -67.84),
                     Vector(58.33, 5.72, -90.39),
                     Vector(76.03, 11.69, -109.66),
                     Vector(88.13, 13.67, -67.39),
@@ -226,7 +226,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(103.32, 10.60, -90.16),
                     Vector(101.37, 13.72, -109.12)];
 
-            MUTATOR_LOCATIONS = [Vector(56.56, 19.05, -79.66),
+            BUFF_LOCATIONS = [Vector(56.56, 19.05, -79.66),
                     Vector(55.41, 23.69, -104.04),
                     Vector(82.84, 13.68, -87.73),
                     Vector(65.63, 16.84, -61.73),
@@ -236,7 +236,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Havana)):
             validMap = true;
             LOWEST_MAP_Y = 4;
-            BUFF_LOCATIONS = [Vector(9.50, 7.00, -79.23),
+            MOD_LOCATIONS = [Vector(9.50, 7.00, -79.23),
                     Vector(37.64, 11.00, -94.23),
                     Vector(27.92, 13.00, -61.96),
                     Vector(65.14, 12.97, -83.35),
@@ -247,7 +247,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(34.06, 7, -61.74),
                     Vector(64.09, 6.81, -83.20)];
 
-            MUTATOR_LOCATIONS = [Vector(28.48, 11, -95.07),
+            BUFF_LOCATIONS = [Vector(28.48, 11, -95.07),
                     Vector(15.27, 14.01, -71.20),
                     Vector(29.63, 7, -78.48),
                     Vector(56.23, 12, -73.13),
@@ -257,7 +257,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Hollywood)/*  || IsMap(Map.Hollywood_Halloween) */):
             validMap = true;
             LOWEST_MAP_Y = 1.60;
-            BUFF_LOCATIONS = [Vector(-11.91, 2.73, -74.64),
+            MOD_LOCATIONS = [Vector(-11.91, 2.73, -74.64),
                     Vector(-4.09, 2.60, -15.87),
                     Vector(20.67, 2.60, -51.82),
                     Vector(7.87, 13.90, -48.38),
@@ -268,7 +268,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(31.07, 2.86, -78.21),
                     Vector(2.97, 3.99, -59.39)];
 
-            MUTATOR_LOCATIONS = [Vector(11.69, 8.12, -42.92),
+            BUFF_LOCATIONS = [Vector(11.69, 8.12, -42.92),
                     Vector(19.95, 3, -68.44),
                     Vector(-7.66, 3.50, -43.63),
                     Vector(6.63, 2.75, -32.48),
@@ -278,7 +278,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Kanezaka)):
             validMap = true;
             LOWEST_MAP_Y = 4;
-            BUFF_LOCATIONS = [Vector(-0.96, 10, -46.32),
+            MOD_LOCATIONS = [Vector(-0.96, 10, -46.32),
                     Vector(-16.00, 12.15, 16.83),
                     Vector(-29.03, 5.00, 43.08),
                     Vector(-44.00, 14, -0.79),
@@ -289,7 +289,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(-61.47, 13, -27.51),
                     Vector(-7.89, 5.98, -39.49)];
 
-            MUTATOR_LOCATIONS = [Vector(-20.41, 11, -26.87),
+            BUFF_LOCATIONS = [Vector(-20.41, 11, -26.87),
                     Vector(-50.91, 14, -27.95),
                     Vector(-18.84, 7, -28.03),
                     Vector(9.75, 7, -17.57),
@@ -299,7 +299,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Kings_Row) || IsMap(Map.Kings_Row_Winter)):
             validMap = true;
             LOWEST_MAP_Y = -2.5;
-            BUFF_LOCATIONS = [Vector(-49.46, 1.00, 2.69),
+            MOD_LOCATIONS = [Vector(-49.46, 1.00, 2.69),
                     Vector(-31.19, 10.00, -13.40),
                     Vector(-93.67, 8.50, -29.38),
                     Vector(-48.85, 10.12, -37.62),
@@ -310,7 +310,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(-95.44, -1.50, -46.52),
                     Vector(-64.29, 1.02, -12.62)];
 
-            MUTATOR_LOCATIONS = [Vector(-79.70, 7, -15.34),
+            BUFF_LOCATIONS = [Vector(-79.70, 7, -15.34),
                     Vector(-98.21, 2.05, -8.80),
                     Vector(-36.84, 3, -49.65),
                     Vector(-53.94, 0.94, -25.07),
@@ -320,7 +320,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Lijiang_Control_Center) || IsMap(Map.Lijiang_Control_Center_Lunar)):
             validMap = true;
             LOWEST_MAP_Y = 265;
-            BUFF_LOCATIONS = [Vector(-26.80, 268.00, 308.00),
+            MOD_LOCATIONS = [Vector(-26.80, 268.00, 308.00),
                     Vector(26.80, 268.00, 308.00),
                     Vector(0.00, 271.00, 323.00),
                     Vector(0.00, 271.00, 260.65),
@@ -331,7 +331,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(11.53, 268, 281.72),
                     Vector(0, 279, 323)];
 
-            MUTATOR_LOCATIONS = [Vector(0, 271, 328.32), 
+            BUFF_LOCATIONS = [Vector(0, 271, 328.32), 
                     Vector(0, 271, 267.62),
                     Vector(0, 271, 301.47),
                     Vector(38.33, 268, 295.14),
@@ -341,7 +341,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Lijiang_Garden) || IsMap(Map.Lijiang_Garden_Lunar)):
             validMap = true;
             LOWEST_MAP_Y = 94;
-            BUFF_LOCATIONS = [Vector(46.85, 96.04, 150),
+            MOD_LOCATIONS = [Vector(46.85, 96.04, 150),
                     Vector(-46.85, 96.04, 150),
                     Vector(-20.61, 97, 134.47),
                     Vector(0, 95, 185.00),
@@ -352,7 +352,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(0, 95, 156.63),
                     Vector(0, 95, 143.35)];
             
-            MUTATOR_LOCATIONS = [Vector(-26, 95.30, 180),
+            BUFF_LOCATIONS = [Vector(-26, 95.30, 180),
                     Vector(26, 95.30, 180),
                     Vector(-14.34, 96, 115.99),
                     Vector(14.34, 96, 115.99),
@@ -362,7 +362,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Malevento)):
             validMap = true;
             LOWEST_MAP_Y = -3.5;
-            BUFF_LOCATIONS = [Vector(-17.54, 6.00, 15.23),
+            MOD_LOCATIONS = [Vector(-17.54, 6.00, 15.23),
                     Vector(32.76, 8.49, 21.99),
                     Vector(2.73, -2.51, -34.71),
                     Vector(0, 8.50, 3.31),
@@ -373,7 +373,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(-19.21, -2, -10.65),
                     Vector(22.49, 2, -1.82)];
 
-            MUTATOR_LOCATIONS = [Vector(0, 3, 7.97),
+            BUFF_LOCATIONS = [Vector(0, 3, 7.97),
                     Vector(31.09, 7, 36.25),
                     Vector(-16.47, -2, -31.49),
                     Vector(11.77, 4, 9.91),
@@ -405,7 +405,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Paris)):
             validMap = true;
             LOWEST_MAP_Y = 8.7;
-            BUFF_LOCATIONS = [Vector(-57.19, 14.00, -82.00),
+            MOD_LOCATIONS = [Vector(-57.19, 14.00, -82.00),
                     Vector(-109.18, 11.00, -60.60),
                     Vector(-85.93, 13.00, -64.09),
                     Vector(-73.39, 11.02, -38.23),
@@ -416,7 +416,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(-121.04, 14, -88.76),
                     Vector(-78.65, 16, -88)];
 
-            MUTATOR_LOCATIONS = [Vector(-125.59, 11, -61.68),
+            BUFF_LOCATIONS = [Vector(-125.59, 11, -61.68),
                     Vector(-91.76, 13, -75.57),
                     Vector(-62.81, 16, -92.60),
                     Vector(-78.21, 10.86, -47.99),
@@ -426,7 +426,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Petra)):
             validMap = true;
             LOWEST_MAP_Y = -13.60;
-            BUFF_LOCATIONS = [Vector(1.99, -10, 23.00),
+            MOD_LOCATIONS = [Vector(1.99, -10, 23.00),
                     Vector(-29.99, -6.01, 0),
                     Vector(2.00, 2, -8.64),
                     Vector(-9.24, -5.37, 43.78),
@@ -437,7 +437,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(1.96, 1.5, 7.32),
                     Vector(-28.00, -4.00, 21.00)];
 
-            MUTATOR_LOCATIONS = [Vector(-11.43, -9, 8.87),
+            BUFF_LOCATIONS = [Vector(-11.43, -9, 8.87),
                     Vector(26.13, -3, -6.99),
                     Vector(26.92, -4.51, 31.75),
                     Vector(-20.50, -5.06, 55.07),
@@ -447,7 +447,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Route_66)):
             validMap = true;
             LOWEST_MAP_Y = 2;
-            BUFF_LOCATIONS = [Vector(-49.22, 9.82, -17.12),
+            MOD_LOCATIONS = [Vector(-49.22, 9.82, -17.12),
                     Vector(-14.80, 9.51, -43.69),
                     Vector(-15.90, 9.58, -12.29), 
                     Vector(-33.58, 11.69, 6.15),
@@ -458,7 +458,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(6.55, 3.09, -11.14),
                     Vector(-25.17, 10.82, -36.16)];
 
-            MUTATOR_LOCATIONS = [Vector(-24.81, 17.83, -20.76),
+            BUFF_LOCATIONS = [Vector(-24.81, 17.83, -20.76),
                     Vector(-46.48, 10.69, -36.46),
                     Vector(-30.40, 9.43, -18.37),
                     Vector(-39.91, 4.31, -13.42),
@@ -468,7 +468,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Oasis_City_Center)):
             validMap = true;
             LOWEST_MAP_Y = 0.85;
-            BUFF_LOCATIONS = [Vector(164.76, 5, 226.22),
+            MOD_LOCATIONS = [Vector(164.76, 5, 226.22),
                     Vector(122.22, 5, 268.75),
                     Vector(154.48, 12.52, 258.48),
                     Vector(118.01, 2, 221.96),
@@ -479,7 +479,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(128.29, 5, 232.29),
                     Vector(168.90, 5, 273.00)];
 
-            MUTATOR_LOCATIONS = [Vector(177.56, 5.10, 256.48),
+            BUFF_LOCATIONS = [Vector(177.56, 5.10, 256.48),
                     Vector(152.48, 5.10, 281.57),
                     Vector(137.54, 5, 231.62),
                     Vector(127.62, 5, 241.55),
@@ -489,7 +489,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Oasis_University)):
             validMap = true;
             LOWEST_MAP_Y = 9;
-            BUFF_LOCATIONS = [Vector(-188, 16, -38),
+            MOD_LOCATIONS = [Vector(-188, 16, -38),
                     Vector(-188, 16, 38),
                     Vector(-172, 18, 0),
                     Vector(-188, 17, 0),
@@ -500,7 +500,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(-165, 17, -16),
                     Vector(-210, 12, 0)];
             
-            MUTATOR_LOCATIONS = [Vector(-188, 16, 27.50),
+            BUFF_LOCATIONS = [Vector(-188, 16, 27.50),
                     Vector(-188, 16, -27.50),
                     Vector(-188, 10.40, 0),
                     Vector(-194, 10, 24),
@@ -510,7 +510,7 @@ rule: "[Main] :: Pickup Init"
         case (IsMap(Map.Oasis_Gardens)):
             validMap = true;
             LOWEST_MAP_Y = 2.22;
-            BUFF_LOCATIONS = [Vector(115.06, 8.50, -273.62),
+            MOD_LOCATIONS = [Vector(115.06, 8.50, -273.62),
                     Vector(167.40, 8.50, -221.28),
                     Vector(107.79, 5.50, -214.08),
                     Vector(163.33, 6.5, -245.50),
@@ -521,7 +521,7 @@ rule: "[Main] :: Pickup Init"
                     Vector(139.44, 6.50, -269.37),
                     Vector(129.92, 16.28, -236.15)];
 
-            MUTATOR_LOCATIONS = [Vector(126.23, 6.50, -269.37),
+            BUFF_LOCATIONS = [Vector(126.23, 6.50, -269.37),
                     Vector(82.87, 6.49, -262.63),
                     Vector(156.45, 6.49, -189.14),
                     Vector(113.65, 8.50, -262.97),
@@ -533,24 +533,24 @@ rule: "[Main] :: Pickup Init"
             break;
     }
 
-    // buffs, could put mutators here too
+    // mods, could put buffs here too
     if (validMap)
     {
-        Number buffLen = BUFF_LOCATIONS.Length;
-        if (S_ENABLE_BUFFS)
+        Number modLen = MOD_LOCATIONS.Length;
+        if (S_ENABLE_MODS)
         {
-            for (Number i! = 0; i < buffLen; i++)
+            for (Number i! = 0; i < modLen; i++)
             {
-                Vector chosenBuffPos;
+                Vector chosenModPos;
 
-                if (S_RANDOMIZE_BUFF_POS)
-                    chosenBuffPos = BUFF_LOCATIONS.Random(); 
+                if (S_RANDOMIZE_MOD_POS)
+                    chosenModPos = MOD_LOCATIONS.Random(); 
                 else 
-                    chosenBuffPos = BUFF_LOCATIONS.First; 
+                    chosenModPos = MOD_LOCATIONS.First; 
 
-                BUFF_LOCATIONS -= chosenBuffPos; 
-                buffPos[i] = chosenBuffPos;
-                buffCooldown[i] = S_BUFF_CD[i];
+                MOD_LOCATIONS -= chosenModPos; 
+                modPos[i] = chosenModPos;
+                modCooldown[i] = S_MOD_CD[i];
             }
         }
     }

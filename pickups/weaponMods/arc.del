@@ -1,5 +1,5 @@
 import "../../main.del";
-import ".bmain.del";
+import ".modMain.del";
 
 globalvar Number S_ARC_BOUNCES;
 playervar Any arcEffects;
@@ -8,9 +8,9 @@ playervar Number effTick;
 
 disabled rule: "---------------- Arc ----------------"{}
 
-rule: "[Buff] :: Arc : Action - Fire"
+rule: "[Mod] :: Arc : Action - Fire"
 Event.OngoingPlayer
-if (buffEnabled[Buff.Arc])
+if (modEnabled[Mod.Arc])
 if (IsPrimaryHeld())
 if (!IsFiringSecondary())
 if (IsAlive())
@@ -32,7 +32,7 @@ if (IsAlive())
     WaitIfTrue(0.05); // brief hold
     Boolean[] hit;
 
-    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), arc_hit, BUFF_COLORS[Buff.Arc], EffectRev.VisibleToPositionRadiusAndColor);
+    CreateBeamEffect(All(), BeamType.BadBeam, WeaponMuzzle(EyePosition(), Facing()), arc_hit, MOD_COLORS[Mod.Arc], EffectRev.VisibleToPositionRadiusAndColor);
     arcEffects[0] = LastCreatedEntity();
     // CreateEffect(All(), Effect.WinstonTeslaCannonTargetSound, null, player, 100);
     // arcEffects[1] = LastCreatedEntity();
@@ -45,14 +45,14 @@ if (IsAlive())
 
     for (Number i! = 1; i < S_ARC_BOUNCES; i++)
     {
-        CreateBeamEffect(hit[Once(i - 1)] ? All() : null, BeamType.BadBeam, hp[Once(i - 1)], hp[Once(i)], BUFF_COLORS[Buff.Arc], EffectRev.VisibleToPositionRadiusAndColor);
+        CreateBeamEffect(hit[Once(i - 1)] ? All() : null, BeamType.BadBeam, hp[Once(i - 1)], hp[Once(i)], MOD_COLORS[Mod.Arc], EffectRev.VisibleToPositionRadiusAndColor);
         arcEffects[i + S_ARC_BOUNCES + 1] = LastCreatedEntity();
     }
 
-    while (IsPrimaryHeld() && IsAlive() && buffEnabled[Buff.Arc])
+    while (IsPrimaryHeld() && IsAlive() && modEnabled[Mod.Arc])
     {
         if (!infAmmo)
-            heldBuffAmmo[Buff.Arc]--;
+            heldModAmmo[Mod.Arc]--;
 
         effTick++;
         eye_pos = EyePosition();
@@ -84,7 +84,7 @@ if (IsAlive())
                     hit[i] = true;
 
                     if (effTick % 4 == 0)
-                        PlayEffect(All(), PlayEffect.BadExplosion, BUFF_COLORS[Buff.Arc], hp[i], 0.25);
+                        PlayEffect(All(), PlayEffect.BadExplosion, MOD_COLORS[Mod.Arc], hp[i], 0.25);
                 }
                 else
                 {
